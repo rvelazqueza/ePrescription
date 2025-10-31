@@ -1,0 +1,233 @@
+/* Estilos específicos para el componente de centros médicos */
+
+/* Animaciones para los modales */
+.modal-enter {
+  animation: modalEnter 0.3s ease-out;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Estilos para el panel lateral */
+.side-panel-enter {
+  animation: sidePanelEnter 0.3s ease-out;
+}
+
+@keyframes sidePanelEnter {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Hover effects para las filas de tabla */
+.table-row-hover:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+/* Estilos para los badges de estado */
+.badge-aprobada {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badge-pendiente {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge-rechazada {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-activo {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badge-inactivo {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Estilos para los tipos de centro */
+.tipo-hospital {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.tipo-clinica {
+  background-color: #ede9fe;
+  color: #6b21a8;
+}
+
+.tipo-centro-salud {
+  background-color: #ccfbf1;
+  color: #134e4a;
+}
+
+.tipo-consultorio {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+/* Estilos para el botón de mayúsculas activo */
+.mayusculas-active {
+  background-color: #2563eb;
+  color: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Estilos para texto en mayúsculas */
+.uppercase {
+  text-transform: uppercase;
+}
+
+/* Estilos para los iconos de acción */
+.action-icon {
+  transition: all 0.2s ease;
+}
+
+.action-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Estilos para las estadísticas */
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Estilos para los tabs */
+.tab-active {
+  border-bottom-color: #2563eb;
+  color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.tab-inactive {
+  border-bottom-color: transparent;
+  color: #6b7280;
+}
+
+.tab-inactive:hover {
+  color: #374151;
+  border-bottom-color: #d1d5db;
+}
+
+/* Estilos para la paginación */
+.pagination-button {
+  transition: all 0.2s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f9fafb;
+  transform: translateY(-1px);
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Estilos para los filtros */
+.filter-input {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.filter-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Estilos para los botones de acción */
+.action-button {
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilos para el overlay del modal */
+.modal-overlay {
+  backdrop-filter: blur(4px);
+}
+
+/* Estilos específicos para modales centrados */
+.modal-centered {
+  z-index: 9999;
+}
+
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+/* Estilos para el contenido del modal */
+.modal-content {
+  animation: modalContentEnter 0.3s ease-out;
+}
+
+@keyframes modalContentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .modal-content {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+/* Estilos para el scroll personalizado */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

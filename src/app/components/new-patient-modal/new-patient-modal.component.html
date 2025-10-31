@@ -1,0 +1,675 @@
+<!-- Modal Backdrop -->
+<div 
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+  (click)="onBackdropClick($event)"
+>
+  <!-- Modal Container -->
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden">
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+          <lucide-icon [img]="userCheckIcon" class="w-5 h-5 text-green-600"></lucide-icon>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900">Registrar nuevo paciente</h2>
+          <p class="text-sm text-gray-600">Ingresa la información completa del nuevo paciente. Los campos marcados con * son obligatorios.</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="onClose()"
+        class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        aria-label="Cerrar modal"
+      >
+        <lucide-icon [img]="xIcon" class="w-5 h-5 text-gray-500"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Progress Tabs -->
+    <div class="border-b border-gray-200 bg-gray-50">
+      <nav class="flex overflow-x-auto" aria-label="Tabs">
+        <button
+          *ngFor="let tab of formTabs; let i = index"
+          type="button"
+          (click)="setActiveTab(tab.id)"
+          [class]="getTabClasses(tab.id)"
+          class="whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors min-w-fit"
+        >
+          <lucide-icon [img]="tab.icon" class="w-4 h-4"></lucide-icon>
+          <span class="hidden sm:inline">{{ tab.label }}</span>
+          <span class="sm:hidden">{{ tab.shortLabel }}</span>
+          <span 
+            *ngIf="getTabValidationStatus(tab.id) === 'error'"
+            class="w-2 h-2 bg-red-500 rounded-full"
+          ></span>
+          <span 
+            *ngIf="getTabValidationStatus(tab.id) === 'success'"
+            class="w-2 h-2 bg-green-500 rounded-full"
+          ></span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="overflow-y-auto max-h-[calc(90vh-200px)]">
+      <form [formGroup]="patientForm" (ngSubmit)="onSubmit()" class="p-6">
+
+        <!-- Tab 1: Información Personal -->
+        <div *ngIf="activeTab === 'personal'" class="space-y-6">
+          <div class="border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <lucide-icon [img]="userIcon" class="w-5 h-5 text-green-600"></lucide-icon>
+              Información Personal
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Datos básicos de identificación del paciente</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Primer Nombre -->
+            <div class="space-y-2">
+              <label for="firstName" class="block text-sm font-medium text-gray-700">
+                Primer Nombre *
+              </label>
+              <input
+                id="firstName"
+                type="text"
+                formControlName="firstName"
+                placeholder="Ej: María"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('firstName')"
+                [class.border-green-500]="isFieldValid('firstName')"
+              >
+              <div *ngIf="isFieldInvalid('firstName')" class="text-red-600 text-sm">
+                El primer nombre es obligatorio
+              </div>
+            </div>
+
+            <!-- Segundo Nombre -->
+            <div class="space-y-2">
+              <label for="secondName" class="block text-sm font-medium text-gray-700">
+                Segundo Nombre
+              </label>
+              <input
+                id="secondName"
+                type="text"
+                formControlName="secondName"
+                placeholder="Ej: Elena"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              >
+            </div>
+
+            <!-- Primer Apellido -->
+            <div class="space-y-2">
+              <label for="firstLastName" class="block text-sm font-medium text-gray-700">
+                Primer Apellido *
+              </label>
+              <input
+                id="firstLastName"
+                type="text"
+                formControlName="firstLastName"
+                placeholder="Ej: González"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('firstLastName')"
+                [class.border-green-500]="isFieldValid('firstLastName')"
+              >
+              <div *ngIf="isFieldInvalid('firstLastName')" class="text-red-600 text-sm">
+                El primer apellido es obligatorio
+              </div>
+            </div>
+
+            <!-- Segundo Apellido -->
+            <div class="space-y-2">
+              <label for="secondLastName" class="block text-sm font-medium text-gray-700">
+                Segundo Apellido
+              </label>
+              <input
+                id="secondLastName"
+                type="text"
+                formControlName="secondLastName"
+                placeholder="Ej: Rodríguez"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              >
+            </div>
+
+            <!-- Tipo de Documento -->
+            <div class="space-y-2">
+              <label for="idType" class="block text-sm font-medium text-gray-700">
+                Tipo de Documento *
+              </label>
+              <select
+                id="idType"
+                formControlName="idType"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              >
+                <option value="CC">Cédula de Ciudadanía</option>
+                <option value="CE">Cédula de Extranjería</option>
+                <option value="TI">Tarjeta de Identidad</option>
+                <option value="PA">Pasaporte</option>
+                <option value="RC">Registro Civil</option>
+              </select>
+            </div>
+
+            <!-- Número de Documento -->
+            <div class="space-y-2">
+              <label for="idNumber" class="block text-sm font-medium text-gray-700">
+                Número de Documento *
+              </label>
+              <input
+                id="idNumber"
+                type="text"
+                formControlName="idNumber"
+                placeholder="Ej: 1234567890"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('idNumber')"
+                [class.border-green-500]="isFieldValid('idNumber')"
+              >
+              <div *ngIf="isFieldInvalid('idNumber')" class="text-red-600 text-sm">
+                El número de documento es obligatorio
+              </div>
+            </div>
+
+            <!-- Fecha de Nacimiento -->
+            <div class="space-y-2">
+              <label for="birthDate" class="block text-sm font-medium text-gray-700">
+                Fecha de Nacimiento *
+              </label>
+              <input
+                id="birthDate"
+                type="date"
+                formControlName="birthDate"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('birthDate')"
+                [class.border-green-500]="isFieldValid('birthDate')"
+              >
+              <div *ngIf="getAge() > 0" class="text-xs text-gray-500 mt-1">
+                Edad: {{ getAge() }} años
+              </div>
+              <div *ngIf="isFieldInvalid('birthDate')" class="text-red-600 text-sm">
+                La fecha de nacimiento es obligatoria
+              </div>
+            </div>
+
+            <!-- Género -->
+            <div class="space-y-2">
+              <label for="gender" class="block text-sm font-medium text-gray-700">
+                Género *
+              </label>
+              <select
+                id="gender"
+                formControlName="gender"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('gender')"
+                [class.border-green-500]="isFieldValid('gender')"
+              >
+                <option value="">Seleccione</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+              </select>
+              <div *ngIf="isFieldInvalid('gender')" class="text-red-600 text-sm">
+                El género es obligatorio
+              </div>
+            </div>
+
+            <!-- Tipo de Sangre -->
+            <div class="space-y-2">
+              <label for="bloodType" class="block text-sm font-medium text-gray-700">
+                Tipo de Sangre
+              </label>
+              <select
+                id="bloodType"
+                formControlName="bloodType"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              >
+                <option value="">Seleccione</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-end pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              (click)="goToTab('contacto')"
+              class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              Siguiente: Información de Contacto
+              <lucide-icon [img]="arrowRightIcon" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 2: Información de Contacto -->
+        <div *ngIf="activeTab === 'contacto'" class="space-y-6">
+          <div class="border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <lucide-icon [img]="phoneIcon" class="w-5 h-5 text-green-600"></lucide-icon>
+              Información de Contacto
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Datos de contacto y ubicación del paciente</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Teléfono -->
+            <div class="space-y-2">
+              <label for="phone" class="block text-sm font-medium text-gray-700">
+                Teléfono *
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                formControlName="phone"
+                placeholder="+57 310 456-7890"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('phone')"
+                [class.border-green-500]="isFieldValid('phone')"
+              >
+              <div *ngIf="isFieldInvalid('phone')" class="text-red-600 text-sm">
+                El teléfono es obligatorio
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="space-y-2">
+              <label for="email" class="block text-sm font-medium text-gray-700">
+                Correo Electrónico
+              </label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="paciente@email.com"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('email')"
+                [class.border-green-500]="isFieldValid('email')"
+              >
+              <div *ngIf="isFieldInvalid('email')" class="text-red-600 text-sm">
+                <span *ngIf="patientForm.get('email')?.errors?.['email']">El formato del email no es válido</span>
+              </div>
+            </div>
+
+            <!-- Dirección -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="address" class="block text-sm font-medium text-gray-700">
+                Dirección de Residencia
+              </label>
+              <input
+                id="address"
+                type="text"
+                formControlName="address"
+                placeholder="Calle 45 #23-67, Apto 301"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              >
+            </div>
+
+            <!-- Ciudad -->
+            <div class="space-y-2">
+              <label for="city" class="block text-sm font-medium text-gray-700">
+                Ciudad
+              </label>
+              <input
+                id="city"
+                type="text"
+                formControlName="city"
+                placeholder="Bogotá"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              >
+            </div>
+
+            <!-- País -->
+            <div class="space-y-2">
+              <label for="country" class="block text-sm font-medium text-gray-700">
+                País
+              </label>
+              <select
+                id="country"
+                formControlName="country"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              >
+                <option value="Colombia">Colombia</option>
+                <option value="Costa Rica">Costa Rica</option>
+                <option value="Argentina">Argentina</option>
+                <option value="Chile">Chile</option>
+                <option value="México">México</option>
+                <option value="Perú">Perú</option>
+                <option value="España">España</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between gap-3 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              (click)="goToTab('personal')"
+              class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+            >
+              <lucide-icon [img]="arrowLeftIcon" class="w-4 h-4"></lucide-icon>
+              Anterior
+            </button>
+            <button
+              type="button"
+              (click)="goToTab('medica')"
+              class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              Siguiente: Información Médica
+              <lucide-icon [img]="arrowRightIcon" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 3: Información Médica -->
+        <div *ngIf="activeTab === 'medica'" class="space-y-6">
+          <div class="border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <lucide-icon [img]="activityIcon" class="w-5 h-5 text-green-600"></lucide-icon>
+              Información Médica
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Datos médicos y de salud del paciente</p>
+          </div>
+
+          <!-- Datos Vitales -->
+          <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h3 class="text-md font-medium text-gray-900 mb-3">Datos Vitales</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="space-y-2">
+                <label for="weight" class="block text-sm font-medium text-gray-700">
+                  Peso (kg)
+                </label>
+                <input
+                  id="weight"
+                  type="number"
+                  step="0.1"
+                  formControlName="weight"
+                  placeholder="70.5"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                >
+              </div>
+
+              <div class="space-y-2">
+                <label for="height" class="block text-sm font-medium text-gray-700">
+                  Altura (m)
+                </label>
+                <input
+                  id="height"
+                  type="number"
+                  step="0.01"
+                  formControlName="height"
+                  placeholder="1.75"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                >
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">
+                  IMC
+                </label>
+                <div class="h-12 flex items-center px-4 border border-gray-300 rounded-lg bg-gray-100">
+                  <span class="text-sm font-medium">{{ getBMI() || '---' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alergias -->
+          <div class="space-y-4">
+            <h3 class="text-md font-medium text-gray-900">Alergias Conocidas</h3>
+            
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Agregar Alergia
+              </label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  [(ngModel)]="newAllergy"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="Ej: Penicilina"
+                  class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                  (keyup.enter)="addAllergy()"
+                >
+                <button
+                  type="button"
+                  (click)="addAllergy()"
+                  class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <lucide-icon [img]="plusIcon" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="allergies.length > 0" class="flex flex-wrap gap-2">
+              <span
+                *ngFor="let allergy of allergies; let i = index"
+                class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm border border-red-300"
+              >
+                {{ allergy }}
+                <button
+                  type="button"
+                  (click)="removeAllergy(i)"
+                  class="ml-1 hover:bg-red-200 rounded-full p-0.5 transition-colors"
+                >
+                  <lucide-icon [img]="xIcon" class="w-3 h-3"></lucide-icon>
+                </button>
+              </span>
+            </div>
+          </div>
+
+          <!-- Condiciones Crónicas -->
+          <div class="space-y-4">
+            <h3 class="text-md font-medium text-gray-900">Condiciones Crónicas</h3>
+            
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Agregar Condición Crónica
+              </label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  [(ngModel)]="newCondition"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="Ej: Hipertensión"
+                  class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                  (keyup.enter)="addCondition()"
+                >
+                <button
+                  type="button"
+                  (click)="addCondition()"
+                  class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <lucide-icon [img]="plusIcon" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="chronicConditions.length > 0" class="flex flex-wrap gap-2">
+              <span
+                *ngFor="let condition of chronicConditions; let i = index"
+                class="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm border border-orange-300"
+              >
+                {{ condition }}
+                <button
+                  type="button"
+                  (click)="removeCondition(i)"
+                  class="ml-1 hover:bg-orange-200 rounded-full p-0.5 transition-colors"
+                >
+                  <lucide-icon [img]="xIcon" class="w-3 h-3"></lucide-icon>
+                </button>
+              </span>
+            </div>
+          </div>
+
+          <!-- Medicación Actual -->
+          <div class="space-y-4">
+            <h3 class="text-md font-medium text-gray-900">Medicación Actual</h3>
+            
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Agregar Medicamento
+              </label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  [(ngModel)]="newMedication"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="Ej: Losartán 50mg"
+                  class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                  (keyup.enter)="addMedication()"
+                >
+                <button
+                  type="button"
+                  (click)="addMedication()"
+                  class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <lucide-icon [img]="plusIcon" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="currentMedications.length > 0" class="flex flex-wrap gap-2">
+              <span
+                *ngFor="let medication of currentMedications; let i = index"
+                class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm border border-blue-300"
+              >
+                <lucide-icon [img]="pillIcon" class="w-3 h-3"></lucide-icon>
+                {{ medication }}
+                <button
+                  type="button"
+                  (click)="removeMedication(i)"
+                  class="ml-1 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                >
+                  <lucide-icon [img]="xIcon" class="w-3 h-3"></lucide-icon>
+                </button>
+              </span>
+            </div>
+          </div>
+
+          <!-- Notas Clínicas -->
+          <div class="space-y-2">
+            <label for="clinicalNotes" class="block text-sm font-medium text-gray-700">
+              Notas Clínicas Adicionales
+            </label>
+            <textarea
+              id="clinicalNotes"
+              formControlName="clinicalNotes"
+              rows="4"
+              placeholder="Información médica relevante, antecedentes familiares, observaciones..."
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors resize-none"
+            ></textarea>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between gap-3 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              (click)="goToTab('contacto')"
+              class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+            >
+              <lucide-icon [img]="arrowLeftIcon" class="w-4 h-4"></lucide-icon>
+              Anterior
+            </button>
+            <button
+              type="button"
+              (click)="goToTab('emergencia')"
+              class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              Siguiente: Contacto de Emergencia
+              <lucide-icon [img]="arrowRightIcon" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 4: Contacto de Emergencia -->
+        <div *ngIf="activeTab === 'emergencia'" class="space-y-6">
+          <div class="border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <lucide-icon [img]="alertTriangleIcon" class="w-5 h-5 text-green-600"></lucide-icon>
+              Contacto de Emergencia
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Información de contacto para emergencias médicas</p>
+          </div>
+
+          <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Nombre del Contacto -->
+              <div class="space-y-2">
+                <label for="emergencyName" class="block text-sm font-medium text-gray-700">
+                  Nombre Completo
+                </label>
+                <input
+                  id="emergencyName"
+                  type="text"
+                  formControlName="emergencyName"
+                  placeholder="Nombre del contacto"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                >
+              </div>
+
+              <!-- Relación -->
+              <div class="space-y-2">
+                <label for="emergencyRelationship" class="block text-sm font-medium text-gray-700">
+                  Relación
+                </label>
+                <input
+                  id="emergencyRelationship"
+                  type="text"
+                  formControlName="emergencyRelationship"
+                  placeholder="Esposo, Madre, etc."
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                >
+              </div>
+
+              <!-- Teléfono de Emergencia -->
+              <div class="space-y-2">
+                <label for="emergencyPhone" class="block text-sm font-medium text-gray-700">
+                  Teléfono
+                </label>
+                <input
+                  id="emergencyPhone"
+                  type="tel"
+                  formControlName="emergencyPhone"
+                  placeholder="+57 310 456-7890"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between gap-3 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              (click)="goToTab('medica')"
+              class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+            >
+              <lucide-icon [img]="arrowLeftIcon" class="w-4 h-4"></lucide-icon>
+              Anterior
+            </button>
+            <button
+              type="submit"
+              [disabled]="patientForm.invalid || isSubmitting"
+              class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            >
+              <lucide-icon 
+                [img]="saveIcon" 
+                class="w-4 h-4"
+                [class.animate-spin]="isSubmitting"
+              ></lucide-icon>
+              <span *ngIf="!isSubmitting">Crear Paciente</span>
+              <span *ngIf="isSubmitting">Creando...</span>
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>

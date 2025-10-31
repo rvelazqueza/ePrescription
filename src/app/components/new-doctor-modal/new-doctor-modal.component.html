@@ -1,0 +1,835 @@
+<!-- Modal Backdrop -->
+<div 
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+  (click)="onBackdropClick($event)"
+>
+  <!-- Modal Container -->
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+          <lucide-icon [img]="userCheckIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900">Registrar nuevo médico</h2>
+          <p class="text-sm text-gray-600">Ingresa la información completa del nuevo médico. Los campos marcados con * son obligatorios.</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="onClose()"
+        class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        aria-label="Cerrar modal"
+      >
+        <lucide-icon [img]="xIcon" class="w-5 h-5 text-gray-500"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Progress Tabs -->
+    <div class="border-b border-gray-200 bg-gray-50">
+      <nav class="flex overflow-x-auto" aria-label="Tabs">
+        <button
+          *ngFor="let tab of formTabs; let i = index"
+          type="button"
+          (click)="setActiveTab(tab.id)"
+          [class]="getTabClasses(tab.id)"
+          class="whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors min-w-0 flex-shrink-0"
+        >
+          <lucide-icon [img]="tab.icon" class="w-4 h-4"></lucide-icon>
+          <span class="hidden sm:inline">{{ tab.label }}</span>
+          <span class="sm:hidden">{{ tab.shortLabel }}</span>
+          <span 
+            *ngIf="getTabValidationStatus(tab.id) === 'error'"
+            class="w-2 h-2 bg-red-500 rounded-full"
+          ></span>
+          <span 
+            *ngIf="getTabValidationStatus(tab.id) === 'success'"
+            class="w-2 h-2 bg-green-500 rounded-full"
+          ></span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="overflow-y-auto max-h-[calc(90vh-200px)]">
+      <form [formGroup]="doctorForm" (ngSubmit)="onSubmit()" class="p-6">
+        
+        <!-- Tab 1: Personal -->
+        <div *ngIf="activeTab === 'personal'" class="space-y-6">     
+     <div class="border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <lucide-icon [img]="userIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+              Información Personal
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Datos básicos de identificación del médico</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nombres -->
+            <div class="space-y-2">
+              <label for="firstName" class="block text-sm font-medium text-gray-700">
+                Nombres *
+              </label>
+              <input
+                id="firstName"
+                type="text"
+                formControlName="firstName"
+                placeholder="Ej: Carlos Andrés"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('firstName')"
+                [class.border-green-500]="isFieldValid('firstName')"
+              >
+              <div *ngIf="isFieldInvalid('firstName')" class="text-red-600 text-sm">
+                Los nombres son obligatorios
+              </div>
+            </div>
+
+            <!-- Apellidos -->
+            <div class="space-y-2">
+              <label for="lastName" class="block text-sm font-medium text-gray-700">
+                Apellidos *
+              </label>
+              <input
+                id="lastName"
+                type="text"
+                formControlName="lastName"
+                placeholder="Ej: Martínez López"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('lastName')"
+                [class.border-green-500]="isFieldValid('lastName')"
+              >
+              <div *ngIf="isFieldInvalid('lastName')" class="text-red-600 text-sm">
+                Los apellidos son obligatorios
+              </div>
+            </div>
+
+            <!-- Tipo de Documento -->
+            <div class="space-y-2">
+              <label for="documentType" class="block text-sm font-medium text-gray-700">
+                Tipo de Documento
+              </label>
+              <select
+                id="documentType"
+                formControlName="documentType"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+                <option value="CC">Cédula de Ciudadanía</option>
+                <option value="CE">Cédula de Extranjería</option>
+                <option value="PA">Pasaporte</option>
+              </select>
+            </div>
+
+            <!-- Número de Documento -->
+            <div class="space-y-2">
+              <label for="documentNumber" class="block text-sm font-medium text-gray-700">
+                Número de Documento *
+              </label>
+              <input
+                id="documentNumber"
+                type="text"
+                formControlName="documentNumber"
+                placeholder="1234567890"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('documentNumber')"
+                [class.border-green-500]="isFieldValid('documentNumber')"
+              >
+              <div *ngIf="isFieldInvalid('documentNumber')" class="text-red-600 text-sm">
+                El número de documento es obligatorio
+              </div>
+            </div>
+
+            <!-- Fecha de Nacimiento -->
+            <div class="space-y-2">
+              <label for="birthDate" class="block text-sm font-medium text-gray-700">
+                Fecha de Nacimiento
+              </label>
+              <input
+                id="birthDate"
+                type="date"
+                formControlName="birthDate"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+            </div>
+
+            <!-- Género -->
+            <div class="space-y-2">
+              <label for="gender" class="block text-sm font-medium text-gray-700">
+                Género
+              </label>
+              <select
+                id="gender"
+                formControlName="gender"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+                <option value="">Seleccione</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+                <option value="O">Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-end pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              (click)="goToTab('contacto')"
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              Siguiente: Contacto
+              <lucide-icon [img]="arrowRightIcon" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 2: Contacto -->
+        <div *ngIf="activeTab === 'contacto'" class="space-y-6">
+          <div class="border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <lucide-icon [img]="phoneIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+              Información de Contacto
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Datos de contacto y ubicación</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Email -->
+            <div class="space-y-2">
+              <label for="email" class="block text-sm font-medium text-gray-700">
+                Correo Electrónico *
+              </label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="doctor@hospital.com"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('email')"
+                [class.border-green-500]="isFieldValid('email')"
+              >
+              <div *ngIf="isFieldInvalid('email')" class="text-red-600 text-sm">
+                <span *ngIf="doctorForm.get('email')?.errors?.['required']">El email es obligatorio</span>
+                <span *ngIf="doctorForm.get('email')?.errors?.['email']">El formato del email no es válido</span>
+              </div>
+            </div>
+
+            <!-- Teléfono Personal -->
+            <div class="space-y-2">
+              <label for="phone" class="block text-sm font-medium text-gray-700">
+                Teléfono Personal *
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                formControlName="phone"
+                placeholder="+57 310 456-7890"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('phone')"
+                [class.border-green-500]="isFieldValid('phone')"
+              >
+              <div *ngIf="isFieldInvalid('phone')" class="text-red-600 text-sm">
+                El teléfono es obligatorio
+              </div>
+            </div>
+
+            <!-- Teléfono de Oficina -->
+            <div class="space-y-2">
+              <label for="officePhone" class="block text-sm font-medium text-gray-700">
+                Teléfono de Oficina
+              </label>
+              <input
+                id="officePhone"
+                type="tel"
+                formControlName="officePhone"
+                placeholder="+57 1 234-5678"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+            </div>
+
+            <!-- Dirección -->
+            <div class="space-y-2">
+              <label for="address" class="block text-sm font-medium text-gray-700">
+                Dirección del Consultorio
+              </label>
+              <input
+                id="address"
+                type="text"
+                formControlName="address"
+                placeholder="Cra 15 #85-23, Consultorio 402"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+            </div>
+
+            <!-- Ciudad -->
+            <div class="space-y-2">
+              <label for="city" class="block text-sm font-medium text-gray-700">
+                Ciudad
+              </label>
+              <input
+                id="city"
+                type="text"
+                formControlName="city"
+                placeholder="Bogotá"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+            </div>
+
+            <!-- País -->
+            <div class="space-y-2">
+              <label for="country" class="block text-sm font-medium text-gray-700">
+                País
+              </label>
+              <select
+                id="country"
+                formControlName="country"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+                <option value="Colombia">Colombia</option>
+                <option value="Argentina">Argentina</option>
+                <option value="Chile">Chile</option>
+                <option value="México">México</option>
+                <option value="Perú">Perú</option>
+                <option value="España">España</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between gap-3 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              (click)="goToTab('personal')"
+              class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+            >
+              <lucide-icon [img]="arrowLeftIcon" class="w-4 h-4"></lucide-icon>
+              Anterior
+            </button>
+            <button
+              type="button"
+              (click)="goToTab('formacion')"
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              Siguiente: Formación
+              <lucide-icon [img]="arrowRightIcon" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+        </div>      
+  <!-- Tab 3: Formación -->
+        <div *ngIf="activeTab === 'formacion'" class="space-y-6">
+          <div class="border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <lucide-icon [img]="graduationCapIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+              Formación Académica
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Especialidad y formación académica</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Especialidad -->
+            <div class="space-y-2">
+              <label for="specialty" class="block text-sm font-medium text-gray-700">
+                Especialidad Principal *
+              </label>
+              <select
+                id="specialty"
+                formControlName="specialty"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('specialty')"
+                [class.border-green-500]="isFieldValid('specialty')"
+              >
+                <option value="">Seleccione la especialidad</option>
+                <option value="Cardiología">Cardiología</option>
+                <option value="Pediatría">Pediatría</option>
+                <option value="Medicina Interna">Medicina Interna</option>
+                <option value="Ginecología y Obstetricia">Ginecología y Obstetricia</option>
+                <option value="Ortopedia y Traumatología">Ortopedia y Traumatología</option>
+                <option value="Neurología">Neurología</option>
+                <option value="Psiquiatría">Psiquiatría</option>
+                <option value="Dermatología">Dermatología</option>
+                <option value="Anestesiología">Anestesiología</option>
+                <option value="Radiología">Radiología</option>
+                <option value="Cirugía General">Cirugía General</option>
+                <option value="Medicina General">Medicina General</option>
+              </select>
+              <div *ngIf="isFieldInvalid('specialty')" class="text-red-600 text-sm">
+                La especialidad es obligatoria
+              </div>
+            </div>
+
+            <!-- Subespecialidades -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">
+                Subespecialidades
+              </label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  [(ngModel)]="newSubspecialty"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="Ej: Electrofisiología"
+                  class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  (keyup.enter)="addSubspecialty()"
+                >
+                <button
+                  type="button"
+                  (click)="addSubspecialty()"
+                  class="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <lucide-icon [img]="plusIcon" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+              <div *ngIf="subspecialties.length > 0" class="flex flex-wrap gap-2 mt-2">
+                <span
+                  *ngFor="let sub of subspecialties; let i = index"
+                  class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm border border-blue-300"
+                >
+                  {{ sub }}
+                  <button
+                    type="button"
+                    (click)="removeSubspecialty(i)"
+                    class="ml-1 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                  >
+                    <lucide-icon [img]="xIcon" class="w-3 h-3"></lucide-icon>
+                  </button>
+                </span>
+              </div>
+            </div>
+
+            <!-- Universidad -->
+            <div class="space-y-2">
+              <label for="university" class="block text-sm font-medium text-gray-700">
+                Universidad
+              </label>
+              <input
+                id="university"
+                type="text"
+                formControlName="university"
+                placeholder="Universidad Nacional de Colombia"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+            </div>
+
+            <!-- Año de Graduación -->
+            <div class="space-y-2">
+              <label for="graduationYear" class="block text-sm font-medium text-gray-700">
+                Año de Graduación
+              </label>
+              <input
+                id="graduationYear"
+                type="number"
+                formControlName="graduationYear"
+                placeholder="2008"
+                min="1950"
+                [max]="currentYear"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between gap-3 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              (click)="goToTab('contacto')"
+              class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+            >
+              <lucide-icon [img]="arrowLeftIcon" class="w-4 h-4"></lucide-icon>
+              Anterior
+            </button>
+            <button
+              type="button"
+              (click)="goToTab('licencias')"
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              Siguiente: Licencias
+              <lucide-icon [img]="arrowRightIcon" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+        </div>      
+  <!-- Tab 4: Licencias -->
+        <div *ngIf="activeTab === 'licencias'" class="space-y-6">
+          <div class="border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <lucide-icon [img]="fileTextIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+              Licencias y Certificaciones
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Información de licencias médicas y certificaciones</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Número de Licencia -->
+            <div class="space-y-2">
+              <label for="licenseNumber" class="block text-sm font-medium text-gray-700">
+                Número de Licencia Médica *
+              </label>
+              <input
+                id="licenseNumber"
+                type="text"
+                formControlName="licenseNumber"
+                placeholder="MSP-2015-045678"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                [class.border-red-500]="isFieldInvalid('licenseNumber')"
+                [class.border-green-500]="isFieldValid('licenseNumber')"
+              >
+              <div *ngIf="isFieldInvalid('licenseNumber')" class="text-red-600 text-sm">
+                El número de licencia es obligatorio
+              </div>
+            </div>
+
+            <!-- Fecha de Vencimiento -->
+            <div class="space-y-2">
+              <label for="licenseExpiry" class="block text-sm font-medium text-gray-700">
+                Fecha de Vencimiento
+              </label>
+              <input
+                id="licenseExpiry"
+                type="date"
+                formControlName="licenseExpiry"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+            </div>
+
+            <!-- Entidad Emisora -->
+            <div class="space-y-2 md:col-span-2">
+              <label for="licenseIssuer" class="block text-sm font-medium text-gray-700">
+                Entidad Emisora
+              </label>
+              <input
+                id="licenseIssuer"
+                type="text"
+                formControlName="licenseIssuer"
+                placeholder="Ministerio de Salud y Protección Social"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+            </div>
+          </div>
+
+          <!-- Certificaciones -->
+          <div class="space-y-4">
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Agregar Certificación
+              </label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  [(ngModel)]="newCertification"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="Ej: Certificación en Electrofisiología Cardíaca - ACC 2018"
+                  class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  (keyup.enter)="addCertification()"
+                >
+                <button
+                  type="button"
+                  (click)="addCertification()"
+                  class="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <lucide-icon [img]="plusIcon" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista de Certificaciones -->
+            <div *ngIf="certifications.length > 0" class="space-y-3">
+              <h3 class="text-sm font-medium text-gray-700">Certificaciones Registradas</h3>
+              <div
+                *ngFor="let cert of certifications; let i = index"
+                class="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200"
+              >
+                <lucide-icon [img]="awardIcon" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></lucide-icon>
+                <div class="flex-1">
+                  <p class="text-sm text-gray-900">{{ cert }}</p>
+                </div>
+                <button
+                  type="button"
+                  (click)="removeCertification(i)"
+                  class="text-blue-800 hover:bg-blue-200 rounded-full p-1 transition-colors"
+                >
+                  <lucide-icon [img]="xIcon" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between gap-3 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              (click)="goToTab('formacion')"
+              class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+            >
+              <lucide-icon [img]="arrowLeftIcon" class="w-4 h-4"></lucide-icon>
+              Anterior
+            </button>
+            <button
+              type="button"
+              (click)="goToTab('horarios')"
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              Siguiente: Horarios
+              <lucide-icon [img]="arrowRightIcon" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 5: Horarios -->
+        <div *ngIf="activeTab === 'horarios'" class="space-y-6">
+          <div class="border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <lucide-icon [img]="clockIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+              Horarios de Atención
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Configura los horarios de consulta del médico</p>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Agregar Horario -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-3">
+                Agregar Nuevo Horario
+              </label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">Días</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="newScheduleDays"
+                    [ngModelOptions]="{standalone: true}"
+                    placeholder="Ej: Lunes - Viernes"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  >
+                </div>
+                <div class="flex gap-2">
+                  <div class="flex-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Horario</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="newScheduleHours"
+                      [ngModelOptions]="{standalone: true}"
+                      placeholder="Ej: 08:00 - 14:00"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    >
+                  </div>
+                  <div class="flex items-end">
+                    <button
+                      type="button"
+                      (click)="addSchedule()"
+                      class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <lucide-icon [img]="plusIcon" class="w-4 h-4"></lucide-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista de Horarios -->
+            <div *ngIf="schedules.length > 0" class="space-y-3">
+              <h3 class="text-sm font-medium text-gray-700">Horarios Configurados</h3>
+              <div
+                *ngFor="let schedule of schedules; let i = index"
+                class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+              >
+                <div class="flex items-center gap-3">
+                  <lucide-icon [img]="clockIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+                  <div>
+                    <p class="text-sm font-medium text-gray-900">{{ schedule.days }}</p>
+                    <p class="text-xs text-gray-600">{{ schedule.hours }}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  (click)="removeSchedule(i)"
+                  class="text-gray-600 hover:bg-gray-200 rounded-full p-1 transition-colors"
+                >
+                  <lucide-icon [img]="xIcon" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Estado vacío -->
+            <div *ngIf="schedules.length === 0" class="text-center py-8 text-gray-500">
+              <lucide-icon [img]="clockIcon" class="w-12 h-12 mx-auto mb-3 text-gray-300"></lucide-icon>
+              <p>No hay horarios configurados</p>
+              <p class="text-sm">Agrega los horarios de atención del médico</p>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between gap-3 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              (click)="goToTab('licencias')"
+              class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+            >
+              <lucide-icon [img]="arrowLeftIcon" class="w-4 h-4"></lucide-icon>
+              Anterior
+            </button>
+            <button
+              type="button"
+              (click)="goToTab('config')"
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              Siguiente: Configuración
+              <lucide-icon [img]="arrowRightIcon" class="w-4 h-4"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 6: Configuración -->
+        <div *ngIf="activeTab === 'config'" class="space-y-6">
+          <div class="border-b border-gray-200 pb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <lucide-icon [img]="settingsIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+              Configuración y Permisos
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Configura los niveles de acceso y permisos del médico</p>
+          </div>
+
+          <div class="space-y-6">
+            <!-- Permisos Básicos -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h3 class="text-sm font-medium text-gray-900 mb-3">Permisos Básicos</h3>
+              <div class="space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    formControlName="canPrescribe"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  >
+                  <div>
+                    <span class="text-sm font-medium text-gray-900">Puede prescribir medicamentos</span>
+                    <p class="text-xs text-gray-600">Permite al médico crear y emitir recetas médicas</p>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    formControlName="canPrescribeControlled"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  >
+                  <div>
+                    <span class="text-sm font-medium text-gray-900">Puede prescribir medicamentos controlados</span>
+                    <p class="text-xs text-gray-600">Permite prescribir medicamentos de control especial</p>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    formControlName="canViewOtherPrescriptions"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  >
+                  <div>
+                    <span class="text-sm font-medium text-gray-900">Acceso a recetas de otros médicos</span>
+                    <p class="text-xs text-gray-600">Puede ver y consultar recetas de otros profesionales</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Permisos Administrativos -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h3 class="text-sm font-medium text-gray-900 mb-3">Permisos Administrativos</h3>
+              <div class="space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    formControlName="canApproveUsers"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  >
+                  <div>
+                    <span class="text-sm font-medium text-gray-900">Puede aprobar usuarios</span>
+                    <p class="text-xs text-gray-600">Permite aprobar el registro de nuevos usuarios</p>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    formControlName="canManagePatients"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  >
+                  <div>
+                    <span class="text-sm font-medium text-gray-900">Gestión de pacientes</span>
+                    <p class="text-xs text-gray-600">Puede crear, editar y gestionar información de pacientes</p>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    formControlName="canAccessReports"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  >
+                  <div>
+                    <span class="text-sm font-medium text-gray-900">Acceso a reportes</span>
+                    <p class="text-xs text-gray-600">Puede generar y consultar reportes del sistema</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Estado del Usuario -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h3 class="text-sm font-medium text-gray-900 mb-3">Estado del Usuario</h3>
+              <div class="space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    formControlName="isActive"
+                    class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  >
+                  <div>
+                    <span class="text-sm font-medium text-gray-900">Usuario activo</span>
+                    <p class="text-xs text-gray-600">El médico puede acceder al sistema</p>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    formControlName="isOnDuty"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  >
+                  <div>
+                    <span class="text-sm font-medium text-gray-900">En turno</span>
+                    <p class="text-xs text-gray-600">El médico está actualmente en turno</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between gap-3 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              (click)="goToTab('horarios')"
+              class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+            >
+              <lucide-icon [img]="arrowLeftIcon" class="w-4 h-4"></lucide-icon>
+              Anterior
+            </button>
+            <button
+              type="submit"
+              [disabled]="doctorForm.invalid || isSubmitting"
+              class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            >
+              <lucide-icon 
+                [img]="saveIcon" 
+                class="w-4 h-4"
+                [class.animate-spin]="isSubmitting"
+              ></lucide-icon>
+              <span *ngIf="!isSubmitting">Crear Médico</span>
+              <span *ngIf="isSubmitting">Creando...</span>
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>

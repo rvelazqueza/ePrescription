@@ -1,0 +1,312 @@
+<!-- Modal lateral derecho para detalles de médico -->
+<div 
+  *ngIf="isVisible && doctor"
+  class="fixed inset-0 z-50 overflow-hidden"
+  (click)="closePanel()"
+>
+  <!-- Overlay -->
+  <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+  
+  <!-- Panel lateral -->
+  <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl transform transition-transform duration-300 ease-in-out flex flex-col"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Header del modal -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-white flex-shrink-0">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <lucide-icon name="stethoscope" class="w-5 h-5"></lucide-icon>
+            <h2 class="text-lg font-semibold">Información del Médico</h2>
+          </div>
+          <p class="text-blue-100 text-sm mt-1">{{ doctor.licenseNumber }}</p>
+        </div>
+        <button 
+          (click)="closePanel()"
+          class="p-2 hover:bg-white/20 rounded-lg transition-colors"
+        >
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido del modal con scroll -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-6 space-y-6">
+      
+      <!-- Estado del médico -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <lucide-icon name="activity" class="w-4 h-4 text-gray-600"></lucide-icon>
+            <span class="text-sm font-medium text-gray-700">Estado del médico</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span [class]="getStatusColor(doctor.status)" class="px-3 py-1 text-xs font-semibold rounded-full">
+              {{ doctor.status === 'active' ? 'Activo' : 'Inactivo' }}
+            </span>
+            <span *ngIf="doctor.isOnDuty" class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+              En turno
+            </span>
+          </div>
+        </div>
+        <div class="mt-2 flex items-center gap-2">
+          <ng-container [ngSwitch]="doctor.certificationStatus">
+            <lucide-icon 
+              *ngSwitchCase="'verified'" 
+              name="check-circle" 
+              class="w-4 h-4 text-green-600"
+            ></lucide-icon>
+            <lucide-icon 
+              *ngSwitchCase="'expired'" 
+              name="x-circle" 
+              class="w-4 h-4 text-red-600"
+            ></lucide-icon>
+            <lucide-icon 
+              *ngSwitchDefault 
+              name="alert-circle" 
+              class="w-4 h-4 text-yellow-600"
+            ></lucide-icon>
+          </ng-container>
+          <span class="text-xs text-gray-600">
+            Certificación: {{ doctor.certificationStatus === 'verified' ? 'Verificada' : 
+                             doctor.certificationStatus === 'expired' ? 'Expirada' : 'Pendiente' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Información Personal -->
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <lucide-icon name="user" class="w-5 h-5 text-gray-600"></lucide-icon>
+          <h3 class="text-lg font-semibold text-gray-900">Información Personal</h3>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+          <div>
+            <p class="text-sm text-gray-600">Nombre completo</p>
+            <p class="font-semibold text-gray-900">{{ doctor.fullName }}</p>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-gray-600">Email</p>
+              <p class="text-sm font-medium text-gray-900">{{ doctor.email }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600">Teléfono</p>
+              <p class="text-sm font-medium text-gray-900">{{ doctor.phone }}</p>
+            </div>
+          </div>
+          
+          <div *ngIf="doctor.officePhone">
+            <p class="text-xs text-gray-600">Teléfono de oficina</p>
+            <p class="text-sm font-medium text-gray-900">{{ doctor.officePhone }}</p>
+          </div>
+          
+          <div>
+            <p class="text-xs text-gray-600">Dirección</p>
+            <p class="text-sm font-medium text-gray-900">{{ doctor.address }}</p>
+            <p class="text-xs text-gray-500">{{ doctor.city }}, {{ doctor.country }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información Profesional -->
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <lucide-icon name="graduation-cap" class="w-5 h-5 text-gray-600"></lucide-icon>
+          <h3 class="text-lg font-semibold text-gray-900">Información Profesional</h3>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+          <div>
+            <p class="text-sm text-gray-600">Especialidad principal</p>
+            <p class="font-semibold text-gray-900">{{ doctor.specialty }}</p>
+          </div>
+          
+          <div *ngIf="doctor.subspecialties.length > 0">
+            <p class="text-sm text-gray-600 mb-2">Subespecialidades</p>
+            <div class="flex flex-wrap gap-1">
+              <span 
+                *ngFor="let subspecialty of doctor.subspecialties" 
+                class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium"
+              >
+                {{ subspecialty }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-gray-600">Licencia médica</p>
+              <p class="text-sm font-medium text-gray-900">{{ doctor.licenseNumber }}</p>
+              <p *ngIf="isLicenseExpiringSoon(doctor.licenseExpiry)" class="text-xs text-red-600 font-medium">Por vencer</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600">Vencimiento</p>
+              <p class="text-sm font-medium text-gray-900">{{ doctor.licenseExpiry }}</p>
+            </div>
+          </div>
+          
+          <div>
+            <p class="text-xs text-gray-600">Universidad</p>
+            <p class="text-sm font-medium text-gray-900">{{ doctor.university }}</p>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-gray-600">Año graduación</p>
+              <p class="text-sm font-medium text-gray-900">{{ doctor.graduationYear }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600">Experiencia</p>
+              <p class="text-sm font-medium text-gray-900">{{ doctor.yearsOfExperience }} años</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Certificaciones -->
+      <div *ngIf="doctor.certifications.length > 0">
+        <div class="flex items-center gap-2 mb-3">
+          <lucide-icon name="award" class="w-5 h-5 text-gray-600"></lucide-icon>
+          <h3 class="text-lg font-semibold text-gray-900">Certificaciones</h3>
+        </div>
+        
+        <div class="space-y-2">
+          <div 
+            *ngFor="let certification of doctor.certifications" 
+            class="bg-gray-50 rounded-lg p-3 border-l-4 border-l-blue-500"
+          >
+            <div class="flex items-center gap-2">
+              <lucide-icon name="award" class="w-4 h-4 text-blue-600"></lucide-icon>
+              <span class="text-sm font-medium text-gray-900">{{ certification }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Horarios de Atención -->
+      <div *ngIf="doctor.schedule.length > 0">
+        <div class="flex items-center gap-2 mb-3">
+          <lucide-icon name="clock" class="w-5 h-5 text-gray-600"></lucide-icon>
+          <h3 class="text-lg font-semibold text-gray-900">Horarios de Atención</h3>
+        </div>
+        
+        <div class="space-y-2">
+          <div 
+            *ngFor="let schedule of doctor.schedule" 
+            class="bg-gray-50 rounded-lg p-3"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <lucide-icon name="calendar" class="w-4 h-4 text-gray-600"></lucide-icon>
+                <span class="text-sm font-medium text-gray-900">{{ schedule.days }}</span>
+              </div>
+              <span class="text-sm text-gray-600">{{ schedule.hours }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas de Actividad -->
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <lucide-icon name="trending-up" class="w-5 h-5 text-gray-600"></lucide-icon>
+          <h3 class="text-lg font-semibold text-gray-900">Estadísticas de Actividad</h3>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-l-blue-500">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs text-gray-600">Recetas totales</p>
+                <p class="text-lg font-bold text-gray-900">{{ doctor.totalPrescriptions }}</p>
+              </div>
+              <lucide-icon name="file-text" class="w-6 h-6 text-blue-600"></lucide-icon>
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-l-green-500">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs text-gray-600">Este mes</p>
+                <p class="text-lg font-bold text-gray-900">{{ doctor.monthlyPrescriptions }}</p>
+              </div>
+              <lucide-icon name="activity" class="w-6 h-6 text-green-600"></lucide-icon>
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-l-purple-500">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs text-gray-600">Pacientes</p>
+                <p class="text-lg font-bold text-gray-900">{{ doctor.totalPatients }}</p>
+              </div>
+              <lucide-icon name="users" class="w-6 h-6 text-purple-600"></lucide-icon>
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-l-orange-500">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs text-gray-600">Promedio mensual</p>
+                <p class="text-lg font-bold text-gray-900">{{ doctor.averageMonthlyPrescriptions }}</p>
+              </div>
+              <lucide-icon name="trending-up" class="w-6 h-6 text-orange-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fechas -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-gray-50 rounded-lg p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <lucide-icon name="calendar" class="w-4 h-4 text-gray-600"></lucide-icon>
+            <span class="text-sm font-medium text-gray-700">Fecha de registro</span>
+          </div>
+          <p class="text-sm text-gray-900">{{ formatDate(doctor.registrationDate) }}</p>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <lucide-icon name="activity" class="w-4 h-4 text-gray-600"></lucide-icon>
+            <span class="text-sm font-medium text-gray-700">Última actividad</span>
+          </div>
+          <p class="text-sm text-gray-900">{{ formatDateTime(doctor.lastActivity) }}</p>
+        </div>
+      </div>
+      
+      <!-- Notas -->
+      <div *ngIf="doctor.notes" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <lucide-icon name="file-text" class="w-4 h-4 text-yellow-600"></lucide-icon>
+          <span class="text-sm font-medium text-yellow-800">Notas</span>
+        </div>
+        <p class="text-sm text-yellow-700">{{ doctor.notes }}</p>
+      </div>
+      </div>
+    </div>
+
+    <!-- Footer con botones de acción -->
+    <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 space-y-3 flex-shrink-0">
+      <button 
+        (click)="editDoctor()"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+      >
+        <lucide-icon name="edit" class="w-4 h-4"></lucide-icon>
+        Editar información
+      </button>
+      
+      <button 
+        (click)="viewPrescriptions()"
+        class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+      >
+        <lucide-icon name="file-text" class="w-4 h-4"></lucide-icon>
+        Ver recetas emitidas
+      </button>
+    </div>
+  </div>
+</div>

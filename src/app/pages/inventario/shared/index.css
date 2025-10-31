@@ -1,0 +1,220 @@
+/* Inventory Views - Main Styles Index */
+/* Import all shared inventory styles in the correct order */
+
+/* Base styles first */
+@import './inventory-styles.css';
+
+/* Badge and visual states */
+@import './inventory-badges.css';
+
+/* Accessibility enhancements */
+@import './inventory-accessibility.css';
+
+/* Utility classes */
+@import './inventory-utilities.css';
+
+/* ===== COMPONENT INTEGRATION ===== */
+/* Ensure all inventory components use consistent styling */
+
+/* Global inventory namespace */
+.inventory-view {
+  /* Base container for all inventory views */
+  @apply min-h-screen bg-gray-50;
+}
+
+.inventory-content {
+  /* Main content area */
+  @apply container mx-auto px-4 py-6 space-y-6;
+}
+
+/* ===== THEME INTEGRATION ===== */
+/* Integrate with existing application theme */
+
+.inventory-theme-stock {
+  --inventory-primary: theme('colors.purple.600');
+  --inventory-primary-light: theme('colors.purple.100');
+  --inventory-primary-dark: theme('colors.purple.700');
+}
+
+.inventory-theme-alertas {
+  --inventory-primary: theme('colors.red.600');
+  --inventory-primary-light: theme('colors.red.100');
+  --inventory-primary-dark: theme('colors.red.700');
+}
+
+.inventory-theme-ajustes {
+  --inventory-primary: theme('colors.orange.600');
+  --inventory-primary-light: theme('colors.orange.100');
+  --inventory-primary-dark: theme('colors.orange.700');
+}
+
+.inventory-theme-lotes {
+  --inventory-primary: theme('colors.green.600');
+  --inventory-primary-light: theme('colors.green.100');
+  --inventory-primary-dark: theme('colors.green.700');
+}
+
+.inventory-theme-farmacias {
+  --inventory-primary: theme('colors.blue.600');
+  --inventory-primary-light: theme('colors.blue.100');
+  --inventory-primary-dark: theme('colors.blue.700');
+}
+
+.inventory-theme-consulta {
+  --inventory-primary: theme('colors.teal.600');
+  --inventory-primary-light: theme('colors.teal.100');
+  --inventory-primary-dark: theme('colors.teal.700');
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+/* Optimize rendering performance */
+
+.inventory-view * {
+  /* Optimize repaints */
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.inventory-table {
+  /* Optimize table rendering */
+  contain: layout style paint;
+}
+
+.stats-card {
+  /* Optimize card rendering */
+  contain: layout style;
+}
+
+/* ===== BROWSER COMPATIBILITY ===== */
+/* Ensure compatibility across browsers */
+
+@supports not (backdrop-filter: blur(4px)) {
+  .header-button {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+@supports (display: grid) {
+  .stats-grid {
+    display: grid;
+  }
+}
+
+@supports not (display: grid) {
+  .stats-grid {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .stats-card {
+    flex: 1 1 300px;
+  }
+}
+
+/* ===== CRITICAL CSS INLINING ===== */
+/* Critical styles for above-the-fold content */
+
+.inventory-header-banner,
+.stats-grid,
+.search-filters-container {
+  /* These should be inlined for performance */
+  contain: layout style paint;
+}
+
+/* ===== DEBUGGING UTILITIES ===== */
+/* Development and debugging helpers */
+
+.debug-grid {
+  background-image: 
+    linear-gradient(rgba(255, 0, 0, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.debug-outline * {
+  outline: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+.debug-spacing * {
+  background-color: rgba(0, 255, 0, 0.1);
+}
+
+/* Only show in development */
+.debug-grid,
+.debug-outline,
+.debug-spacing {
+  display: none;
+}
+
+/* Uncomment for debugging */
+/*
+.debug-grid,
+.debug-outline,
+.debug-spacing {
+  display: block;
+}
+*/
+
+/* ===== VENDOR PREFIXES ===== */
+/* Ensure cross-browser compatibility */
+
+.inventory-table {
+  -webkit-overflow-scrolling: touch;
+}
+
+.stats-card {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+.loading-spinner {
+  -webkit-animation: spin 1s linear infinite;
+  animation: spin 1s linear infinite;
+}
+
+/* ===== PRINT OPTIMIZATIONS ===== */
+@media print {
+  .inventory-view {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .inventory-header-banner {
+    background: white !important;
+    color: black !important;
+    border: 2px solid black;
+  }
+  
+  .stats-card {
+    border: 1px solid black;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  
+  .inventory-table {
+    font-size: 12px;
+  }
+  
+  .inventory-table th,
+  .inventory-table td {
+    padding: 4px;
+  }
+}
+
+/* ===== FINAL OVERRIDES ===== */
+/* Component-specific overrides that need to come last */
+
+.inventory-view .btn-primary {
+  /* Ensure inventory buttons use theme colors */
+  background-color: var(--inventory-primary);
+}
+
+.inventory-view .btn-primary:hover {
+  background-color: var(--inventory-primary-dark);
+}
+
+.inventory-view .focus-visible:focus {
+  /* Ensure focus uses theme colors */
+  box-shadow: 0 0 0 2px var(--inventory-primary);
+}

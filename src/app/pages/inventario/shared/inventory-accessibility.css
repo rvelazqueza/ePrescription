@@ -1,0 +1,520 @@
+/* Inventory Views - Accessibility Styles */
+/* Focus indicators, keyboard navigation, and accessibility enhancements */
+
+/* ===== FOCUS INDICATORS ===== */
+.focus-visible:focus,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
+.inventory-table tbody tr:focus-visible {
+  @apply outline-none ring-2 ring-offset-2;
+}
+
+/* Context-specific focus colors */
+.focus-stock:focus-visible {
+  @apply ring-purple-500;
+}
+
+.focus-alertas:focus-visible {
+  @apply ring-red-500;
+}
+
+.focus-ajustes:focus-visible {
+  @apply ring-orange-500;
+}
+
+.focus-lotes:focus-visible {
+  @apply ring-green-500;
+}
+
+.focus-farmacias:focus-visible {
+  @apply ring-blue-500;
+}
+
+.focus-consulta:focus-visible {
+  @apply ring-teal-500;
+}
+
+/* Enhanced focus for interactive elements */
+.inventory-table tbody tr:focus-visible {
+  @apply ring-inset bg-blue-50/70;
+}
+
+.badge:focus-visible {
+  @apply ring-2 ring-blue-500 ring-offset-1;
+}
+
+.stats-card:focus-visible {
+  @apply ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* ===== KEYBOARD NAVIGATION ===== */
+.keyboard-navigation {
+  /* Ensure all interactive elements are keyboard accessible */
+}
+
+.keyboard-navigation button,
+.keyboard-navigation a,
+.keyboard-navigation input,
+.keyboard-navigation select,
+.keyboard-navigation textarea,
+.keyboard-navigation [tabindex] {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+/* Table keyboard navigation */
+.inventory-table tbody tr[tabindex] {
+  @apply cursor-pointer;
+}
+
+.inventory-table tbody tr[tabindex]:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-inset bg-blue-50/70;
+}
+
+/* Skip links for keyboard users */
+.skip-link {
+  @apply absolute -top-10 left-6 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium z-50 transition-all;
+}
+
+.skip-link:focus {
+  @apply top-6;
+}
+
+/* ===== HIGH CONTRAST SUPPORT ===== */
+@media (prefers-contrast: high) {
+  .inventory-header-banner {
+    border: 2px solid white;
+  }
+  
+  .stats-card {
+    border: 2px solid #1f2937;
+  }
+  
+  .inventory-table {
+    border: 2px solid #1f2937;
+  }
+  
+  .inventory-table th {
+    border-bottom: 2px solid #1f2937;
+    background-color: #e5e7eb;
+  }
+  
+  .inventory-table td {
+    border-bottom: 1px solid #4b5563;
+  }
+  
+  .badge {
+    border-width: 2px;
+    font-weight: bold;
+  }
+  
+  .status-adequate {
+    background-color: #bbf7d0;
+    color: #14532d;
+    border-color: #1f2937;
+  }
+  
+  .status-low {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-color: #1f2937;
+  }
+  
+  .status-critical {
+    background-color: #fed7aa;
+    color: #9a3412;
+    border-color: #1f2937;
+  }
+  
+  .status-out {
+    background-color: #fecaca;
+    color: #7f1d1d;
+    border-color: #1f2937;
+  }
+  
+  .btn-primary {
+    background-color: #1e40af;
+    border: 2px solid #1e3a8a;
+  }
+  
+  .btn-secondary {
+    background-color: #e5e7eb;
+    color: #111827;
+    border: 2px solid #1f2937;
+  }
+  
+  .form-input {
+    border: 2px solid #1f2937;
+  }
+  
+  .form-input:focus {
+    border-color: #1e40af;
+    box-shadow: 0 0 0 1px #1e40af;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .inventory-header-banner {
+    animation: none;
+  }
+  
+  .stats-card:hover {
+    @apply transform-none;
+  }
+  
+  .inventory-table tbody tr:hover {
+    @apply transform-none;
+  }
+  
+  .badge:hover {
+    @apply transform-none;
+  }
+  
+  .loading-spinner {
+    @apply animate-none;
+  }
+  
+  .priority-critical,
+  .status-pending,
+  .batch-near-expiry {
+    animation: none;
+  }
+}
+
+/* ===== SCREEN READER SUPPORT ===== */
+.sr-only {
+  @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+  clip: rect(0, 0, 0, 0);
+}
+
+.sr-only-focusable:focus {
+  @apply static w-auto h-auto p-1 m-0 overflow-visible whitespace-normal;
+  clip: auto;
+}
+
+/* Live regions for dynamic content */
+[aria-live="polite"],
+[aria-live="assertive"] {
+  @apply relative;
+}
+
+/* Status announcements */
+.status-announcement {
+  @apply sr-only;
+}
+
+.status-announcement.visible {
+  @apply not-sr-only;
+}
+
+/* ===== ARIA LABELS AND DESCRIPTIONS ===== */
+.inventory-table th[aria-sort] {
+  @apply cursor-pointer select-none;
+}
+
+.inventory-table th[aria-sort]:hover {
+  @apply bg-gray-100;
+}
+
+.inventory-table th[aria-sort="ascending"]::after {
+  content: " ↑";
+  @apply text-blue-600;
+}
+
+.inventory-table th[aria-sort="descending"]::after {
+  content: " ↓";
+  @apply text-blue-600;
+}
+
+/* Badge accessibility */
+.badge[role="status"] {
+  @apply relative;
+}
+
+.badge[aria-label]::before {
+  content: attr(aria-label);
+  @apply sr-only;
+}
+
+/* ===== TOUCH TARGETS ===== */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .inventory-table tbody tr {
+    min-height: 44px;
+  }
+  
+  .table-action-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .badge-clickable {
+    min-height: 32px;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  .btn-sm {
+    min-height: 40px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .form-input {
+    min-height: 44px;
+    font-size: 1rem; /* Prevents zoom on iOS */
+  }
+}
+
+/* ===== ERROR STATES ===== */
+.error-state {
+  @apply border-red-500 bg-red-50;
+}
+
+.error-message {
+  @apply text-red-600 font-medium flex items-center gap-2;
+}
+
+.error-icon {
+  @apply w-4 h-4 text-red-500;
+}
+
+.form-field-error input,
+.form-field-error select,
+.form-field-error textarea {
+  @apply border-red-500 focus:ring-red-500 focus:border-red-500;
+}
+
+.form-field-error .form-label {
+  @apply text-red-700;
+}
+
+/* ===== SUCCESS STATES ===== */
+.success-state {
+  @apply border-green-500 bg-green-50;
+}
+
+.success-message {
+  @apply text-green-600 font-medium flex items-center gap-2;
+}
+
+.success-icon {
+  @apply w-4 h-4 text-green-500;
+}
+
+/* ===== WARNING STATES ===== */
+.warning-state {
+  @apply border-yellow-500 bg-yellow-50;
+}
+
+.warning-message {
+  @apply text-yellow-700 font-medium flex items-center gap-2;
+}
+
+.warning-icon {
+  @apply w-4 h-4 text-yellow-600;
+}
+
+/* ===== LOADING STATES ===== */
+.loading-state {
+  @apply opacity-75 pointer-events-none;
+}
+
+.loading-overlay {
+  @apply absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10;
+}
+
+.loading-spinner-accessible {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600;
+}
+
+.loading-spinner-accessible::after {
+  content: "Cargando...";
+  @apply sr-only;
+}
+
+/* ===== MODAL ACCESSIBILITY ===== */
+.modal-focus-trap {
+  @apply fixed inset-0 z-50;
+}
+
+.modal-backdrop {
+  @apply fixed inset-0 bg-black bg-opacity-50;
+}
+
+.modal-content[role="dialog"] {
+  @apply relative bg-white rounded-xl shadow-xl max-w-2xl mx-auto my-8 focus:outline-none;
+}
+
+.modal-content:focus {
+  @apply ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* ===== TOOLTIP ACCESSIBILITY ===== */
+[role="tooltip"] {
+  @apply absolute z-50 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg max-w-xs;
+  word-wrap: break-word;
+}
+
+.tooltip-arrow {
+  @apply absolute w-2 h-2 bg-gray-900 transform rotate-45;
+}
+
+/* ===== PAGINATION ACCESSIBILITY ===== */
+.pagination-button[aria-current="page"] {
+  @apply bg-blue-600 text-white font-semibold;
+}
+
+.pagination-button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.pagination-button[aria-label]::before {
+  content: attr(aria-label);
+  @apply sr-only;
+}
+
+/* ===== FORM VALIDATION ===== */
+.form-field[aria-invalid="true"] input,
+.form-field[aria-invalid="true"] select,
+.form-field[aria-invalid="true"] textarea {
+  @apply border-red-500 focus:ring-red-500;
+}
+
+.form-field[aria-invalid="false"] input,
+.form-field[aria-invalid="false"] select,
+.form-field[aria-invalid="false"] textarea {
+  @apply border-green-500 focus:ring-green-500;
+}
+
+/* ===== BREADCRUMB ACCESSIBILITY ===== */
+.breadcrumb {
+  @apply flex items-center space-x-2 text-sm;
+}
+
+.breadcrumb-item {
+  @apply flex items-center;
+}
+
+.breadcrumb-separator {
+  @apply text-gray-400 mx-2;
+}
+
+.breadcrumb-current {
+  @apply text-gray-900 font-medium;
+}
+
+/* ===== NOTIFICATION ACCESSIBILITY ===== */
+.notification[role="alert"] {
+  @apply p-4 rounded-lg border-l-4;
+}
+
+.notification-success {
+  @apply bg-green-50 border-green-400 text-green-700;
+}
+
+.notification-error {
+  @apply bg-red-50 border-red-400 text-red-700;
+}
+
+.notification-warning {
+  @apply bg-yellow-50 border-yellow-400 text-yellow-700;
+}
+
+.notification-info {
+  @apply bg-blue-50 border-blue-400 text-blue-700;
+}
+
+/* ===== PROGRESS INDICATORS ===== */
+.progress-bar[role="progressbar"] {
+  @apply w-full bg-gray-200 rounded-full h-2;
+}
+
+.progress-fill {
+  @apply bg-blue-600 h-2 rounded-full transition-all duration-300;
+}
+
+.progress-text {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+/* ===== DISCLOSURE WIDGETS ===== */
+.disclosure-button[aria-expanded="true"] .disclosure-icon {
+  @apply transform rotate-180;
+}
+
+.disclosure-content[aria-hidden="true"] {
+  @apply hidden;
+}
+
+.disclosure-content[aria-hidden="false"] {
+  @apply block;
+}
+
+/* ===== COLOR BLIND SUPPORT ===== */
+.colorblind-safe .status-adequate::before {
+  content: "✓ ";
+}
+
+.colorblind-safe .status-low::before {
+  content: "⚠ ";
+}
+
+.colorblind-safe .status-critical::before {
+  content: "⚠ ";
+}
+
+.colorblind-safe .status-out::before {
+  content: "✗ ";
+}
+
+.colorblind-safe .priority-critical::before {
+  content: "!!! ";
+}
+
+.colorblind-safe .priority-high::before {
+  content: "!! ";
+}
+
+.colorblind-safe .priority-medium::before {
+  content: "! ";
+}
+
+/* ===== PRINT ACCESSIBILITY ===== */
+@media print {
+  .focus-visible:focus,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+  
+  .sr-only {
+    position: static;
+    width: auto;
+    height: auto;
+    clip: auto;
+  }
+  
+  .badge::after {
+    content: " (" attr(aria-label) ")";
+  }
+}

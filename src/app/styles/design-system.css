@@ -1,0 +1,247 @@
+/* Medical System Design Tokens */
+:root {
+  /* Primary Color Palette - Medical Blue */
+  --medical-primary-50: #eff6ff;
+  --medical-primary-100: #dbeafe;
+  --medical-primary-200: #bfdbfe;
+  --medical-primary-300: #93c5fd;
+  --medical-primary-400: #60a5fa;
+  --medical-primary-500: #3b82f6;
+  --medical-primary-600: #2563eb;
+  --medical-primary-700: #1d4ed8;
+  --medical-primary-800: #1e40af;
+  --medical-primary-900: #1e3a8a;
+
+  /* Success Colors - Medical Green */
+  --medical-success-50: #f0fdf4;
+  --medical-success-100: #dcfce7;
+  --medical-success-200: #bbf7d0;
+  --medical-success-300: #86efac;
+  --medical-success-400: #4ade80;
+  --medical-success-500: #22c55e;
+  --medical-success-600: #16a34a;
+  --medical-success-700: #15803d;
+  --medical-success-800: #166534;
+  --medical-success-900: #14532d;
+
+  /* Warning Colors - Medical Orange */
+  --medical-warning-50: #fff7ed;
+  --medical-warning-100: #ffedd5;
+  --medical-warning-200: #fed7aa;
+  --medical-warning-300: #fdba74;
+  --medical-warning-400: #fb923c;
+  --medical-warning-500: #f97316;
+  --medical-warning-600: #ea580c;
+  --medical-warning-700: #c2410c;
+  --medical-warning-800: #9a3412;
+  --medical-warning-900: #7c2d12;
+
+  /* Error Colors - Medical Red */
+  --medical-error-50: #fef2f2;
+  --medical-error-100: #fee2e2;
+  --medical-error-200: #fecaca;
+  --medical-error-300: #fca5a5;
+  --medical-error-400: #f87171;
+  --medical-error-500: #ef4444;
+  --medical-error-600: #dc2626;
+  --medical-error-700: #b91c1c;
+  --medical-error-800: #991b1b;
+  --medical-error-900: #7f1d1d;
+
+  /* Neutral Colors - Medical Gray */
+  --medical-neutral-50: #f9fafb;
+  --medical-neutral-100: #f3f4f6;
+  --medical-neutral-200: #e5e7eb;
+  --medical-neutral-300: #d1d5db;
+  --medical-neutral-400: #9ca3af;
+  --medical-neutral-500: #6b7280;
+  --medical-neutral-600: #4b5563;
+  --medical-neutral-700: #374151;
+  --medical-neutral-800: #1f2937;
+  --medical-neutral-900: #111827;
+}
+
+/* Typography Utility Classes */
+/* Headings */
+.text-heading-1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--medical-neutral-900);
+}
+
+.text-heading-2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--medical-neutral-900);
+}
+
+.text-heading-3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.375;
+  color: var(--medical-neutral-900);
+}
+
+.text-heading-4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.375;
+  color: var(--medical-neutral-800);
+}
+
+.text-heading-5 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--medical-neutral-800);
+}
+
+/* Body Text */
+.text-body-large {
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.625;
+  color: var(--medical-neutral-700);
+}
+
+.text-body {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--medical-neutral-700);
+}
+
+.text-body-small {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--medical-neutral-600);
+}
+
+.text-caption {
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--medical-neutral-500);
+}
+
+/* Labels */
+.text-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--medical-neutral-700);
+}
+
+.text-label-small {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--medical-neutral-600);
+}
+
+/* Component Styles */
+/* Button Styles */
+.btn-primary {
+  background-color: var(--medical-primary-600);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-primary:hover {
+  background-color: var(--medical-primary-700);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--medical-neutral-700);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: 1px solid var(--medical-neutral-300);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-secondary:hover {
+  background-color: var(--medical-neutral-50);
+  border-color: var(--medical-neutral-400);
+}
+
+/* Card Styles */
+.card {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid var(--medical-neutral-200);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--medical-neutral-200);
+  background-color: var(--medical-neutral-50);
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+/* Form Styles */
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--medical-neutral-300);
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease-in-out;
+  background-color: white;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--medical-primary-500);
+  box-shadow: 0 0 0 3px var(--medical-primary-100);
+}
+
+.form-input.error {
+  border-color: var(--medical-error-500);
+}
+
+.form-input.success {
+  border-color: var(--medical-success-500);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--medical-neutral-700);
+  margin-bottom: 0.5rem;
+}
+
+.form-error {
+  color: var(--medical-error-600);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}

@@ -1,0 +1,275 @@
+<!-- Main Layout -->
+<div class="w-full">
+  <!-- Breadcrumbs -->
+  <app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
+
+  <!-- Header Banner -->
+  <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-6 text-white mb-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="bg-white/20 p-3 rounded-lg">
+          <lucide-icon [img]="calendarIcon" class="w-8 h-8"></lucide-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold">Lotes y Vencimientos</h1>
+          <p class="text-green-100">Control de lotes y fechas de vencimiento de medicamentos</p>
+        </div>
+      </div>
+      <div class="bg-white/20 rounded-lg p-4 text-center">
+        <div class="text-2xl font-bold">{{ totalLotes }}</div>
+        <div class="text-sm text-green-100">Total Lotes</div>
+      </div>
+    </div>
+  </div>
+  <!-- Statistics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Lotes Activos</p>
+          <p class="text-3xl font-bold text-gray-900 mt-2">{{ lotesActivos }}</p>
+          <p class="text-sm text-green-600 mt-1">{{ ((lotesActivos / totalLotes) * 100).toFixed(1) }}% del total</p>
+        </div>
+        <div class="bg-green-100 p-3 rounded-lg">
+          <lucide-icon [img]="packageIcon" class="w-6 h-6 text-green-600"></lucide-icon>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Próximos a Vencer</p>
+          <p class="text-3xl font-bold text-yellow-600 mt-2">{{ lotesProximosVencer }}</p>
+          <p class="text-sm text-yellow-600 mt-1">Próximos 90 días</p>
+        </div>
+        <div class="bg-yellow-100 p-3 rounded-lg">
+          <lucide-icon [img]="alertTriangleIcon" class="w-6 h-6 text-yellow-600"></lucide-icon>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Lotes Vencidos</p>
+          <p class="text-3xl font-bold text-red-600 mt-2">{{ lotesVencidos }}</p>
+          <p class="text-sm text-red-600 mt-1">Requieren atención</p>
+        </div>
+        <div class="bg-red-100 p-3 rounded-lg">
+          <lucide-icon [img]="alertTriangleIcon" class="w-6 h-6 text-red-600"></lucide-icon>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Valor Total</p>
+          <p class="text-3xl font-bold text-gray-900 mt-2">₡{{ valorTotal.toLocaleString() }}</p>
+          <p class="text-sm text-gray-600 mt-1">En inventario</p>
+        </div>
+        <div class="bg-blue-100 p-3 rounded-lg">
+          <lucide-icon [img]="dollarSignIcon" class="w-6 h-6 text-blue-600"></lucide-icon>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Card -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+    <!-- Card Header -->
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900">Gestión de Lotes</h2>
+          <p class="text-sm text-gray-600 mt-1">
+            {{ lotesFiltrados.length }} de {{ totalLotes }} lotes encontrados
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="p-6 space-y-4">
+      <!-- Search and Filters Row -->
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="relative">
+          <lucide-icon [img]="searchIcon" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="terminoBusqueda"
+            (input)="filtrarLotes()"
+            placeholder="Buscar medicamento, lote..."
+            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+          >
+        </div>
+        
+        <select 
+          [(ngModel)]="filtroEstado"
+          (change)="filtrarLotes()"
+          class="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+        >
+          <option value="">Todos los estados</option>
+          <option value="active">Activos</option>
+          <option value="near_expiry">Próximos a vencer</option>
+          <option value="expired">Vencidos</option>
+        </select>
+        
+        <select 
+          [(ngModel)]="filtroMedicamento"
+          (change)="filtrarLotes()"
+          class="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+        >
+          <option value="">Todos los medicamentos</option>
+          <option *ngFor="let medicamento of medicamentosUnicos" [value]="medicamento">{{ medicamento }}</option>
+        </select>
+        
+        <input 
+          type="date" 
+          [(ngModel)]="fechaDesde"
+          (change)="filtrarLotes()"
+          placeholder="Fecha desde"
+          class="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+        >
+        
+        <input 
+          type="date" 
+          [(ngModel)]="fechaHasta"
+          (change)="filtrarLotes()"
+          placeholder="Fecha hasta"
+          class="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+        >
+      </div>
+
+      <!-- Lotes Table -->
+      <div class="border rounded-lg overflow-hidden">
+        <div *ngIf="lotesFiltrados.length === 0" class="text-center py-16">
+          <lucide-icon [img]="packageIcon" class="w-16 h-16 text-gray-300 mx-auto mb-4"></lucide-icon>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No se encontraron lotes</h3>
+          <p class="text-gray-600">No hay lotes que coincidan con los filtros aplicados</p>
+        </div>
+
+        <div *ngIf="lotesFiltrados.length > 0" class="overflow-x-auto max-h-[500px] overflow-y-auto">
+          <table class="w-full min-w-[1200px]">
+            <thead class="bg-gray-50 sticky top-0">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medicamento</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número de Lote</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidades</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let lote of lotesFiltrados; trackBy: trackByLoteId" 
+                  class="hover:bg-blue-50/50 cursor-pointer transition-all"
+                  (dblclick)="verLote(lote)">
+                <td class="px-6 py-4">
+                  <div class="flex items-center">
+                    <div class="bg-green-100 p-2 rounded-lg mr-3">
+                      <lucide-icon [img]="packageIcon" class="w-5 h-5 text-green-600"></lucide-icon>
+                    </div>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">{{ lote.medicineName }}</div>
+                      <div class="text-sm text-gray-500">{{ lote.presentation }}</div>
+                      <div class="text-xs text-gray-400">ID: {{ lote.medicineId }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm font-medium text-gray-900">{{ lote.batchNumber }}</div>
+                  <div class="text-sm text-gray-500">{{ lote.supplier }}</div>
+                  <div class="text-xs text-gray-400">Doc: {{ lote.documentNumber }}</div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-900">
+                    <div class="flex items-center gap-1 mb-1">
+                      <span class="text-xs text-gray-500">Vence:</span>
+                      <span class="font-medium">{{ formatDate(lote.expiryDate) }}</span>
+                    </div>
+                    <div class="flex items-center gap-1 mb-1">
+                      <span class="text-xs text-gray-500">Fab:</span>
+                      <span>{{ formatDate(lote.manufacturingDate) }}</span>
+                    </div>
+                    <div [class]="getDiasVencimientoClass(lote.daysToExpiry)" class="text-xs font-medium">
+                      {{ getDiasVencimientoTexto(lote.daysToExpiry) }}
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-900">
+                    <div class="font-medium">{{ lote.remainingQuantity.toLocaleString() }} / {{ lote.quantity.toLocaleString() }}</div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div 
+                        class="h-2 rounded-full transition-all" 
+                        [class]="getStockBarClass(lote.remainingQuantity, lote.quantity)"
+                        [style.width.%]="(lote.remainingQuantity / lote.quantity) * 100"
+                      ></div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">
+                      {{ ((lote.remainingQuantity / lote.quantity) * 100).toFixed(1) }}% disponible
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center text-sm text-gray-900">
+                    <lucide-icon [img]="mapPinIcon" class="w-4 h-4 text-gray-400 mr-1"></lucide-icon>
+                    {{ lote.location }}
+                  </div>
+                  <div class="text-xs text-gray-500 mt-1">
+                    Ingreso: {{ formatDate(lote.entryDate) }}
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span [class]="getEstadoClass(lote.status)" class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
+                    {{ getEstadoTexto(lote.status) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm font-medium text-gray-900">
+                    ₡{{ lote.totalValue.toLocaleString() }}
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    ₡{{ lote.unitCost.toFixed(2) }} c/u
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm font-medium">
+                  <div class="flex justify-center">
+                    <button 
+                      (click)="verLote(lote); $event.stopPropagation()"
+                      class="text-blue-600 hover:text-blue-900 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 transition-all font-medium"
+                      title="Ver detalles del lote"
+                    >
+                      <lucide-icon [img]="eyeIcon" class="w-4 h-4"></lucide-icon>
+                      Ver
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de detalles del lote -->
+  <app-batch-detail-modal
+    [batch]="selectedBatch"
+    [isOpen]="isModalOpen"
+    (closeModal)="closeModal()">
+  </app-batch-detail-modal>
+
+  <!-- Role Suggestion Modal -->
+  <app-role-suggestion-modal
+    [isOpen]="showRoleSuggestionModal()"
+    [suggestedRole]="'Farmacéutico'"
+    [pageName]="'inventario-lotes'"
+    (dismiss)="onRoleSuggestionDismiss()"
+    (roleChanged)="onRoleChanged()"
+  ></app-role-suggestion-modal>
+</div>

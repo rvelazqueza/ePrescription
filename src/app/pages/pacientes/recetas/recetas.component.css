@@ -1,0 +1,688 @@
+/* Import shared patient styles */
+@import '../shared-patient-styles.css';
+
+/* Gradientes y efectos visuales para header del paciente */
+.patient-header-gradient {
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #1d4ed8 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.patient-header-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 25% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Animaciones de entrada */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.fade-in-scale {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Cards de estadísticas con efectos mejorados */
+.stat-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--stat-color, #3b82f6);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* Colores específicos para cada estadística */
+.stat-total {
+  --stat-color: #3b82f6;
+}
+
+.stat-dispensed {
+  --stat-color: #10b981;
+}
+
+.stat-pending {
+  --stat-color: #f59e0b;
+}
+
+.stat-expired {
+  --stat-color: #6b7280;
+}
+
+.stat-cancelled {
+  --stat-color: #ef4444;
+}
+
+/* Iconos de estadísticas con efectos */
+.stat-icon {
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Cards de recetas individuales */
+.prescription-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+  position: relative;
+  cursor: pointer;
+}
+
+.prescription-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--prescription-status-color, #3b82f6);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.prescription-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.prescription-card:hover::before {
+  transform: scaleY(1);
+}
+
+/* Colores por estado de receta */
+.prescription-dispensed {
+  --prescription-status-color: #10b981;
+}
+
+.prescription-pending {
+  --prescription-status-color: #f59e0b;
+}
+
+.prescription-expired {
+  --prescription-status-color: #6b7280;
+}
+
+.prescription-cancelled {
+  --prescription-status-color: #ef4444;
+}
+
+/* Badges de estado optimizados */
+.status-badge {
+  position: relative;
+  overflow: hidden;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.status-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.status-badge:hover::before {
+  left: 100%;
+}
+
+.status-dispensed {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.status-pending {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.status-expired {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #374151;
+  border: 1px solid #9ca3af;
+}
+
+.status-cancelled {
+  background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+  color: #7f1d1d;
+  border: 1px solid #f87171;
+}
+
+.status-recent {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border: 1px solid #60a5fa;
+}
+
+/* Botones de acción con efectos mejorados */
+.action-button {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: currentColor;
+  opacity: 0.1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+}
+
+.action-button:hover::before {
+  width: 100px;
+  height: 100px;
+}
+
+.action-button:hover {
+  transform: scale(1.05);
+}
+
+/* Efectos específicos por tipo de acción */
+.action-view:hover {
+  color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.action-print:hover {
+  color: #059669;
+  background-color: #ecfdf5;
+}
+
+.action-export:hover {
+  color: #7c3aed;
+  background-color: #f3e8ff;
+}
+
+/* Filtros con efectos mejorados */
+.filter-container {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.filter-container:hover {
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+}
+
+.filter-input {
+  transition: all 0.3s ease;
+  border: 1px solid #d1d5db;
+}
+
+.filter-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 
+    0 0 0 3px rgba(59, 130, 246, 0.1),
+    0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.filter-select {
+  transition: all 0.3s ease;
+  border: 1px solid #d1d5db;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+}
+
+.filter-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-select:hover {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+/* Paginación con efectos mejorados */
+.pagination-button {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.pagination-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.pagination-button:hover::before {
+  left: 100%;
+}
+
+.pagination-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-button.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.3);
+}
+
+/* Estados vacíos con animaciones */
+.empty-state {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.empty-state-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Loading states mejorados */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive design optimizado */
+@media (max-width: 1024px) {
+  .prescription-card {
+    margin-bottom: 1rem;
+  }
+  
+  .stat-card {
+    margin-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .patient-header-gradient {
+    padding: 1.5rem 1rem;
+  }
+  
+  .prescription-card:hover {
+    transform: none;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .filter-container {
+    padding: 1rem;
+  }
+  
+  .action-button:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .stat-card {
+    padding: 0.75rem;
+  }
+  
+  .prescription-card {
+    padding: 1rem;
+  }
+  
+  .filter-input,
+  .filter-select {
+    margin-bottom: 0.75rem;
+  }
+  
+  .pagination-button {
+    padding: 0.5rem;
+  }
+}
+
+/* Mejoras de accesibilidad */
+.focus-visible:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .patient-header-gradient {
+    background: #000000;
+    border: 2px solid #ffffff;
+  }
+  
+  .primary-button {
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+  }
+  
+  .secondary-button {
+    background: #000000;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+  }
+  
+  .prescription-card {
+    border-width: 2px;
+  }
+  
+  .status-badge {
+    border-width: 2px;
+    font-weight: bold;
+  }
+  
+  .filter-input,
+  .filter-select {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-up,
+  .fade-in-scale,
+  .slide-in-right,
+  .prescription-card,
+  .stat-card,
+  .action-button,
+  .pagination-button,
+  .filter-input,
+  .filter-select,
+  .stat-icon,
+  .icon-transition {
+    animation: none;
+    transition: none;
+  }
+  
+  .prescription-card:hover,
+  .stat-card:hover,
+  .action-button:hover,
+  .pagination-button:hover,
+  .filter-input:focus,
+  .filter-select:focus {
+    transform: none;
+  }
+  
+  .loading-spinner,
+  .empty-state-icon {
+    animation: none;
+  }
+}
+
+/* Improved color contrast for better accessibility */
+.text-blue-100 {
+  color: #dbeafe; /* Improved contrast ratio */
+}
+
+.text-gray-600 {
+  color: #4b5563; /* Improved contrast ratio */
+}
+
+.text-gray-500 {
+  color: #6b7280; /* Improved contrast ratio */
+}
+
+.text-gray-400 {
+  color: #9ca3af; /* Improved contrast ratio */
+}
+
+/* Enhanced focus indicators for better keyboard navigation */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/* Improved prescription card accessibility */
+.prescription-card:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.prescription-card[aria-selected="true"] {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+}
+
+/* Better pagination accessibility */
+.pagination-button[aria-current="page"] {
+  background: #3b82f6;
+  color: white;
+  font-weight: bold;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Skip link for keyboard users */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #3b82f6;
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Improved touch targets for mobile accessibility */
+@media (max-width: 768px) {
+  button,
+  a,
+  input,
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .primary-button,
+  .secondary-button,
+  .action-button {
+    padding: 12px 16px;
+  }
+  
+  .pagination-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Efectos de hover para elementos interactivos */
+.interactive-element {
+  transition: all 0.2s ease;
+}
+
+.interactive-element:hover {
+  transform: translateY(-1px);
+}
+
+/* Animaciones de entrada escalonadas */
+.stagger-animation {
+  animation-delay: calc(var(--stagger-delay, 0) * 0.1s);
+}
+
+/* Efectos de glassmorphism */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Transiciones suaves para iconos */
+.icon-transition {
+  transition: all 0.2s ease;
+}
+
+.icon-transition:hover {
+  transform: scale(1.1);
+}
+
+/* Efectos de pulso para elementos importantes */
+.pulse-subtle {
+  animation: pulseSubtle 2s infinite;
+}
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Mejoras para tooltips */
+.tooltip-trigger {
+  position: relative;
+}
+
+.tooltip-trigger:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}

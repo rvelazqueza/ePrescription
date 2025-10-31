@@ -1,0 +1,240 @@
+/* Custom scrollbar for table */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Table row hover effects */
+tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Modal animations removed */
+
+/* Loading spinner */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Tab transition effects */
+.border-b-2 {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Button hover effects */
+button:hover {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Card hover effects */
+.bg-white.rounded-lg.p-4:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Status badge styles */
+.bg-green-100 {
+  background-color: #dcfce7;
+}
+
+.text-green-800 {
+  color: #166534;
+}
+
+.bg-gray-100 {
+  background-color: #f3f4f6;
+}
+
+.text-gray-800 {
+  color: #1f2937;
+}
+
+.bg-red-100 {
+  background-color: #fee2e2;
+}
+
+.text-red-800 {
+  color: #991b1b;
+}
+
+.bg-orange-100 {
+  background-color: #fed7aa;
+}
+
+.text-orange-800 {
+  color: #9a3412;
+}
+
+.bg-blue-100 {
+  background-color: #dbeafe;
+}
+
+.text-blue-800 {
+  color: #1e40af;
+}
+
+/* Form input focus styles */
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Pagination button styles */
+.pagination-button:hover:not(:disabled) {
+  background-color: #f8fafc;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Statistics cards gradient */
+.border-l-4.border-blue-500 {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.border-l-4.border-green-500 {
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+}
+
+.border-l-4.border-gray-500 {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+}
+
+.border-l-4.border-red-500 {
+  background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+}
+
+.border-l-4.border-orange-500 {
+  background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
+}
+
+.border-l-4.border-purple-500 {
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+}
+
+/* Modal backdrop blur effect */
+.fixed.inset-0.bg-black.bg-opacity-50 {
+  backdrop-filter: blur(4px);
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 800px;
+  }
+}
+
+/* Custom checkbox styles */
+input[type="checkbox"] {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #d1d5db;
+  border-radius: 3px;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: -2px;
+  left: 1px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Search input with icon */
+.relative input[type="text"] {
+  padding-left: 2.5rem;
+}
+
+/* Alert badges animation */
+.inline-flex.items-center.px-2.py-1.rounded-full {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Actions menu styles removed - using default */
+
+/* Empty state illustration */
+.text-center lucide-icon {
+  opacity: 0.5;
+}
+
+/* Gradient header */
+.bg-gradient-to-r {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+/* Focus visible for accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .fixed,
+  button,
+  .border-t.border-gray-200 {
+    display: none !important;
+  }
+  
+  .bg-white {
+    background: white !important;
+  }
+  
+  .text-gray-900 {
+    color: black !important;
+  }
+}

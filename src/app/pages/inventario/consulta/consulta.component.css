@@ -1,0 +1,123 @@
+/* Consulta Inventario Component Styles */
+/* Import all shared inventory styles */
+@import '../shared/index.css';
+
+/* Component-specific styles for Consulta */
+
+/* Table container with horizontal scroll */
+.table-container {
+  @apply overflow-x-auto;
+}
+
+/* Table styling */
+.inventory-table {
+  @apply w-full min-w-[1200px];
+}
+
+.inventory-table thead {
+  @apply bg-gray-50 sticky top-0;
+}
+
+.inventory-table th {
+  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+}
+
+.inventory-table td {
+  @apply px-6 py-4 whitespace-nowrap;
+}
+
+.inventory-table tr:hover {
+  @apply bg-blue-50/50 cursor-pointer transition-all;
+}
+
+/* Ensure proper scrolling behavior */
+.overflow-x-auto,
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Table container with both horizontal and vertical scroll */
+.max-h-\[500px\] {
+  position: relative;
+}
+
+/* Ensure sticky header works with vertical scroll */
+.inventory-table thead {
+  @apply bg-gray-50 sticky top-0 z-10;
+}
+
+/* Line clamp utility for long text */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Status badges with teal theme */
+.status-adequate {
+  @apply bg-green-100 text-green-700 border-green-300;
+}
+
+.status-low {
+  @apply bg-yellow-100 text-yellow-700 border-yellow-300;
+}
+
+.status-critical {
+  @apply bg-red-100 text-red-700 border-red-300;
+}
+
+.status-out {
+  @apply bg-gray-100 text-gray-700 border-gray-300;
+}
+
+/* Teal theme overrides for this component */
+.bg-gradient-to-r.from-teal-600 {
+  background: linear-gradient(to right, #0d9488, #14b8a6, #0d9488);
+}
+
+/* Focus states for accessibility */
+input:focus,
+select:focus {
+  @apply ring-2 ring-teal-500 border-teal-500;
+}
+
+button:focus {
+  @apply ring-2 ring-teal-500 ring-offset-2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .inventory-table {
+    @apply min-w-[800px];
+  }
+  
+  .inventory-table th,
+  .inventory-table td {
+    @apply px-3 py-2 text-sm;
+  }
+}

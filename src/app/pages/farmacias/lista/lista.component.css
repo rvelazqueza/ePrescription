@@ -1,0 +1,219 @@
+/* Estilos específicos para la vista de farmacias homologada con recetas */
+
+/* Skip link para accesibilidad */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Animaciones para las cards de estadísticas */
+.fade-in-scale {
+  animation: fadeInScale 0.6s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.stagger-animation {
+  opacity: 0;
+  animation: staggerFadeIn 0.5s ease-out forwards;
+  animation-delay: calc(var(--stagger-delay) * 0.1s);
+}
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación para el contenedor de filtros */
+.slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Estilos para las cards de estadísticas */
+.stat-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon {
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1);
+}
+
+/* Estilos específicos para cada tipo de estadística */
+.stat-total:hover {
+  border-color: #3b82f6;
+}
+
+.stat-active:hover {
+  border-color: #10b981;
+}
+
+.stat-inactive:hover {
+  border-color: #6b7280;
+}
+
+.stat-suspended:hover {
+  border-color: #f59e0b;
+}
+
+.stat-provinces:hover {
+  border-color: #8b5cf6;
+}
+
+/* Estilos para el contenedor de filtros */
+.filter-container {
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+/* Estilos para inputs y selects de filtros */
+.filter-input {
+  border: 1px solid #d1d5db;
+  transition: all 0.2s ease;
+}
+
+.filter-input:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.filter-select {
+  border: 1px solid #d1d5db;
+  transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+/* Estilos para la paginación */
+.pagination-button {
+  transition: all 0.2s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f3f4f6;
+}
+
+.pagination-button.active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.pagination-button.active:hover {
+  background-color: #2563eb;
+}
+
+/* Estilos para focus visible (accesibilidad) */
+.focus-visible:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Estilos para truncar texto */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .stat-card .text-2xl {
+    font-size: 1.5rem;
+  }
+  
+  .filter-container {
+    padding: 16px;
+  }
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-scale,
+  .stagger-animation,
+  .slide-in-right,
+  .stat-card,
+  .stat-icon,
+  .filter-input,
+  .filter-select,
+  .pagination-button {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Estados de hover mejorados */
+.hover\:bg-blue-50\/50:hover {
+  background-color: rgba(239, 246, 255, 0.5);
+}
+
+/* Estilos para el estado de carga */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

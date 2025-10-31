@@ -1,0 +1,833 @@
+<app-page-layout 
+  title="Alertas de Stock Bajo" 
+  description="Gestión de alertas de medicamentos con stock bajo o agotado"
+  [icon]="AlertTriangleIcon"
+  [breadcrumbItems]="breadcrumbItems"
+  headerGradient="from-red-600 to-red-700">
+  
+  <!-- Dashboard Content -->
+  <div class="space-y-6">
+
+    <!-- Stats Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Active Alerts Card -->
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-red-500">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 flex-1">
+              <p class="text-sm text-gray-600">Alertas Activas</p>
+              <p class="text-3xl font-bold text-gray-900">{{ stats.activeAlerts }}</p>
+            </div>
+            <div class="p-3 bg-red-100 rounded-xl">
+              <lucide-icon [img]="AlertTriangleIcon" class="w-8 h-8 text-red-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- High Priority Card -->
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-orange-500">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 flex-1">
+              <p class="text-sm text-gray-600">Prioridad Alta</p>
+              <p class="text-3xl font-bold text-gray-900">{{ stats.highPriority }}</p>
+            </div>
+            <div class="p-3 bg-orange-100 rounded-xl">
+              <lucide-icon [img]="ClockIcon" class="w-8 h-8 text-orange-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders Generated Today Card -->
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-green-500">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 flex-1">
+              <p class="text-sm text-gray-600">Órdenes Generadas Hoy</p>
+              <p class="text-3xl font-bold text-gray-900">{{ stats.resolvedToday }}</p>
+            </div>
+            <div class="p-3 bg-green-100 rounded-xl">
+              <lucide-icon [img]="PackageCheckIcon" class="w-8 h-8 text-green-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Affected Medicines Card -->
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-blue-500">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 flex-1">
+              <p class="text-sm text-gray-600">Medicamentos Afectados</p>
+              <p class="text-3xl font-bold text-gray-900">{{ stats.affectedMedicines }}</p>
+            </div>
+            <div class="p-3 bg-blue-100 rounded-xl">
+              <lucide-icon [img]="PackageIcon" class="w-8 h-8 text-blue-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- Search and Filters -->
+<div class="card p-6 mb-6">
+  <div class="flex flex-col space-y-4">
+    <!-- Search Bar -->
+    <div class="relative max-w-md">
+      <lucide-icon [img]="SearchIcon" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+      <input
+        type="text"
+        [(ngModel)]="filters.searchTerm"
+        (input)="onSearchChange()"
+        placeholder="Buscar por medicamento, categoría o ubicación..."
+        class="input-field pl-10"
+      />
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="flex flex-wrap items-center gap-4">
+      <div class="flex items-center space-x-2">
+        <label class="text-sm font-medium text-gray-700">Prioridad:</label>
+        <select
+          [(ngModel)]="filters.priority"
+          (change)="onFilterChange()"
+          class="input-field min-w-[160px]"
+        >
+          <option *ngFor="let option of priorityOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <label class="text-sm font-medium text-gray-700">Estado:</label>
+        <select
+          [(ngModel)]="filters.status"
+          (change)="onFilterChange()"
+          class="input-field min-w-[140px]"
+        >
+          <option *ngFor="let option of statusOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="flex items-center space-x-2 ml-auto">
+        <button
+          (click)="clearFilters()"
+          class="btn-secondary"
+        >
+          <lucide-icon [img]="XIcon" class="w-4 h-4 mr-2"></lucide-icon>
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div *ngIf="!isLoading" class="flex items-center justify-between pt-4 border-t border-gray-200">
+      <div class="flex items-center text-sm text-gray-600">
+        <lucide-icon [img]="InfoIcon" class="w-4 h-4 mr-2"></lucide-icon>
+        <span>{{ filteredAlerts.length }} alertas encontradas</span>
+        <span *ngIf="filteredAlerts.length !== alerts.length" class="ml-1">
+          de {{ alerts.length }} total
+        </span>
+      </div>
+      
+      <div class="text-sm text-gray-500">
+        Última actualización: {{ getCurrentTime() }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="isLoading" class="flex justify-center items-center py-12">
+  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+  <span class="ml-2 text-gray-600">Cargando alertas...</span>
+</div>
+
+<!-- Empty State -->
+<div *ngIf="!isLoading && filteredAlerts.length === 0" class="text-center py-12">
+  <lucide-icon [img]="CheckCircleIcon" class="w-12 h-12 text-gray-400 mx-auto mb-4"></lucide-icon>
+  <h3 class="font-medium text-gray-900 mb-2">No hay alertas</h3>
+  <p class="text-sm text-gray-600">
+    {{ filters.searchTerm || filters.priority || filters.status ? 
+       'No se encontraron alertas que coincidan con los filtros aplicados.' : 
+       'No hay alertas de stock en este momento.' }}
+  </p>
+</div>
+
+<!-- Alerts Table -->
+<div *ngIf="!isLoading && filteredAlerts.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full min-w-[1200px]">
+      <!-- Table Header -->
+      <thead class="bg-gray-50 sticky top-0">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('priority')"
+              class="sort-button inline-flex items-center space-x-1 hover:text-gray-700"
+            >
+              <span>Prioridad</span>
+              <span class="text-xs">{{ getSortIcon('priority') }}</span>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('medicineName')"
+              class="sort-button inline-flex items-center space-x-1 hover:text-gray-700"
+            >
+              <span>Medicamento</span>
+              <span class="text-xs">{{ getSortIcon('medicineName') }}</span>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('status')"
+              class="sort-button inline-flex items-center space-x-1 hover:text-gray-700"
+            >
+              <span>Estado</span>
+              <span class="text-xs">{{ getSortIcon('status') }}</span>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('currentStock')"
+              class="sort-button inline-flex items-center space-x-1 hover:text-gray-700"
+            >
+              <span>Stock</span>
+              <span class="text-xs">{{ getSortIcon('currentStock') }}</span>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Ubicación
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Impacto
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Acciones
+          </th>
+        </tr>
+      </thead>
+
+      <!-- Table Body -->
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr
+          *ngFor="let alert of filteredAlerts; trackBy: trackByAlertId"
+          class="hover:bg-blue-50/50 cursor-pointer transition-all"
+          (dblclick)="onAlertDoubleClick(alert)"
+        >
+          <!-- Priority Column -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center space-x-2">
+              <div class="p-1 rounded-full" 
+                   [class]="alert.priority === 'critical' ? 'bg-red-100' : alert.priority === 'high' ? 'bg-orange-100' : 'bg-yellow-100'">
+                <lucide-icon 
+                  [img]="AlertTriangleIcon" 
+                  [class]="'w-4 h-4 ' + (alert.priority === 'critical' ? 'text-red-600' : alert.priority === 'high' ? 'text-orange-600' : 'text-yellow-600')"
+                ></lucide-icon>
+              </div>
+              <span [class]="'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ' + getPriorityBadgeClass(alert.priority)">
+                {{ getPriorityLabel(alert.priority) }}
+              </span>
+            </div>
+          </td>
+
+          <!-- Medicine Column -->
+          <td class="px-6 py-4">
+            <div class="flex flex-col">
+              <div class="text-sm font-medium text-gray-900">{{ alert.medicineName }}</div>
+              <div class="text-sm text-gray-500">{{ alert.presentation }}</div>
+              <div class="text-xs text-gray-400">{{ alert.category }}</div>
+            </div>
+          </td>
+
+          <!-- Status Column -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex flex-col space-y-1">
+              <span [class]="'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ' + getStatusBadgeClass(alert.status)">
+                {{ getStatusLabel(alert.status) }}
+              </span>
+              <div class="text-xs text-gray-500">
+                {{ getAlertUrgencyLevel(alert) }}
+              </div>
+            </div>
+          </td>
+
+          <!-- Stock Column -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex flex-col space-y-2">
+              <div class="text-sm">
+                <span class="font-medium text-gray-900">{{ alert.currentStock }}</span>
+                <span class="text-gray-500"> / {{ alert.minStock }}</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  class="h-2 rounded-full transition-all duration-300"
+                  [class]="alert.currentStock === 0 ? 'bg-red-500' : alert.currentStock < alert.minStock * 0.5 ? 'bg-orange-500' : 'bg-yellow-500'"
+                  [style.width.%]="Math.min(100, getStockPercentage(alert))"
+                ></div>
+              </div>
+              <div class="text-xs text-gray-500">
+                {{ getStockPercentage(alert) }}% del mínimo
+              </div>
+            </div>
+          </td>
+
+          <!-- Location Column -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex flex-col">
+              <div class="text-sm font-medium text-gray-900">{{ alert.location }}</div>
+              <div class="text-sm text-gray-500">{{ alert.supplier }}</div>
+            </div>
+          </td>
+
+          <!-- Impact Column -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex flex-col space-y-1">
+              <div *ngIf="alert.daysWithoutStock > 0" class="text-xs">
+                <span class="font-medium text-red-600">{{ alert.daysWithoutStock }}</span>
+                <span class="text-gray-500"> días sin stock</span>
+              </div>
+              <div *ngIf="alert.affectedPrescriptions > 0" class="text-xs">
+                <span class="font-medium text-orange-600">{{ alert.affectedPrescriptions }}</span>
+                <span class="text-gray-500"> recetas afectadas</span>
+              </div>
+              <div class="text-xs">
+                <span class="text-gray-500">Cantidad a ordenar: </span>
+                <span class="font-medium text-blue-600">{{ alert.suggestedOrder }}</span>
+              </div>
+            </div>
+          </td>
+
+          <!-- Actions Column -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex space-x-2">
+              <button
+                (click)="$event.stopPropagation(); generateOrder(alert)"
+                class="px-3 py-1 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors flex items-center space-x-1"
+                title="Generar orden de compra"
+              >
+                <lucide-icon [img]="PackageCheckIcon" class="w-3 h-3"></lucide-icon>
+                <span>Ordenar</span>
+              </button>
+              <button
+                (click)="$event.stopPropagation(); viewInStock(alert)"
+                class="px-3 py-1 text-xs text-white bg-green-600 hover:bg-green-700 rounded transition-colors flex items-center space-x-1"
+                title="Ver en inventario"
+              >
+                <lucide-icon [img]="PackageIcon" class="w-3 h-3"></lucide-icon>
+                <span>Stock</span>
+              </button>
+              <button
+                (click)="$event.stopPropagation(); ignoreAlert(alert)"
+                class="px-3 py-1 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                title="Ignorar alerta"
+              >
+                Ignorar
+              </button>
+              <button
+                (click)="$event.stopPropagation(); openAlertModal(alert)"
+                class="px-3 py-1 text-xs text-blue-600 bg-blue-100 hover:bg-blue-200 rounded transition-colors"
+                title="Ver detalles"
+              >
+                <lucide-icon [img]="EyeIcon" class="w-3 h-3"></lucide-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Alert Details Modal -->
+<div *ngIf="isModalOpen && selectedAlert" class="fixed inset-0 z-50 overflow-y-auto">
+  <!-- Backdrop -->
+  <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 transition-opacity" (click)="closeModal()"></div>
+  
+  <!-- Modal Content -->
+  <div class="flex min-h-full items-center justify-center p-4">
+    <div class="modal-content relative bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 rounded-full bg-red-100">
+            <lucide-icon [img]="AlertTriangleIcon" class="w-6 h-6 text-red-600"></lucide-icon>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">Detalles de Alerta</h3>
+            <p class="text-sm text-gray-600">{{ selectedAlert.medicineName }}</p>
+          </div>
+        </div>
+        <button
+          (click)="closeModal()"
+          class="p-2 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <lucide-icon [img]="XIcon" class="w-5 h-5 text-gray-500"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6">
+        <!-- Priority and Status Badges -->
+        <div class="flex items-center space-x-3 mb-6">
+          <span [class]="'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ' + getPriorityBadgeClass(selectedAlert.priority)">
+            {{ getPriorityLabel(selectedAlert.priority) }}
+          </span>
+          <span [class]="'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ' + getStatusBadgeClass(selectedAlert.status)">
+            {{ getStatusLabel(selectedAlert.status) }}
+          </span>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border border-gray-300">
+            {{ selectedAlert.category }}
+          </span>
+        </div>
+
+        <!-- Urgency Alert -->
+        <div class="mb-6 p-4 rounded-lg" 
+             [class]="selectedAlert.status === 'out' ? 'bg-red-50 border border-red-200' : selectedAlert.priority === 'critical' ? 'bg-orange-50 border border-orange-200' : 'bg-yellow-50 border border-yellow-200'">
+          <p class="font-medium text-sm"
+             [class]="selectedAlert.status === 'out' ? 'text-red-700' : selectedAlert.priority === 'critical' ? 'text-orange-700' : 'text-yellow-700'">
+            {{ getAlertUrgencyLevel(selectedAlert) }}
+          </p>
+        </div>
+
+        <!-- Stock Information Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="space-y-4">
+            <h4 class="font-medium text-gray-900">Información de Stock</h4>
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Stock actual:</span>
+                <span class="text-sm font-medium text-gray-900">{{ selectedAlert.currentStock }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Stock mínimo:</span>
+                <span class="text-sm font-medium text-gray-900">{{ selectedAlert.minStock }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Déficit:</span>
+                <span class="text-sm font-medium text-red-600">{{ getStockDeficit(selectedAlert) }} unidades</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Porcentaje del mínimo:</span>
+                <span class="text-sm font-medium" [class]="getStockPercentage(selectedAlert) < 50 ? 'text-red-600' : 'text-orange-600'">
+                  {{ getStockPercentage(selectedAlert) }}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <h4 class="font-medium text-gray-900">Información General</h4>
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Presentación:</span>
+                <span class="text-sm font-medium text-gray-900">{{ selectedAlert.presentation }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Ubicación:</span>
+                <span class="text-sm font-medium text-gray-900">{{ selectedAlert.location }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Proveedor:</span>
+                <span class="text-sm font-medium text-gray-900">{{ selectedAlert.supplier }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Último restock:</span>
+                <span class="text-sm font-medium text-gray-900">{{ selectedAlert.lastRestockDate }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Impact Information -->
+        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+          <h4 class="font-medium text-gray-900 mb-3">Impacto de la Alerta</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-red-600">{{ selectedAlert.daysWithoutStock }}</div>
+              <div class="text-xs text-gray-600">Días sin stock</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-orange-600">{{ selectedAlert.affectedPrescriptions }}</div>
+              <div class="text-xs text-gray-600">Recetas afectadas</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-blue-600">{{ selectedAlert.suggestedOrder }}</div>
+              <div class="text-xs text-gray-600">Cantidad a ordenar</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stock Progress Bar -->
+        <div class="mb-6">
+          <div class="flex items-center justify-between text-sm mb-2">
+            <span class="font-medium text-gray-700">Nivel de stock actual</span>
+            <span class="font-medium" [class]="selectedAlert.currentStock === 0 ? 'text-red-600' : selectedAlert.currentStock < selectedAlert.minStock ? 'text-orange-600' : 'text-gray-900'">
+              {{ getStockPercentage(selectedAlert) }}% del mínimo
+            </span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-3">
+            <div 
+              class="h-3 rounded-full transition-all duration-300"
+              [class]="selectedAlert.currentStock === 0 ? 'bg-red-500' : selectedAlert.currentStock < selectedAlert.minStock * 0.5 ? 'bg-orange-500' : 'bg-yellow-500'"
+              [style.width.%]="Math.min(100, getStockPercentage(selectedAlert))"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+        <button
+          (click)="closeModal()"
+          class="btn-secondary"
+        >
+          Cerrar
+        </button>
+        <button
+          (click)="ignoreAlert(selectedAlert); closeModal()"
+          class="btn-secondary"
+        >
+          Ignorar
+        </button>
+        <button
+          (click)="generateOrder(selectedAlert); closeModal()"
+          class="btn-primary"
+        >
+          <lucide-icon [img]="PackageCheckIcon" class="w-4 h-4 mr-2"></lucide-icon>
+          Generar orden de compra
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Order Form Modal -->
+<div *ngIf="isOrderModalOpen && orderingAlert" class="fixed inset-0 z-50 overflow-y-auto">
+  <!-- Backdrop -->
+  <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 transition-opacity" (click)="!isSubmittingOrder && closeOrderModal()"></div>
+  
+  <!-- Modal Content -->
+  <div class="flex min-h-full items-center justify-center p-4">
+    <div class="modal-content relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 rounded-full bg-blue-100">
+            <lucide-icon [img]="PackageCheckIcon" class="w-6 h-6 text-blue-600"></lucide-icon>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">Nueva Orden de Compra</h3>
+            <p class="text-sm text-gray-600">Generar orden de compra para reposición de stock. Los campos marcados con * son obligatorios.</p>
+          </div>
+        </div>
+        <button
+          *ngIf="!isSubmittingOrder"
+          (click)="closeOrderModal()"
+          class="p-2 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <lucide-icon [img]="XIcon" class="w-5 h-5 text-gray-500"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-6">
+        <!-- Medicine Information Card -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-center space-x-2 mb-3">
+            <lucide-icon [img]="InfoIcon" class="w-4 h-4 text-blue-600"></lucide-icon>
+            <h4 class="font-semibold text-blue-900">Información del medicamento</h4>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="text-sm text-gray-600">Medicamento</label>
+              <p class="font-semibold text-blue-900">{{ orderingAlert.medicineName }}</p>
+              <p class="text-sm text-blue-700">{{ orderingAlert.presentation }}</p>
+            </div>
+            <div>
+              <label class="text-sm text-gray-600">Categoría</label>
+              <p class="mt-1">{{ orderingAlert.category }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-4">
+            <div>
+              <label class="text-sm text-gray-600">Stock actual</label>
+              <p class="text-xl font-semibold" [class]="orderingAlert.currentStock === 0 ? 'text-red-600' : 'text-orange-600'">
+                {{ orderingAlert.currentStock }}
+              </p>
+            </div>
+            <div>
+              <label class="text-sm text-gray-600">Stock mínimo</label>
+              <p class="text-xl font-semibold text-blue-600">{{ orderingAlert.minStock }}</p>
+            </div>
+            <div>
+              <label class="text-sm text-gray-600">Demanda/día</label>
+              <p class="text-xl font-semibold">{{ orderingAlert.estimatedDemand }}</p>
+            </div>
+            <div>
+              <label class="text-sm text-gray-600">Ubicación</label>
+              <p class="text-xl font-semibold font-mono">{{ orderingAlert.location }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="orderingAlert.affectedPrescriptions > 0" class="mt-4 p-3 bg-red-100 border border-red-200 rounded-md">
+            <div class="flex items-center space-x-2">
+              <lucide-icon [img]="AlertTriangleIcon" class="w-4 h-4 text-red-600"></lucide-icon>
+              <p class="text-sm text-red-800">
+                <span class="font-semibold">{{ orderingAlert.affectedPrescriptions }} recetas pendientes</span> afectadas por falta de stock
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Details -->
+        <div class="space-y-4">
+          <div class="flex items-center space-x-2">
+            <lucide-icon [img]="FileTextIcon" class="w-4 h-4"></lucide-icon>
+            <h4 class="font-semibold">Detalles de la orden</h4>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label for="quantity" class="block text-sm font-medium text-gray-700">Cantidad a ordenar *</label>
+              <div class="relative">
+                <input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  [(ngModel)]="orderForm.quantity"
+                  placeholder="Ej: 1000"
+                  class="w-full pr-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                  unidades
+                </div>
+              </div>
+              <p class="text-xs text-gray-600">
+                Sugerido: {{ orderingAlert.suggestedOrder }} unidades
+              </p>
+            </div>
+
+            <div class="space-y-2">
+              <label for="urgency" class="block text-sm font-medium text-gray-700">Nivel de urgencia *</label>
+              <select
+                id="urgency"
+                [(ngModel)]="orderForm.urgency"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgente</option>
+                <option value="emergency">Emergencia</option>
+              </select>
+              <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border"
+                   [class]="getUrgencyConfig(orderForm.urgency).className">
+                {{ getUrgencyConfig(orderForm.urgency).description }}
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label for="supplier" class="block text-sm font-medium text-gray-700">Proveedor *</label>
+            <select
+              id="supplier"
+              [(ngModel)]="orderForm.supplier"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Seleccione un proveedor</option>
+              <option *ngFor="let supplier of suppliers" [value]="supplier">{{ supplier }}</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div class="space-y-2">
+              <label for="unitCost" class="block text-sm font-medium text-gray-700">Costo unitario estimado</label>
+              <div class="relative">
+                <lucide-icon [img]="DollarSignIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+                <input
+                  id="unitCost"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  [(ngModel)]="orderForm.estimatedCost"
+                  placeholder="0.00"
+                  class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Costo total estimado</label>
+              <div class="relative">
+                <lucide-icon [img]="CalculatorIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+                <input
+                  [value]="calculateTotalCost()"
+                  disabled
+                  class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                />
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label for="deliveryDate" class="block text-sm font-medium text-gray-700">Fecha estimada de entrega *</label>
+              <div class="relative">
+                <lucide-icon [img]="CalendarIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+                <input
+                  id="deliveryDate"
+                  type="date"
+                  [(ngModel)]="orderForm.deliveryDate"
+                  class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supplier Contact Information -->
+        <div class="space-y-4">
+          <div class="flex items-center space-x-2">
+            <lucide-icon [img]="Building2Icon" class="w-4 h-4"></lucide-icon>
+            <h4 class="font-semibold">Contacto del proveedor</h4>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div class="space-y-2">
+              <label for="contactPerson" class="block text-sm font-medium text-gray-700">Persona de contacto</label>
+              <input
+                id="contactPerson"
+                [(ngModel)]="orderForm.contactPerson"
+                placeholder="Ej: Juan Pérez"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label for="contactPhone" class="block text-sm font-medium text-gray-700">Teléfono</label>
+              <input
+                id="contactPhone"
+                [(ngModel)]="orderForm.contactPhone"
+                placeholder="Ej: +506 2222-3333"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label for="contactEmail" class="block text-sm font-medium text-gray-700">Email</label>
+              <input
+                id="contactEmail"
+                type="email"
+                [(ngModel)]="orderForm.contactEmail"
+                placeholder="Ej: ventas@proveedor.com"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Purchase Justification -->
+        <div class="space-y-2">
+          <label for="justification" class="block text-sm font-medium text-gray-700">Justificación de la compra</label>
+          <textarea
+            id="justification"
+            [(ngModel)]="orderForm.purchaseJustification"
+            rows="3"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            placeholder="Explique la necesidad de esta compra..."
+          ></textarea>
+          <p class="text-xs text-gray-600">
+            Esta información será incluida en la orden de compra para aprobación
+          </p>
+        </div>
+
+        <!-- Additional Notes -->
+        <div class="space-y-2">
+          <label for="notes" class="block text-sm font-medium text-gray-700">Notas adicionales</label>
+          <textarea
+            id="notes"
+            [(ngModel)]="orderForm.notes"
+            rows="2"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            placeholder="Información adicional, instrucciones especiales, etc."
+          ></textarea>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div class="flex items-center space-x-2 mb-3">
+            <lucide-icon [img]="CheckCircleIcon" class="w-4 h-4 text-green-600"></lucide-icon>
+            <h4 class="font-semibold text-green-900">Resumen de la orden</h4>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p class="text-gray-600">Medicamento:</p>
+              <p class="font-semibold">{{ orderingAlert.medicineName }}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Cantidad:</p>
+              <p class="font-semibold">{{ orderForm.quantity || '0' }} unidades</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Proveedor:</p>
+              <p class="font-semibold">{{ orderForm.supplier || 'No seleccionado' }}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Costo total estimado:</p>
+              <p class="font-semibold text-green-700">${{ calculateTotalCost() }}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Nivel de urgencia:</p>
+              <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border"
+                   [class]="getUrgencyConfig(orderForm.urgency).className">
+                {{ getUrgencyConfig(orderForm.urgency).label }}
+              </div>
+            </div>
+            <div>
+              <p class="text-gray-600">Entrega estimada:</p>
+              <p class="font-semibold">{{ orderForm.deliveryDate || 'No especificada' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+        <button
+          (click)="closeOrderModal()"
+          [disabled]="isSubmittingOrder"
+          class="btn-secondary"
+        >
+          Cancelar
+        </button>
+        <button
+          (click)="submitOrder()"
+          [disabled]="isSubmittingOrder"
+          class="btn-primary"
+        >
+          <lucide-icon *ngIf="isSubmittingOrder" [img]="Loader2Icon" class="w-4 h-4 mr-2 animate-spin"></lucide-icon>
+          <lucide-icon *ngIf="!isSubmittingOrder" [img]="PackageCheckIcon" class="w-4 h-4 mr-2"></lucide-icon>
+          {{ isSubmittingOrder ? 'Generando orden...' : 'Generar orden de compra' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+
+  <!-- Role Suggestion Modal -->
+  <app-role-suggestion-modal
+    [isOpen]="showRoleSuggestionModal()"
+    [suggestedRole]="'Farmacéutico'"
+    [pageName]="'inventario-alertas'"
+    (dismiss)="onRoleSuggestionDismiss()"
+    (roleChanged)="onRoleChanged()"
+  ></app-role-suggestion-modal>
+</app-page-layout>

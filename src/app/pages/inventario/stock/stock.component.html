@@ -1,0 +1,460 @@
+<app-page-layout 
+  title="Stock de Medicamentos" 
+  description="Control y gestión completa del inventario de medicamentos"
+  [icon]="packageIcon"
+  [breadcrumbItems]="breadcrumbItems"
+  headerGradient="from-purple-600 to-purple-700">
+  
+  <!-- Dashboard Content -->
+  <div class="space-y-6">
+
+    <!-- Statistics Cards Grid (6 cards) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <!-- Adequate Stock Card -->
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-green-500">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 flex-1">
+              <p class="text-sm text-gray-600">Adecuado</p>
+              <p class="text-3xl font-bold text-gray-900">{{ stockStats().adequate }}</p>
+            </div>
+            <div class="p-3 bg-green-100 rounded-xl">
+              <lucide-icon [img]="checkCircleIcon" class="w-8 h-8 text-green-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Low Stock Card -->
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-yellow-500">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 flex-1">
+              <p class="text-sm text-gray-600">Bajo</p>
+              <p class="text-3xl font-bold text-gray-900">{{ stockStats().low }}</p>
+            </div>
+            <div class="p-3 bg-yellow-100 rounded-xl">
+              <lucide-icon [img]="alertTriangleIcon" class="w-8 h-8 text-yellow-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical Stock Card -->
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-orange-500">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 flex-1">
+              <p class="text-sm text-gray-600">Crítico</p>
+              <p class="text-3xl font-bold text-gray-900">{{ stockStats().critical }}</p>
+            </div>
+            <div class="p-3 bg-orange-100 rounded-xl">
+              <lucide-icon [img]="alertTriangleIcon" class="w-8 h-8 text-orange-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Out of Stock Card -->
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-red-500">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 flex-1">
+              <p class="text-sm text-gray-600">Agotado</p>
+              <p class="text-3xl font-bold text-gray-900">{{ stockStats().out }}</p>
+            </div>
+            <div class="p-3 bg-red-100 rounded-xl">
+              <lucide-icon [img]="xCircleIcon" class="w-8 h-8 text-red-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overstocked Card -->
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-blue-500">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 flex-1">
+              <p class="text-sm text-gray-600">Sobre Stock</p>
+              <p class="text-3xl font-bold text-gray-900">{{ stockStats().overstocked }}</p>
+            </div>
+            <div class="p-3 bg-blue-100 rounded-xl">
+              <lucide-icon [img]="clockIcon" class="w-8 h-8 text-blue-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Value Card -->
+      <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-purple-500">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 flex-1">
+              <p class="text-sm text-gray-600">Valor Total</p>
+              <p class="text-2xl font-bold text-gray-900">{{ getTotalValue() }}</p>
+            </div>
+            <div class="p-3 bg-purple-100 rounded-xl">
+              <lucide-icon [img]="trendingUpIcon" class="w-8 h-8 text-purple-600"></lucide-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- Search and Filters Bar -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+  <div class="flex flex-col lg:flex-row gap-4">
+    <!-- Search Input -->
+    <div class="flex-1">
+      <div class="relative">
+        <lucide-icon [img]="searchIcon" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></lucide-icon>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, ID, principio activo o ubicación..."
+          class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          [value]="searchTerm()"
+          (input)="onSearchChange($event)"
+        />
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-col sm:flex-row gap-4">
+      <!-- Status Filter -->
+      <select
+        class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        [value]="selectedStatus()"
+        (change)="onStatusFilterChange($event)"
+      >
+        <option value="all">Todos los estados</option>
+        <option value="adequate">Adecuado</option>
+        <option value="low">Bajo</option>
+        <option value="critical">Crítico</option>
+        <option value="out">Agotado</option>
+        <option value="overstocked">Sobre Stock</option>
+      </select>
+
+      <!-- Category Filter -->
+      <select
+        class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        [value]="selectedCategory()"
+        (change)="onCategoryFilterChange($event)"
+      >
+        <option value="all">Todas las categorías</option>
+        <option *ngFor="let category of categories(); trackBy: trackByCategory" [value]="category">{{ category }}</option>
+      </select>
+
+      <!-- Location Filter -->
+      <select
+        class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        [value]="selectedLocation()"
+        (change)="onLocationFilterChange($event)"
+      >
+        <option value="all">Todas las ubicaciones</option>
+        <option *ngFor="let location of locations(); trackBy: trackByLocation" [value]="location">Zona {{ location }}</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Inventory Table -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Medicamento
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Ubicación
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Stock Actual
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Min/Max
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Estado
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Días Stock
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Valor Total
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Último Movimiento
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Acciones
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngIf="filteredItems().length === 0">
+          <td colspan="9" class="px-6 py-12 text-center">
+            <div class="flex flex-col items-center">
+              <lucide-icon [img]="packageIcon" class="w-12 h-12 text-gray-400 mb-4"></lucide-icon>
+              <h3 class="font-medium text-gray-900 mb-2">No se encontraron medicamentos</h3>
+              <p class="text-sm text-gray-600">Intenta ajustar los filtros de búsqueda</p>
+            </div>
+          </td>
+        </tr>
+        <tr *ngFor="let item of filteredItems(); trackBy: trackByItem"
+            class="hover:bg-blue-50/50 cursor-pointer transition-all"
+            (dblclick)="onRowDoubleClick(item)"
+        >
+              <!-- Medicine Info -->
+              <td class="px-6 py-4">
+                <div class="flex flex-col">
+                  <div class="text-sm font-medium text-gray-900">{{ item.medicineName }}</div>
+                  <div class="text-sm text-gray-500">{{ item.presentation }}</div>
+                  <div class="text-xs text-gray-400">ID: {{ item.medicineId }}</div>
+                </div>
+              </td>
+
+              <!-- Location -->
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">{{ item.location }}</div>
+                <div class="text-xs text-gray-500">{{ item.category }}</div>
+              </td>
+
+              <!-- Current Stock -->
+              <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">{{ item.currentStock }}</div>
+                <div class="text-xs text-gray-500">{{ item.presentation }}</div>
+              </td>
+
+              <!-- Min/Max -->
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">{{ item.minStock }} / {{ item.maxStock }}</div>
+                <div class="text-xs text-gray-500">Reorden: {{ item.reorderPoint }}</div>
+              </td>
+
+              <!-- Status -->
+              <td class="px-6 py-4">
+                <span [class]="getStatusBadgeClass(item.status)">
+                  <lucide-icon [img]="getStatusIcon(item.status)" class="w-3 h-3 mr-1"></lucide-icon>
+                  {{ getStatusText(item.status) }}
+                </span>
+              </td>
+
+              <!-- Days of Stock -->
+              <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">{{ item.daysOfStock }} días</div>
+                <div class="text-xs text-gray-500">Consumo: {{ item.averageConsumption }}/día</div>
+              </td>
+
+              <!-- Total Value -->
+              <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">{{ formatCurrency(item.totalValue) }}</div>
+                <div class="text-xs text-gray-500">{{ formatCurrency(item.unitCost) }}/unidad</div>
+              </td>
+
+              <!-- Last Movement -->
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">{{ formatDate(item.lastMovementDate) }}</div>
+                <div class="text-xs text-gray-500">Restock: {{ formatDate(item.lastRestockDate) }}</div>
+              </td>
+
+              <!-- Actions -->
+              <td class="px-6 py-4">
+                <div class="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                    (click)="onViewDetails(item)"
+                    title="Ver detalles"
+                  >
+                    <lucide-icon [img]="eyeIcon" class="w-4 h-4"></lucide-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                    (click)="onEditItem(item)"
+                    title="Editar"
+                  >
+                    <lucide-icon [img]="editIcon" class="w-4 h-4"></lucide-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                    (click)="onDeleteItem(item)"
+                    title="Eliminar"
+                  >
+                    <lucide-icon [img]="trashIcon" class="w-4 h-4"></lucide-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Details Panel (Slide-over) -->
+<div *ngIf="showDetailsPanel() && selectedItem()" class="fixed inset-0 z-50 overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+    <!-- Background overlay -->
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeDetailsPanel()"></div>
+      
+      <!-- Panel -->
+      <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+        <div class="w-screen max-w-md">
+          <div class="h-full flex flex-col bg-white shadow-xl overflow-y-scroll">
+            <!-- Header -->
+            <div class="px-4 py-6 bg-purple-600 sm:px-6">
+              <div class="flex items-center justify-between">
+                <h2 class="text-lg font-medium text-white" id="slide-over-title">
+                  Detalles del Medicamento
+                </h2>
+                <button
+                  type="button"
+                  class="rounded-md text-purple-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
+                  (click)="closeDetailsPanel()"
+                >
+                  <span class="sr-only">Cerrar panel</span>
+                  <lucide-icon [img]="xCircleIcon" class="w-6 h-6"></lucide-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 px-4 py-6 sm:px-6">
+              <div class="space-y-6">
+                <!-- Basic Info -->
+                <div>
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Información Básica</h3>
+                  <dl class="space-y-3">
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Nombre</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.medicineName }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Presentación</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.presentation }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Principio Activo</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.activeSubstance }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Categoría</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.category }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Estado</dt>
+                      <dd>
+                        <span [class]="getStatusBadgeClass(selectedItem()?.status || '')">
+                          <lucide-icon [img]="getStatusIcon(selectedItem()?.status || '')" class="w-3 h-3 mr-1"></lucide-icon>
+                          {{ getStatusText(selectedItem()?.status || '') }}
+                        </span>
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <!-- Stock Info -->
+                <div>
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Información de Stock</h3>
+                  <dl class="space-y-3">
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Stock Actual</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.currentStock }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Stock Mínimo</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.minStock }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Stock Máximo</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.maxStock }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Punto de Reorden</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.reorderPoint }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Días de Stock</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.daysOfStock }} días</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Consumo Promedio</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.averageConsumption }} unidades/día</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <!-- Financial Info -->
+                <div>
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Información Financiera</h3>
+                  <dl class="space-y-3">
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Costo Unitario</dt>
+                      <dd class="text-sm text-gray-900">{{ formatCurrency(selectedItem()?.unitCost || 0) }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Valor Total</dt>
+                      <dd class="text-sm text-gray-900">{{ formatCurrency(selectedItem()?.totalValue || 0) }}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <!-- Location & Supplier -->
+                <div>
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Ubicación y Proveedor</h3>
+                  <dl class="space-y-3">
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Ubicación</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.location }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Proveedor</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.supplier }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Lotes Activos</dt>
+                      <dd class="text-sm text-gray-900">{{ selectedItem()?.batches }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Próximo Vencimiento</dt>
+                      <dd class="text-sm text-gray-900">{{ formatDate(selectedItem()?.nearestExpiry || '') }}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <!-- Dates -->
+                <div>
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Fechas</h3>
+                  <dl class="space-y-3">
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Último Restock</dt>
+                      <dd class="text-sm text-gray-900">{{ formatDate(selectedItem()?.lastRestockDate || '') }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">Último Movimiento</dt>
+                      <dd class="text-sm text-gray-900">{{ formatDate(selectedItem()?.lastMovementDate || '') }}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  <!-- Role Suggestion Modal -->
+  <app-role-suggestion-modal
+    [isOpen]="showRoleSuggestionModal()"
+    [suggestedRole]="'Farmacéutico'"
+    [pageName]="'inventario-stock'"
+    (dismiss)="onRoleSuggestionDismiss()"
+    (roleChanged)="onRoleChanged()"
+  ></app-role-suggestion-modal>
+</app-page-layout>

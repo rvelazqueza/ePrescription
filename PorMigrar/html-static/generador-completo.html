@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador Completo de Componentes - ePrescription</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 2rem;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border-color: #2b6cb0;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-color: #38a169;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #2b6cb0;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2c5282;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .progress-section {
+            margin-bottom: 2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            opacity: 0.9;
+        }
+
+        .output-section {
+            margin-top: 2rem;
+        }
+
+        .output-area {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+        }
+
+        .file-preview {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            padding: 0.75rem;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .file-item:hover {
+            border-left-color: #2b6cb0;
+            background: #f7fafc;
+        }
+
+        .file-item.generated {
+            border-left-color: #48bb78;
+            background: #c6f6d5;
+        }
+
+        .download-btn {
+            padding: 0.5rem 1rem;
+            background: #2b6cb0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .download-btn:hover {
+            background: #2c5282;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Generador Completo de Componentes HTML</h1>
+        <p class="subtitle">Genera automáticamente todos los componentes faltantes de ePrescription en HTML puro</p>
+
+        <div class="alert alert-info">
+            <strong>ℹ️ Cómo usar este generador:</strong><br>
+            1. Presiona los botones para generar las categorías de componentes<br>
+            2. Cada archivo se generará como texto descargable<br>
+            3. Guarda cada archivo en la carpeta correspondiente de /html-static/<br>
+            4. Los archivos ya existentes no se sobrescribirán
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCount">107</div>
+                <div class="stat-label">Total Componentes</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #48bb78, #38a169);">
+                <div class="stat-number" id="generatedCount">5</div>
+                <div class="stat-label">Generados</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #ed8936, #dd6b20);">
+                <div class="stat-number" id="pendingCount">102</div>
+                <div class="stat-label">Pendientes</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #4299e1, #3182ce);">
+                <div class="stat-number" id="progressPercent">5%</div>
+                <div class="stat-label">Progreso</div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 5%;">5%</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="generateAllUI()">
+                🎨 Generar Todos UI (43)
+            </button>
+            <button class="btn btn-primary" onclick="generateAllComponents()">
+                🧩 Generar Componentes App (40)
+            </button>
+            <button class="btn btn-primary" onclick="generateAllPages()">
+                📄 Generar Páginas (30)
+            </button>
+            <button class="btn btn-success" onclick="generateAllFiles()">
+                ⚡ Generar TODO (107)
+            </button>
+            <button class="btn btn-warning" onclick="downloadAllAsZip()">
+                📦 Descargar Todo en ZIP
+            </button>
+            <button class="btn" style="background: #718096; color: white;" onclick="clearOutput()">
+                🗑️ Limpiar Output
+            </button>
+        </div>
+
+        <div class="output-section">
+            <h2 style="color: #2d3748; margin-bottom: 1rem;">📤 Archivos Generados</h2>
+            <div class="file-preview" id="filePreview">
+                <div style="text-align: center; color: #a0aec0; padding: 2rem;">
+                    Presiona un botón para generar componentes...
+                </div>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <h2 style="color: #2d3748; margin-bottom: 1rem;">📋 Log de Generación</h2>
+            <div class="output-area" id="output">Esperando generación...</div>
+        </div>
+    </div>
+
+    <script>
+        // Definición de componentes
+        const uiComponents = [
+            'accordion', 'alert-dialog', 'alert', 'aspect-ratio', 'avatar', 'badge', 
+            'breadcrumb', 'calendar', 'carousel', 'chart', 'checkbox', 'collapsible',
+            'command', 'context-menu', 'dialog', 'drawer', 'dropdown-menu', 'form',
+            'hover-card', 'input-otp', 'label', 'menubar', 'navigation-menu',
+            'pagination', 'popover', 'progress', 'radio-group', 'resizable',
+            'scroll-area', 'select', 'separator', 'sheet', 'sidebar', 'skeleton',
+            'slider', 'sonner', 'switch', 'table', 'tabs', 'textarea',
+            'toggle-group', 'toggle', 'tooltip'
+        ];
+
+        const appComponents = [
+            'AddMedicineDialog', 'Breadcrumbs', 'ClinicalDocumentsDialog', 
+            'ContactPatientDialog', 'Dashboard', 'DigitalSignatureDialog',
+            'DoctorDetailPanel', 'DraftPreviewPanel', 'EditDoctorDialog',
+            'EditPatientProfileDialog', 'EmailInput', 'EmittedPrescriptionPanel',
+            'EnhancedMedicinePanel', 'ExportButtons', 'Layout', 'LocationMap',
+            'MedicalHeader', 'MedicalTimeline', 'MedicinePanel', 'MedicineTable',
+            'MultiEmailInput', 'Navigation', 'NewDoctorDialog', 
+            'NewInventoryOrderDialog', 'NewLayout', 'NewPatientDialog',
+            'PageBanner', 'PageHeader', 'PatientDetailPanel', 'PrescriptionHeader',
+            'PrescriptionManager', 'PrescriptionPage', 'RejectionDetailPanel',
+            'RoleSelector', 'Sidebar', 'SystemBanner', 'TablePagination',
+            'TopBar', 'UniversalPrescriptionPanel', 'UserEditDialog', 
+            'VerificationResultPanel'
+        ];
+
+        const pages = [
+            'LoginPage', 'DashboardPage', 'PrescripcionesPage', 'PacientesPage',
+            'MedicosPage', 'InventarioPage', 'DispensacionPage', 'ReportesPage',
+            'InteropPage', 'SeguridadPage', 'MFAVerificationPage',
+            'PasswordRecoveryPage', 'OnboardingPage', 'RegistrationSuccessPage',
+            'UserApprovalsPage', 'SessionManagementPage', 'AlertasPage',
+            'AuditoriaPage', 'CatalogosPage', 'CentrosMedicosPage', 'ConfigPage',
+            'ConsultaInventarioPage', 'FarmaciasPage', 'FirmaPage',
+            'HistorialInteraccionesPage', 'NotificacionesConfigPage',
+            'NotificacionesListPage', 'NotificacionesPage', 'RegistroUsuariosPage',
+            'TalonariosPage'
+        ];
+
+        const generatedFiles = [];
+        const existingFiles = ['button', 'card', 'input', 'Logo'];
+
+        // Plantilla base
+        function getComponentTemplate(name, type, description) {
+            return `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${name} - ePrescription</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f7fafc;
+            padding: 2rem;
+        }
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 { color: #2d3748; margin-bottom: 0.5rem; }
+        .subtitle { color: #718096; margin-bottom: 2rem; }
+        .section { margin-bottom: 2rem; }
+        .section-title {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #2b6cb0;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .component-demo {
+            padding: 2rem;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 2px dashed #e2e8f0;
+            text-align: center;
+        }
+        .placeholder {
+            color: #a0aec0;
+            padding: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <a href="../../index.html" class="back-link">← Volver al índice</a>
+        <h1>${name}</h1>
+        <p class="subtitle">${description}</p>
+        <div class="section">
+            <h2 class="section-title">Vista Previa</h2>
+            <div class="component-demo">
+                <div class="placeholder">
+                    <h3>Componente: ${name}</h3>
+                    <p>Tipo: ${type}</p>
+                    <p style="margin-top: 1rem;">Este componente está listo para personalización.</p>
+                    <p style="margin-top: 0.5rem; font-size: 0.875rem;">
+                        Consulta el componente React original para más detalles.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        console.log('Componente ${name} cargado - Tipo: ${type}');
+    </script>
+</body>
+</html>`;
+        }
+
+        function log(message) {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.textContent += `[${timestamp}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function addFileToPreview(filename, content, folder) {
+            const preview = document.getElementById('filePreview');
+            if (preview.querySelector('.placeholder')) {
+                preview.innerHTML = '';
+            }
+
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item generated';
+            fileItem.innerHTML = `
+                <span>
+                    <strong>${folder}/${filename}</strong>
+                    <span style="color: #718096; font-size: 0.875rem; margin-left: 1rem;">
+                        ${Math.round(content.length / 1024)}KB
+                    </span>
+                </span>
+                <button class="download-btn" onclick="downloadFile('${filename}', \`${content.replace(/`/g, '\\`')}\`)">
+                    Descargar
+                </button>
+            `;
+            preview.appendChild(fileItem);
+        }
+
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            log(`✅ Archivo descargado: ${filename}`);
+        }
+
+        function updateStats() {
+            const total = uiComponents.length + appComponents.length + pages.length;
+            const generated = generatedFiles.length + existingFiles.length;
+            const pending = total - generated;
+            const percent = Math.round((generated / total) * 100);
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('generatedCount').textContent = generated;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('progressPercent').textContent = percent + '%';
+            
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = percent + '%';
+        }
+
+        function generateAllUI() {
+            log('🎨 Generando componentes UI...\n');
+            uiComponents.forEach(comp => {
+                if (!existingFiles.includes(comp) && !generatedFiles.includes(comp + '.html')) {
+                    const content = getComponentTemplate(comp, 'UI Component', `Componente UI: ${comp}`);
+                    const filename = `${comp}.html`;
+                    addFileToPreview(filename, content, 'components/ui');
+                    generatedFiles.push(filename);
+                    log(`✅ Generado: ${filename}`);
+                }
+            });
+            log(`\n✨ ${uiComponents.length} componentes UI procesados\n`);
+            updateStats();
+        }
+
+        function generateAllComponents() {
+            log('🧩 Generando componentes de aplicación...\n');
+            appComponents.forEach(comp => {
+                if (!existingFiles.includes(comp) && !generatedFiles.includes(comp + '.html')) {
+                    const content = getComponentTemplate(comp, 'App Component', `Componente de aplicación: ${comp}`);
+                    const filename = `${comp}.html`;
+                    addFileToPreview(filename, content, 'components');
+                    generatedFiles.push(filename);
+                    log(`✅ Generado: ${filename}`);
+                }
+            });
+            log(`\n✨ ${appComponents.length} componentes de aplicación procesados\n`);
+            updateStats();
+        }
+
+        function generateAllPages() {
+            log('📄 Generando páginas...\n');
+            pages.forEach(page => {
+                if (!generatedFiles.includes(page + '.html')) {
+                    const content = getComponentTemplate(page, 'Page', `Página: ${page}`);
+                    const filename = `${page}.html`;
+                    addFileToPreview(filename, content, 'pages');
+                    generatedFiles.push(filename);
+                    log(`✅ Generado: ${filename}`);
+                }
+            });
+            log(`\n✨ ${pages.length} páginas procesadas\n`);
+            updateStats();
+        }
+
+        function generateAllFiles() {
+            generateAllUI();
+            generateAllComponents();
+            generateAllPages();
+            log('\n🎉 ¡Generación completa!\n');
+            log(`📊 Total archivos generados: ${generatedFiles.length}`);
+        }
+
+        function clearOutput() {
+            document.getElementById('output').textContent = 'Esperando generación...';
+            document.getElementById('filePreview').innerHTML = `
+                <div style="text-align: center; color: #a0aec0; padding: 2rem;">
+                    Presiona un botón para generar componentes...
+                </div>
+            `;
+            generatedFiles.length = 0;
+            updateStats();
+        }
+
+        function downloadAllAsZip() {
+            alert('Funcionalidad de ZIP requiere una biblioteca externa como JSZip.\nPor ahora, descarga cada archivo individualmente usando los botones de descarga.');
+        }
+
+        // Inicializar
+        updateStats();
+        log('🚀 Generador listo para usar');
+        log('📋 Presiona un botón para comenzar la generación\n');
+    </script>
+</body>
+</html>

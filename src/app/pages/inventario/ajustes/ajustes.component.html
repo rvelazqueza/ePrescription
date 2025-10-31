@@ -1,0 +1,803 @@
+<!-- Main Layout -->
+<div class="w-full">
+    <!-- Breadcrumbs -->
+    <app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
+
+<!-- Main Header -->
+<div class="bg-gradient-to-r from-orange-600 to-orange-700 rounded-lg p-6 text-white mb-6">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="bg-white/20 p-3 rounded-lg">
+        <lucide-icon [img]="RotateCcwIcon" class="w-8 h-8"></lucide-icon>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold">Ajustes de Stock</h1>
+        <p class="text-orange-100">Historial completo de movimientos de inventario</p>
+      </div>
+    </div>
+    <div class="flex gap-4">
+      <div class="bg-white/20 rounded-lg p-4 text-center">
+        <div class="text-2xl font-bold">{{ filteredAdjustments.length }}</div>
+        <div class="text-sm text-orange-100">Movimientos registrados</div>
+      </div>
+      <button 
+        (click)="openNewAdjustmentModal()"
+        class="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 backdrop-blur-sm border border-white/30">
+        <lucide-icon [img]="PlusIcon" class="w-4 h-4"></lucide-icon>
+        Nuevo Ajuste
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 mt-6">
+  <!-- Total Entries -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-gray-600">Entradas</p>
+        <p class="text-2xl font-bold text-green-600">{{ stats.totalEntries }}</p>
+      </div>
+      <div class="p-3 bg-green-100 rounded-full">
+        <lucide-icon [img]="TrendingUpIcon" class="w-6 h-6 text-green-600"></lucide-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Exits -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-gray-600">Salidas</p>
+        <p class="text-2xl font-bold text-red-600">{{ stats.totalExits }}</p>
+      </div>
+      <div class="p-3 bg-red-100 rounded-full">
+        <lucide-icon [img]="TrendingDownIcon" class="w-6 h-6 text-red-600"></lucide-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today's Adjustments -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-gray-600">Ajustes Hoy</p>
+        <p class="text-2xl font-bold text-blue-600">{{ stats.todayAdjustments }}</p>
+      </div>
+      <div class="p-3 bg-blue-100 rounded-full">
+        <lucide-icon [img]="CalendarIcon" class="w-6 h-6 text-blue-600"></lucide-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Value -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-gray-600">Valor Total</p>
+        <p class="text-2xl font-bold text-purple-600">{{ formatCurrency(stats.totalValue) }}</p>
+      </div>
+      <div class="p-3 bg-purple-100 rounded-full">
+        <lucide-icon [img]="DollarSignIcon" class="w-6 h-6 text-purple-600"></lucide-icon>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Search and Filters Bar -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+  <!-- Search Bar -->
+  <div class="flex flex-col lg:flex-row gap-4 mb-4">
+    <div class="flex-1 relative">
+      <lucide-icon [img]="SearchIcon" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></lucide-icon>
+      <input
+        type="text"
+        [(ngModel)]="filters.searchTerm"
+        (input)="applyFilters()"
+        placeholder="Buscar por medicamento, responsable, documento..."
+        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+      />
+    </div>
+    <button
+      (click)="toggleFilters()"
+      class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+    >
+      <lucide-icon [img]="FilterIcon" class="w-4 h-4"></lucide-icon>
+      Filtros
+    </button>
+  </div>
+
+  <!-- Advanced Filters -->
+  <div *ngIf="showFilters" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 pt-4 border-t border-gray-200">
+    <!-- Type Filter -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+      <select
+        [(ngModel)]="filters.type"
+        (change)="applyFilters()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+      >
+        <option *ngFor="let option of typeOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Date From -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+      <input
+        type="date"
+        [(ngModel)]="filters.dateFrom"
+        (change)="applyFilters()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+      />
+    </div>
+
+    <!-- Date To -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+      <input
+        type="date"
+        [(ngModel)]="filters.dateTo"
+        (change)="applyFilters()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+      />
+    </div>
+
+    <!-- Responsible Filter -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Responsable</label>
+      <select
+        [(ngModel)]="filters.responsible"
+        (change)="applyFilters()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+      >
+        <option value="">Todos</option>
+        <option *ngFor="let responsible of responsibleOptions" [value]="responsible">
+          {{ responsible }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Status Filter -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+      <select
+        [(ngModel)]="filters.status"
+        (change)="applyFilters()"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+      >
+        <option *ngFor="let option of statusOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Clear Filters Button -->
+  <div *ngIf="showFilters" class="flex justify-end pt-4 border-t border-gray-200 mt-4">
+    <button
+      (click)="clearFilters()"
+      class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+    >
+      Limpiar filtros
+    </button>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="isLoading" class="flex justify-center items-center py-12">
+  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+  <span class="ml-2 text-gray-600">Cargando ajustes...</span>
+</div>
+
+<!-- Adjustments Table -->
+<div *ngIf="!isLoading" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <!-- Table Header -->
+  <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+    <div>
+      <h3 class="text-lg font-medium text-gray-900">
+        Historial de Ajustes
+        <span class="text-sm font-normal text-gray-500 ml-2">
+          ({{ filteredAdjustments.length }} registros)
+        </span>
+      </h3>
+      <p class="text-xs text-gray-500 mt-1">
+        Ordenado por {{ getSortColumnLabel() }} 
+        ({{ sortConfig.direction === 'asc' ? 'ascendente' : 'descendente' }})
+      </p>
+    </div>
+    <button
+      (click)="exportAdjustments()"
+      class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm"
+    >
+      Exportar
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="filteredAdjustments.length === 0" class="text-center py-12">
+    <lucide-icon [img]="RotateCcwIcon" class="w-12 h-12 text-gray-400 mx-auto mb-4"></lucide-icon>
+    <h3 class="font-medium text-gray-900 mb-2">No se encontraron ajustes</h3>
+    <p class="text-sm text-gray-600">
+      No hay movimientos que coincidan con los filtros aplicados
+    </p>
+  </div>
+
+  <!-- Table Content -->
+  <div *ngIf="filteredAdjustments.length > 0" class="overflow-x-auto">
+    <table class="w-full min-w-[1200px]">
+      <thead class="bg-gray-50 sticky top-0">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('date')"
+              class="flex items-center gap-1 hover:text-gray-700 transition-colors"
+              [class.text-orange-600]="isSortedBy('date')"
+            >
+              Fecha/Hora
+              <lucide-icon 
+                *ngIf="getSortIcon('date')" 
+                [img]="getSortIcon('date')" 
+                class="w-4 h-4"
+              ></lucide-icon>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('type')"
+              class="flex items-center gap-1 hover:text-gray-700 transition-colors"
+              [class.text-orange-600]="isSortedBy('type')"
+            >
+              Tipo
+              <lucide-icon 
+                *ngIf="getSortIcon('type')" 
+                [img]="getSortIcon('type')" 
+                class="w-4 h-4"
+              ></lucide-icon>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('medicine')"
+              class="flex items-center gap-1 hover:text-gray-700 transition-colors"
+              [class.text-orange-600]="isSortedBy('medicine')"
+            >
+              Medicamento
+              <lucide-icon 
+                *ngIf="getSortIcon('medicine')" 
+                [img]="getSortIcon('medicine')" 
+                class="w-4 h-4"
+              ></lucide-icon>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('quantity')"
+              class="flex items-center gap-1 hover:text-gray-700 transition-colors"
+              [class.text-orange-600]="isSortedBy('quantity')"
+            >
+              Cantidad
+              <lucide-icon 
+                *ngIf="getSortIcon('quantity')" 
+                [img]="getSortIcon('quantity')" 
+                class="w-4 h-4"
+              ></lucide-icon>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('reason')"
+              class="flex items-center gap-1 hover:text-gray-700 transition-colors"
+              [class.text-orange-600]="isSortedBy('reason')"
+            >
+              Motivo
+              <lucide-icon 
+                *ngIf="getSortIcon('reason')" 
+                [img]="getSortIcon('reason')" 
+                class="w-4 h-4"
+              ></lucide-icon>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('stock')"
+              class="flex items-center gap-1 hover:text-gray-700 transition-colors"
+              [class.text-orange-600]="isSortedBy('stock')"
+            >
+              Stock
+              <lucide-icon 
+                *ngIf="getSortIcon('stock')" 
+                [img]="getSortIcon('stock')" 
+                class="w-4 h-4"
+              ></lucide-icon>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('responsible')"
+              class="flex items-center gap-1 hover:text-gray-700 transition-colors"
+              [class.text-orange-600]="isSortedBy('responsible')"
+            >
+              Responsable
+              <lucide-icon 
+                *ngIf="getSortIcon('responsible')" 
+                [img]="getSortIcon('responsible')" 
+                class="w-4 h-4"
+              ></lucide-icon>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <button
+              (click)="sortBy('status')"
+              class="flex items-center gap-1 hover:text-gray-700 transition-colors"
+              [class.text-orange-600]="isSortedBy('status')"
+            >
+              Estado
+              <lucide-icon 
+                *ngIf="getSortIcon('status')" 
+                [img]="getSortIcon('status')" 
+                class="w-4 h-4"
+              ></lucide-icon>
+            </button>
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Acciones
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr
+          *ngFor="let adjustment of filteredAdjustments; trackBy: trackByAdjustmentId"
+          (click)="onAdjustmentClick(adjustment)"
+          class="hover:bg-blue-50/50 cursor-pointer transition-all"
+        >
+          <!-- Date/Time -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium text-gray-900">
+              {{ formatDate(adjustment.date) }}
+            </div>
+            <div class="text-sm text-gray-500">
+              {{ formatTime(adjustment.time) }}
+            </div>
+          </td>
+
+          <!-- Type -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center gap-2">
+              <lucide-icon 
+                [img]="getTypeIcon(adjustment.type)" 
+                class="w-4 h-4"
+                [class]="getTypeClass(adjustment.type)"
+              ></lucide-icon>
+              <span class="text-sm font-medium text-gray-900">
+                {{ getTypeLabel(adjustment.type) }}
+              </span>
+            </div>
+          </td>
+
+          <!-- Medicine -->
+          <td class="px-6 py-4">
+            <div class="text-sm font-medium text-gray-900">
+              {{ adjustment.medicineName }}
+            </div>
+            <div class="text-sm text-gray-500">
+              {{ adjustment.presentation }}
+            </div>
+            <div class="text-xs text-gray-400">
+              ID: {{ adjustment.medicineId }}
+            </div>
+          </td>
+
+          <!-- Quantity -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium" [class]="getQuantityClass(adjustment.quantity)">
+              {{ formatQuantity(adjustment.quantity) }}
+            </div>
+            <div class="text-xs text-gray-500">
+              {{ formatCurrency(adjustment.totalValue) }}
+            </div>
+          </td>
+
+          <!-- Reason -->
+          <td class="px-6 py-4">
+            <div class="text-sm text-gray-900">
+              {{ adjustment.reason }}
+            </div>
+            <div class="text-xs text-gray-500">
+              Doc: {{ adjustment.documentNumber }}
+            </div>
+          </td>
+
+          <!-- Stock -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm" [class]="getStockChangeClass(adjustment.previousStock, adjustment.newStock)">
+              {{ formatStockChange(adjustment.previousStock, adjustment.newStock) }}
+            </div>
+            <div class="text-xs text-gray-500">
+              Anterior → Nuevo
+            </div>
+          </td>
+
+          <!-- Responsible -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center gap-2">
+              <lucide-icon [img]="UserIcon" class="w-4 h-4 text-gray-400"></lucide-icon>
+              <span class="text-sm text-gray-900">{{ adjustment.responsible }}</span>
+            </div>
+          </td>
+
+          <!-- Status -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
+                  [class]="getStatusBadgeClass(adjustment.status)">
+              {{ getStatusLabel(adjustment.status) }}
+            </span>
+          </td>
+
+          <!-- Actions -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <button
+              (click)="viewAdjustmentDetails(adjustment, $event)"
+              class="text-orange-600 hover:text-orange-800 font-medium text-sm flex items-center gap-1 transition-colors"
+            >
+              <lucide-icon [img]="EyeIcon" class="w-4 h-4"></lucide-icon>
+              Ver
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Adjustment Details Modal -->
+<div *ngIf="showDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" (click)="closeDetailsModal()">
+  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+      <h3 class="text-lg font-medium text-gray-900">Detalles del Ajuste</h3>
+      <button
+        (click)="closeDetailsModal()"
+        class="text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <lucide-icon [img]="XIcon" class="w-6 h-6"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <div *ngIf="selectedAdjustment" class="px-6 py-4">
+      <!-- Basic Information -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 mb-3">Información General</h4>
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">ID Ajuste</label>
+              <p class="text-sm text-gray-900">{{ selectedAdjustment.id }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha y Hora</label>
+              <p class="text-sm text-gray-900">{{ formatDate(selectedAdjustment.date) }} - {{ formatTime(selectedAdjustment.time) }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Movimiento</label>
+              <div class="flex items-center gap-2">
+                <lucide-icon 
+                  [img]="getTypeIcon(selectedAdjustment.type)" 
+                  class="w-4 h-4"
+                  [class]="getTypeClass(selectedAdjustment.type)"
+                ></lucide-icon>
+                <span class="text-sm text-gray-900">{{ getTypeLabel(selectedAdjustment.type) }}</span>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</label>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
+                    [class]="getStatusBadgeClass(selectedAdjustment.status)">
+                {{ getStatusLabel(selectedAdjustment.status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 mb-3">Medicamento</h4>
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</label>
+              <p class="text-sm text-gray-900">{{ selectedAdjustment.medicineName }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Presentación</label>
+              <p class="text-sm text-gray-900">{{ selectedAdjustment.presentation }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">ID Medicamento</label>
+              <p class="text-sm text-gray-900">{{ selectedAdjustment.medicineId }}</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Lote</label>
+              <p class="text-sm text-gray-900">{{ selectedAdjustment.batch }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Movement Details -->
+      <div class="border-t border-gray-200 pt-6 mb-6">
+        <h4 class="text-sm font-medium text-gray-900 mb-3">Detalles del Movimiento</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</label>
+            <p class="text-lg font-medium" [class]="getQuantityClass(selectedAdjustment.quantity)">
+              {{ formatQuantity(selectedAdjustment.quantity) }}
+            </p>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Anterior</label>
+            <p class="text-lg font-medium text-gray-900">{{ selectedAdjustment.previousStock }}</p>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Nuevo</label>
+            <p class="text-lg font-medium text-gray-900">{{ selectedAdjustment.newStock }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Information -->
+      <div class="border-t border-gray-200 pt-6 mb-6">
+        <h4 class="text-sm font-medium text-gray-900 mb-3">Información Financiera</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Costo Unitario</label>
+            <p class="text-sm text-gray-900">{{ formatCurrency(selectedAdjustment.unitCost) }}</p>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</label>
+            <p class="text-lg font-medium" [class]="getQuantityClass(selectedAdjustment.totalValue)">
+              {{ formatCurrency(selectedAdjustment.totalValue) }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Information -->
+      <div class="border-t border-gray-200 pt-6">
+        <h4 class="text-sm font-medium text-gray-900 mb-3">Información Adicional</h4>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Motivo</label>
+            <p class="text-sm text-gray-900">{{ selectedAdjustment.reason }}</p>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Responsable</label>
+            <p class="text-sm text-gray-900">{{ selectedAdjustment.responsible }}</p>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Número de Documento</label>
+            <p class="text-sm text-gray-900">{{ selectedAdjustment.documentNumber }}</p>
+          </div>
+          <div *ngIf="selectedAdjustment.supplier && selectedAdjustment.supplier !== '-'">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</label>
+            <p class="text-sm text-gray-900">{{ selectedAdjustment.supplier }}</p>
+          </div>
+          <div *ngIf="selectedAdjustment.expiryDate && selectedAdjustment.expiryDate !== '-'">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Vencimiento</label>
+            <p class="text-sm text-gray-900">{{ formatDate(selectedAdjustment.expiryDate) }}</p>
+          </div>
+          <div *ngIf="selectedAdjustment.notes">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</label>
+            <p class="text-sm text-gray-900">{{ selectedAdjustment.notes }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+      <button
+        (click)="closeDetailsModal()"
+        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- New Adjustment Modal -->
+<div *ngIf="showNewAdjustmentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" (click)="closeNewAdjustmentModal()">
+  <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <lucide-icon [img]="RotateCcwIcon" class="w-5 h-5 text-orange-600"></lucide-icon>
+        <h3 class="text-lg font-medium text-gray-900">Nuevo ajuste de inventario</h3>
+      </div>
+      <button
+        (click)="closeNewAdjustmentModal()"
+        class="text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <lucide-icon [img]="XIcon" class="w-6 h-6"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <form (ngSubmit)="submitNewAdjustment()" class="px-6 py-4">
+      <p class="text-sm text-gray-600 mb-6">Registrar un nuevo movimiento de inventario</p>
+
+      <!-- Tipo de movimiento -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Tipo de movimiento <span class="text-red-500">*</span>
+        </label>
+        <select
+          [(ngModel)]="newAdjustmentForm.type"
+          name="type"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+        >
+          <option value="entry">Entrada</option>
+          <option value="exit">Salida</option>
+          <option value="adjustment">Ajuste</option>
+        </select>
+      </div>
+
+      <!-- Medicamento -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Medicamento <span class="text-red-500">*</span>
+        </label>
+        <select
+          [(ngModel)]="newAdjustmentForm.medicineId"
+          name="medicineId"
+          (change)="onMedicineChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+          [class.border-red-500]="formErrors['medicineId']"
+        >
+          <option value="">Selecciona un medicamento</option>
+          <option *ngFor="let medicine of availableMedicines" [value]="medicine.id">
+            {{ medicine.name }} - {{ medicine.presentation }}
+          </option>
+        </select>
+        <p *ngIf="formErrors['medicineId']" class="text-red-500 text-xs mt-1">{{ formErrors['medicineId'] }}</p>
+      </div>
+
+      <!-- Cantidad y Motivo en la misma fila -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <!-- Cantidad -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Cantidad <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            [(ngModel)]="newAdjustmentForm.quantity"
+            name="quantity"
+            placeholder="Ej: 100"
+            min="1"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            [class.border-red-500]="formErrors['quantity']"
+          />
+          <p *ngIf="formErrors['quantity']" class="text-red-500 text-xs mt-1">{{ formErrors['quantity'] }}</p>
+        </div>
+
+        <!-- Motivo -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Motivo <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="newAdjustmentForm.reason"
+            name="reason"
+            placeholder="Ej: Compra regular"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            [class.border-red-500]="formErrors['reason']"
+          />
+          <p *ngIf="formErrors['reason']" class="text-red-500 text-xs mt-1">{{ formErrors['reason'] }}</p>
+        </div>
+      </div>
+
+      <!-- Campos adicionales (colapsables) -->
+      <div class="mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Número de documento -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Número de documento</label>
+            <input
+              type="text"
+              [(ngModel)]="newAdjustmentForm.documentNumber"
+              name="documentNumber"
+              placeholder="Ej: FC-2024-001"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            />
+          </div>
+
+          <!-- Proveedor -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Proveedor</label>
+            <input
+              type="text"
+              [(ngModel)]="newAdjustmentForm.supplier"
+              name="supplier"
+              placeholder="Ej: Farmacéutica Nacional"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Lote -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Lote</label>
+            <input
+              type="text"
+              [(ngModel)]="newAdjustmentForm.batch"
+              name="batch"
+              placeholder="Ej: LOT-2024-001"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            />
+          </div>
+
+          <!-- Fecha de vencimiento -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de vencimiento</label>
+            <input
+              type="date"
+              [(ngModel)]="newAdjustmentForm.expiryDate"
+              name="expiryDate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Notas adicionales -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Notas adicionales</label>
+        <textarea
+          [(ngModel)]="newAdjustmentForm.notes"
+          name="notes"
+          rows="3"
+          placeholder="Información adicional sobre el ajuste..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
+        ></textarea>
+      </div>
+    </form>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+      <button
+        type="button"
+        (click)="closeNewAdjustmentModal()"
+        class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+        [disabled]="isSubmitting"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        (click)="submitNewAdjustment()"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+        [disabled]="isSubmitting"
+      >
+        <div *ngIf="isSubmitting" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+        <lucide-icon *ngIf="!isSubmitting" [img]="CheckCircleIcon" class="w-4 h-4"></lucide-icon>
+        {{ isSubmitting ? 'Registrando...' : 'Registrar ajuste' }}
+      </button>
+    </div>
+  </div>
+</div><!-- Role Su
+ggestion Modal -->
+<app-role-suggestion-modal
+  [isOpen]="showRoleSuggestionModal()"
+  [suggestedRole]="'Farmacéutico'"
+  [pageName]="'inventario-ajustes'"
+  (dismiss)="onRoleSuggestionDismiss()"
+  (roleChanged)="onRoleChanged()"
+></app-role-suggestion-modal>

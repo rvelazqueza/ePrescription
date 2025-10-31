@@ -1,0 +1,259 @@
+<!-- Main Layout -->
+<div class="w-full">
+  <!-- Breadcrumbs -->
+  <app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
+  
+  <!-- Header Banner -->
+  <div class="bg-gradient-to-r from-teal-600 via-teal-500 to-teal-700 rounded-lg p-6 text-white mb-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="bg-white/20 p-3 rounded-lg">
+          <lucide-icon [img]="packageIcon" class="w-8 h-8"></lucide-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold">Consulta de Inventario por Farmacia</h1>
+          <p class="text-teal-100">Visualización de saldos de medicamentos en todas las farmacias del sistema</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Main Content Card -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+    <!-- Card Header -->
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900">Saldos de Medicamentos</h2>
+          <p class="text-sm text-gray-600 mt-1">
+            {{ filteredInventory.length }} registro{{ filteredInventory.length !== 1 ? 's' : '' }} encontrado{{ filteredInventory.length !== 1 ? 's' : '' }}
+          </p>
+        </div>
+        <button 
+          (click)="toggleUppercase()"
+          [class]="showUppercase ? 'bg-teal-100 text-teal-800 border-teal-300' : 'bg-gray-100 text-gray-700 border-gray-300'"
+          class="px-3 py-2 border rounded-lg text-sm font-medium transition-colors flex items-center gap-2 hover:bg-teal-50">
+          <lucide-icon [img]="fileTextIcon" class="w-4 h-4"></lucide-icon>
+          {{ showUppercase ? 'MAYÚSCULAS ON' : 'Case Normal' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="p-6 space-y-4">
+      <!-- Search and Filters Row -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Search Input -->
+        <div class="md:col-span-2 relative">
+          <lucide-icon [img]="searchIcon" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            placeholder="Buscar por medicamento, farmacia, ubicación, teléfono..."
+            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all">
+        </div>
+
+        <!-- Pharmacy Filter -->
+        <select 
+          [(ngModel)]="selectedFarmacia" 
+          (change)="onFarmaciaChange()"
+          class="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all">
+          <option value="todas">Todas las farmacias</option>
+          <option *ngFor="let farmacia of uniquePharmacies" [value]="farmacia.id">
+            {{ farmacia.codigo }} - {{ farmacia.nombre }}
+          </option>
+        </select>
+
+        <!-- Stock Level Filter -->
+        <select 
+          [(ngModel)]="alertLevel" 
+          (change)="onAlertLevelChange()"
+          class="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all">
+          <option *ngFor="let level of stockLevels" [value]="level.value">
+            {{ level.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Export Button -->
+      <div class="flex justify-end">
+        <button 
+          (click)="exportReport()"
+          class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+          <lucide-icon [img]="downloadIcon" class="w-4 h-4"></lucide-icon>
+          Exportar Datos
+        </button>
+      </div>
+
+      <!-- Inventory Table -->
+      <div class="border rounded-lg overflow-hidden">
+        <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+          <table class="w-full min-w-[1200px]" 
+                 role="table" 
+                 aria-label="Tabla de inventario por farmacia">
+            <thead class="bg-gray-50 sticky top-0">
+              <tr role="row">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                    role="columnheader" scope="col">Medicamento</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                    role="columnheader" scope="col">Presentación</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                    role="columnheader" scope="col">Farmacia</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                    role="columnheader" scope="col">Ubicación</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                    role="columnheader" scope="col">Dirección</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                    role="columnheader" scope="col">Teléfono</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                    role="columnheader" scope="col">Stock</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                    role="columnheader" scope="col">Estado</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" role="rowgroup">
+              <!-- Empty State -->
+              <tr *ngIf="paginatedData.length === 0" role="row">
+                <td colspan="8" class="px-6 py-12 text-center" role="gridcell">
+                  <lucide-icon [img]="packageIcon" class="w-12 h-12 mx-auto mb-2 text-gray-400" aria-hidden="true"></lucide-icon>
+                  <p class="text-gray-600">No se encontraron registros de inventario</p>
+                </td>
+              </tr>
+              
+              <!-- Data Rows -->
+              <tr *ngFor="let item of paginatedData; trackBy: trackByItemId" 
+                  class="hover:bg-blue-50/50 transition-colors"
+                  role="row"
+                  [attr.aria-label]="'Medicamento ' + item.medicamentoNombre + ' en ' + item.farmaciaNombre">
+                <!-- Medicine -->
+                <td class="px-6 py-4 whitespace-nowrap" role="gridcell">
+                  <div>
+                    <p class="font-medium text-gray-900">{{ formatText(item.medicamentoNombre) }}</p>
+                    <p class="text-xs text-gray-500 font-mono">{{ item.medicamentoCodigo }}</p>
+                  </div>
+                </td>
+                
+                <!-- Presentation -->
+                <td class="px-6 py-4 whitespace-nowrap" role="gridcell">
+                  <span class="text-sm text-gray-900">{{ formatText(item.presentacion) }}</span>
+                </td>
+                
+                <!-- Pharmacy -->
+                <td class="px-6 py-4 whitespace-nowrap" role="gridcell">
+                  <div class="flex items-start gap-1.5">
+                    <lucide-icon [img]="building2Icon" class="w-4 h-4 text-teal-600 mt-0.5 flex-shrink-0" aria-hidden="true"></lucide-icon>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">{{ formatText(item.farmaciaNombre) }}</p>
+                      <p class="text-xs text-gray-500 font-mono">{{ item.farmaciaCode }}</p>
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Location -->
+                <td class="px-6 py-4 whitespace-nowrap" role="gridcell">
+                  <div class="flex items-start gap-1.5">
+                    <lucide-icon [img]="mapPinIcon" class="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" aria-hidden="true"></lucide-icon>
+                    <span class="text-sm text-gray-900">
+                      {{ formatText(getFullLocation(item.provinciaId, item.cantonId, item.distritoId)) }}
+                    </span>
+                  </div>
+                </td>
+                
+                <!-- Address -->
+                <td class="px-6 py-4 max-w-xs" role="gridcell">
+                  <span class="text-sm text-gray-900 line-clamp-2">{{ formatText(item.direccionEspecifica) }}</span>
+                </td>
+                
+                <!-- Phone -->
+                <td class="px-6 py-4 whitespace-nowrap" role="gridcell">
+                  <div class="flex items-center gap-1.5">
+                    <lucide-icon [img]="phoneIcon" class="w-3.5 h-3.5 text-gray-400" aria-hidden="true"></lucide-icon>
+                    <span class="text-sm text-gray-900">{{ item.telefono }}</span>
+                  </div>
+                </td>
+                
+                <!-- Stock -->
+                <td class="px-6 py-4 whitespace-nowrap text-right" role="gridcell">
+                  <div class="space-y-1">
+                    <p class="font-mono text-gray-900">{{ item.stock.toLocaleString() }}</p>
+                    <p class="text-xs text-gray-500">
+                      Min: {{ item.stockMinimo.toLocaleString() }}
+                    </p>
+                  </div>
+                </td>
+                
+                <!-- Status -->
+                <td class="px-6 py-4 whitespace-nowrap" role="gridcell">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border" 
+                        [ngClass]="getStockBadge(item).class"
+                        role="status"
+                        [attr.aria-label]="'Estado de stock: ' + getStockBadge(item).label">
+                    <lucide-icon [img]="getStockBadge(item).icon" class="w-3 h-3 mr-1" aria-hidden="true"></lucide-icon>
+                    {{ getStockBadge(item).label }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="totalPages > 1" class="flex items-center justify-between pt-4">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-700">Mostrar</span>
+          <select [(ngModel)]="pageSize" (ngModelChange)="changePageSize($event)" 
+                  class="border border-gray-300 rounded px-2 py-1 text-sm">
+            <option [value]="10">10</option>
+            <option [value]="15">15</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+          <span class="text-sm text-gray-700">registros por página</span>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <button (click)="goToPreviousPage()" 
+                  [disabled]="currentPage === 1"
+                  class="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
+            Anterior
+          </button>
+          
+          <span class="text-sm text-gray-700">
+            Página {{ currentPage }} de {{ totalPages }}
+          </span>
+          
+          <button (click)="goToNextPage()" 
+                  [disabled]="currentPage === totalPages"
+                  class="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
+            Siguiente
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div *ngFor="let card of statsCards" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600">{{ card.title }}</p>
+          <p class="text-2xl font-mono font-semibold" [ngClass]="card.color">{{ card.value }}</p>
+        </div>
+        <lucide-icon [img]="card.icon" class="w-8 h-8 opacity-50" [ngClass]="card.color"></lucide-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role Suggestion Modal -->
+  <app-role-suggestion-modal
+    [isOpen]="showRoleSuggestionModal()"
+    [suggestedRole]="'Farmacéutico'"
+    [pageName]="'inventario-consulta'"
+    (dismiss)="onRoleSuggestionDismiss()"
+    (roleChanged)="onRoleChanged()"
+  ></app-role-suggestion-modal>
+

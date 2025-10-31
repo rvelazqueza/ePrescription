@@ -1,0 +1,223 @@
+/* Modal animations */
+.modal-backdrop {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s ease;
+}
+
+/* Custom scrollbar for modal content */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Progress bar animation */
+.progress-bar {
+  transition: width 0.5s ease-in-out;
+}
+
+/* Button hover effects */
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Status badge styles */
+.status-badge {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Grid responsive adjustments */
+@media (max-width: 640px) {
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Focus styles for accessibility */
+button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Modal backdrop blur effect */
+.backdrop-blur {
+  backdrop-filter: blur(4px);
+}
+
+/* Host component styles */
+:host {
+  --tw-border-opacity: 1;
+  border-color: rgb(229 231 235 / var(--tw-border-opacity)) !important;
+}
+
+/* Batch modal specific styles */
+.batch-modal-backdrop * {
+  border-color: #e5e7eb !important;
+}
+
+.batch-modal-backdrop .modal-container {
+  border: 1px solid #e5e7eb !important;
+}
+
+.batch-modal-backdrop .modal-header {
+  border: none !important;
+}
+
+/* Ensure no red borders on modal */
+.modal-header {
+  border: none !important;
+  border-bottom: none !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #15803d 100%) !important;
+}
+
+/* Remove any inherited borders */
+:host ::ng-deep .modal-header {
+  border: none !important;
+}
+
+/* Aggressively remove any red borders */
+.modal-container {
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.modal-container * {
+  border-color: #e5e7eb !important;
+}
+
+:host ::ng-deep .modal-container {
+  border: 1px solid #e5e7eb !important;
+}
+
+:host ::ng-deep .modal-container * {
+  border-color: #e5e7eb !important;
+}
+
+/* Override any possible red border classes */
+:host ::ng-deep .border-red-500,
+:host ::ng-deep .border-red-400,
+:host ::ng-deep .border-red-300,
+:host ::ng-deep .border-red-200 {
+  border-color: #e5e7eb !important;
+}
+
+/* Ensure header has no borders */
+:host ::ng-deep .modal-header {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+/* Override global error-border class */
+:host ::ng-deep .error-border {
+  border-color: #e5e7eb !important;
+}
+
+/* Override any Angular validation classes */
+:host ::ng-deep .ng-invalid {
+  border-color: #e5e7eb !important;
+}
+
+:host ::ng-deep .ng-invalid.ng-touched {
+  border-color: #e5e7eb !important;
+}
+/* 
+RADICAL OVERRIDE - Remove all possible red borders */
+:host,
+:host *,
+:host ::ng-deep *,
+:host ::ng-deep div,
+:host ::ng-deep .modal-header,
+:host ::ng-deep .modal-container {
+  border-color: #e5e7eb !important;
+  border-top-color: #e5e7eb !important;
+  border-bottom-color: #e5e7eb !important;
+  border-left-color: #e5e7eb !important;
+  border-right-color: #e5e7eb !important;
+}
+
+/* Specific overrides for common error classes */
+:host ::ng-deep .border-red-100,
+:host ::ng-deep .border-red-200,
+:host ::ng-deep .border-red-300,
+:host ::ng-deep .border-red-400,
+:host ::ng-deep .border-red-500,
+:host ::ng-deep .border-red-600,
+:host ::ng-deep .border-red-700,
+:host ::ng-deep .border-red-800,
+:host ::ng-deep .border-red-900 {
+  border-color: #e5e7eb !important;
+}
+
+/* Override Tailwind error utilities */
+:host ::ng-deep .border-red {
+  border-color: #e5e7eb !important;
+}
+
+/* Override form validation styles */
+:host ::ng-deep .ng-invalid,
+:host ::ng-deep .ng-invalid.ng-touched,
+:host ::ng-deep .ng-invalid.ng-dirty {
+  border-color: #e5e7eb !important;
+}
+
+/* Force green header background */
+:host ::ng-deep .modal-header {
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #15803d 100%) !important;
+  border: none !important;
+  outline: none !important;
+}

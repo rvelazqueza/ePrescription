@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ePrescription - Componentes HTML Estáticos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2b6cb0 0%, #2c5282 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            color: #4a5568;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background: #edf2f7;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #2b6cb0;
+            font-weight: 600;
+            border-bottom: 3px solid #2b6cb0;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .component-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .component-card:hover {
+            border-color: #2b6cb0;
+            box-shadow: 0 4px 12px rgba(43, 108, 176, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .component-card h3 {
+            color: #2b6cb0;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .component-card p {
+            color: #718096;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #bee3f8;
+            color: #2c5282;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .search-box {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #2b6cb0;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 ePrescription</h1>
+            <p>Componentes HTML Estáticos para Pruebas - Sistema Hospitalario Profesional</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="overview">📊 Resumen</button>
+            <button class="nav-tab" data-tab="components">🧩 Componentes</button>
+            <button class="nav-tab" data-tab="ui">🎨 UI Components</button>
+            <button class="nav-tab" data-tab="pages">📄 Páginas</button>
+            <button class="nav-tab" data-tab="utils">🛠️ Utilidades</button>
+        </div>
+
+        <div class="content">
+            <!-- RESUMEN -->
+            <div class="section active" id="overview">
+                <div class="stats">
+                    <div class="stat-card">
+                        <h4>Componentes</h4>
+                        <div class="number">41</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>UI Components</h4>
+                        <div class="number">36</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Páginas</h4>
+                        <div class="number">30</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Utilidades</h4>
+                        <div class="number">12</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-bottom: 1rem; color: #2d3748;">📋 Información del Proyecto</h2>
+                <div style="background: #f7fafc; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #2b6cb0;">
+                    <p style="margin-bottom: 1rem; line-height: 1.6;"><strong>ePrescription</strong> es un sistema hospitalario profesional para la gestión de recetas médicas electrónicas.</p>
+                    <p style="margin-bottom: 1rem; line-height: 1.6;">Esta versión HTML estática contiene todos los componentes convertidos desde React a HTML puro con CSS y JavaScript vanilla para realizar pruebas independientes.</p>
+                    <p style="line-height: 1.6;"><strong>Nota:</strong> Los componentes originales React (.tsx) se mantienen intactos en sus carpetas originales.</p>
+                </div>
+
+                <h2 style="margin: 2rem 0 1rem; color: #2d3748;">🎯 Características Principales</h2>
+                <div class="component-grid">
+                    <div class="component-card" style="cursor: default;">
+                        <h3>🔐 Sistema de Autenticación</h3>
+                        <p>Login, MFA, recuperación de contraseña y registro de usuarios con validación completa.</p>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>📝 Gestión de Prescripciones</h3>
+                        <p>Creación, edición, firma digital y trazabilidad completa de recetas médicas.</p>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>🏥 Multi-Rol</h3>
+                        <p>Soporte para médicos, farmacéuticos, administradores y personal hospitalario.</p>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>🔄 Interoperabilidad</h3>
+                        <p>Exportación e importación HL7 FHIR R4 con cumplimiento de estándares internacionales.</p>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>📊 Reportes y Analítica</h3>
+                        <p>Generación de reportes PDF, CSV y Excel con visualizaciones avanzadas.</p>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>⚡ Alertas Clínicas</h3>
+                        <p>Detección de interacciones medicamentosas y alertas de seguridad.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPONENTES -->
+            <div class="section" id="components">
+                <div class="search-box">
+                    <input type="text" id="searchComponents" placeholder="Buscar componente...">
+                    <span class="search-icon">🔍</span>
+                </div>
+
+                <div class="component-grid" id="componentsGrid">
+                    <a href="./components/AddMedicineDialog.html" class="component-card">
+                        <h3>AddMedicineDialog</h3>
+                        <p>Diálogo para agregar medicamentos a la prescripción con validación completa.</p>
+                        <span class="badge">Dialog</span>
+                    </a>
+                    <a href="./components/Breadcrumbs.html" class="component-card">
+                        <h3>Breadcrumbs</h3>
+                        <p>Navegación de migas de pan para contexto de ubicación.</p>
+                        <span class="badge">Navigation</span>
+                    </a>
+                    <a href="./components/ClinicalDocumentsDialog.html" class="component-card">
+                        <h3>ClinicalDocumentsDialog</h3>
+                        <p>Gestión de documentos clínicos del paciente.</p>
+                        <span class="badge">Dialog</span>
+                    </a>
+                    <a href="./components/ContactPatientDialog.html" class="component-card">
+                        <h3>ContactPatientDialog</h3>
+                        <p>Formulario de contacto con pacientes.</p>
+                        <span class="badge">Dialog</span>
+                    </a>
+                    <a href="./components/Dashboard.html" class="component-card">
+                        <h3>Dashboard</h3>
+                        <p>Panel principal con métricas y estadísticas del sistema.</p>
+                        <span class="badge">Layout</span>
+                    </a>
+                    <a href="./components/DigitalSignatureDialog.html" class="component-card">
+                        <h3>DigitalSignatureDialog</h3>
+                        <p>Firma digital de prescripciones con QR.</p>
+                        <span class="badge">Dialog</span>
+                    </a>
+                    <a href="./components/DoctorDetailPanel.html" class="component-card">
+                        <h3>DoctorDetailPanel</h3>
+                        <p>Panel lateral con detalles completos del médico.</p>
+                        <span class="badge">Panel</span>
+                    </a>
+                    <a href="./components/DraftPreviewPanel.html" class="component-card">
+                        <h3>DraftPreviewPanel</h3>
+                        <p>Vista previa de borradores de prescripciones.</p>
+                        <span class="badge">Panel</span>
+                    </a>
+                    <a href="./components/EditDoctorDialog.html" class="component-card">
+                        <h3>EditDoctorDialog</h3>
+                        <p>Edición de información de médicos.</p>
+                        <span class="badge">Dialog</span>
+                    </a>
+                    <a href="./components/EditPatientProfileDialog.html" class="component-card">
+                        <h3>EditPatientProfileDialog</h3>
+                        <p>Edición del perfil completo del paciente.</p>
+                        <span class="badge">Dialog</span>
+                    </a>
+                    <a href="./components/EmailInput.html" class="component-card">
+                        <h3>EmailInput</h3>
+                        <p>Input con validación de email en tiempo real.</p>
+                        <span class="badge">Form</span>
+                    </a>
+                    <a href="./components/EmittedPrescriptionPanel.html" class="component-card">
+                        <h3>EmittedPrescriptionPanel</h3>
+                        <p>Panel de prescripciones emitidas con acciones.</p>
+                        <span class="badge">Panel</span>
+                    </a>
+                    <a href="./components/EnhancedMedicinePanel.html" class="component-card">
+                        <h3>EnhancedMedicinePanel</h3>
+                        <p>Panel mejorado de medicamentos con validación farmacológica.</p>
+                        <span class="badge">Panel</span>
+                    </a>
+                    <a href="./components/ExportButtons.html" class="component-card">
+                        <h3>ExportButtons</h3>
+                        <p>Botones de exportación PDF, CSV y Excel.</p>
+                        <span class="badge">Action</span>
+                    </a>
+                    <a href="./components/Layout.html" class="component-card">
+                        <h3>Layout</h3>
+                        <p>Layout principal de la aplicación.</p>
+                        <span class="badge">Layout</span>
+                    </a>
+                    <a href="./components/LocationMap.html" class="component-card">
+                        <h3>LocationMap</h3>
+                        <p>Mapa de ubicación de centros médicos.</p>
+                        <span class="badge">Map</span>
+                    </a>
+                    <a href="./components/Logo.html" class="component-card">
+                        <h3>Logo</h3>
+                        <p>Logo del sistema ePrescription.</p>
+                        <span class="badge">Brand</span>
+                    </a>
+                    <a href="./components/MedicalHeader.html" class="component-card">
+                        <h3>MedicalHeader</h3>
+                        <p>Cabecera médica con estadísticas y certificaciones.</p>
+                        <span class="badge">Header</span>
+                    </a>
+                    <a href="./components/MedicalTimeline.html" class="component-card">
+                        <h3>MedicalTimeline</h3>
+                        <p>Línea de tiempo de eventos médicos.</p>
+                        <span class="badge">Timeline</span>
+                    </a>
+                    <a href="./components/MedicinePanel.html" class="component-card">
+                        <h3>MedicinePanel</h3>
+                        <p>Panel de gestión de medicamentos.</p>
+                        <span class="badge">Panel</span>
+                    </a>
+                    <a href="./components/MedicineTable.html" class="component-card">
+                        <h3>MedicineTable</h3>
+                        <p>Tabla principal de medicamentos con doble clic.</p>
+                        <span class="badge">Table</span>
+                    </a>
+                    <a href="./components/MultiEmailInput.html" class="component-card">
+                        <h3>MultiEmailInput</h3>
+                        <p>Input para múltiples correos electrónicos.</p>
+                        <span class="badge">Form</span>
+                    </a>
+                    <a href="./components/Navigation.html" class="component-card">
+                        <h3>Navigation</h3>
+                        <p>Sistema de navegación principal.</p>
+                        <span class="badge">Navigation</span>
+                    </a>
+                    <a href="./components/NewDoctorDialog.html" class="component-card">
+                        <h3>NewDoctorDialog</h3>
+                        <p>Registro de nuevos médicos.</p>
+                        <span class="badge">Dialog</span>
+                    </a>
+                    <a href="./components/NewInventoryOrderDialog.html" class="component-card">
+                        <h3>NewInventoryOrderDialog</h3>
+                        <p>Creación de órdenes de inventario.</p>
+                        <span class="badge">Dialog</span>
+                    </a>
+                    <a href="./components/NewLayout.html" class="component-card">
+                        <h3>NewLayout</h3>
+                        <p>Nuevo layout con sidebar profesional.</p>
+                        <span class="badge">Layout</span>
+                    </a>
+                    <a href="./components/NewPatientDialog.html" class="component-card">
+                        <h3>NewPatientDialog</h3>
+                        <p>Registro de nuevos pacientes.</p>
+                        <span class="badge">Dialog</span>
+                    </a>
+                    <a href="./components/PageBanner.html" class="component-card">
+                        <h3>PageBanner</h3>
+                        <p>Banner informativo de página.</p>
+                        <span class="badge">Banner</span>
+                    </a>
+                    <a href="./components/PageHeader.html" class="component-card">
+                        <h3>PageHeader</h3>
+                        <p>Encabezado estándar de página.</p>
+                        <span class="badge">Header</span>
+                    </a>
+                    <a href="./components/PatientDetailPanel.html" class="component-card">
+                        <h3>PatientDetailPanel</h3>
+                        <p>Panel lateral con detalles del paciente.</p>
+                        <span class="badge">Panel</span>
+                    </a>
+                    <a href="./components/PrescriptionHeader.html" class="component-card">
+                        <h3>PrescriptionHeader</h3>
+                        <p>Encabezado de prescripción con datos del paciente.</p>
+                        <span class="badge">Header</span>
+                    </a>
+                    <a href="./components/PrescriptionManager.html" class="component-card">
+                        <h3>PrescriptionManager</h3>
+                        <p>Gestor completo de prescripciones.</p>
+                        <span class="badge">Manager</span>
+                    </a>
+                    <a href="./components/PrescriptionPage.html" class="component-card">
+                        <h3>PrescriptionPage</h3>
+                        <p>Página completa de prescripción.</p>
+                        <span class="badge">Page</span>
+                    </a>
+                    <a href="./components/RejectionDetailPanel.html" class="component-card">
+                        <h3>RejectionDetailPanel</h3>
+                        <p>Detalles de rechazos de dispensación.</p>
+                        <span class="badge">Panel</span>
+                    </a>
+                    <a href="./components/RoleSelector.html" class="component-card">
+                        <h3>RoleSelector</h3>
+                        <p>Selector de roles multi-rol.</p>
+                        <span class="badge">Selector</span>
+                    </a>
+                    <a href="./components/Sidebar.html" class="component-card">
+                        <h3>Sidebar</h3>
+                        <p>Barra lateral de navegación profesional.</p>
+                        <span class="badge">Navigation</span>
+                    </a>
+                    <a href="./components/SystemBanner.html" class="component-card">
+                        <h3>SystemBanner</h3>
+                        <p>Banner de sistema con alertas importantes.</p>
+                        <span class="badge">Banner</span>
+                    </a>
+                    <a href="./components/TablePagination.html" class="component-card">
+                        <h3>TablePagination</h3>
+                        <p>Paginación universal para tablas.</p>
+                        <span class="badge">Pagination</span>
+                    </a>
+                    <a href="./components/TopBar.html" class="component-card">
+                        <h3>TopBar</h3>
+                        <p>Barra superior con usuario y notificaciones.</p>
+                        <span class="badge">Navigation</span>
+                    </a>
+                    <a href="./components/UniversalPrescriptionPanel.html" class="component-card">
+                        <h3>UniversalPrescriptionPanel</h3>
+                        <p>Panel universal para todas las prescripciones.</p>
+                        <span class="badge">Panel</span>
+                    </a>
+                    <a href="./components/UserEditDialog.html" class="component-card">
+                        <h3>UserEditDialog</h3>
+                        <p>Edición de usuarios del sistema.</p>
+                        <span class="badge">Dialog</span>
+                    </a>
+                    <a href="./components/VerificationResultPanel.html" class="component-card">
+                        <h3>VerificationResultPanel</h3>
+                        <p>Resultados de verificación de recetas.</p>
+                        <span class="badge">Panel</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- UI COMPONENTS -->
+            <div class="section" id="ui">
+                <div class="search-box">
+                    <input type="text" id="searchUI" placeholder="Buscar componente UI...">
+                    <span class="search-icon">🔍</span>
+                </div>
+
+                <div class="component-grid" id="uiGrid">
+                    <a href="./components/ui/button.html" class="component-card">
+                        <h3>Button</h3>
+                        <p>Botón con múltiples variantes y tamaños.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/input.html" class="component-card">
+                        <h3>Input</h3>
+                        <p>Campo de entrada de texto estilizado.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/card.html" class="component-card">
+                        <h3>Card</h3>
+                        <p>Tarjeta contenedora con header y footer.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/dialog.html" class="component-card">
+                        <h3>Dialog</h3>
+                        <p>Modal/Diálogo profesional.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/table.html" class="component-card">
+                        <h3>Table</h3>
+                        <p>Tabla responsive y estilizada.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/select.html" class="component-card">
+                        <h3>Select</h3>
+                        <p>Selector desplegable personalizado.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/badge.html" class="component-card">
+                        <h3>Badge</h3>
+                        <p>Insignia para estados y categorías.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/alert.html" class="component-card">
+                        <h3>Alert</h3>
+                        <p>Mensaje de alerta contextual.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/tabs.html" class="component-card">
+                        <h3>Tabs</h3>
+                        <p>Pestañas para organizar contenido.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/checkbox.html" class="component-card">
+                        <h3>Checkbox</h3>
+                        <p>Casilla de verificación.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/switch.html" class="component-card">
+                        <h3>Switch</h3>
+                        <p>Interruptor de encendido/apagado.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/textarea.html" class="component-card">
+                        <h3>Textarea</h3>
+                        <p>Área de texto multilínea.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/calendar.html" class="component-card">
+                        <h3>Calendar</h3>
+                        <p>Calendario para selección de fechas.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/popover.html" class="component-card">
+                        <h3>Popover</h3>
+                        <p>Contenido flotante contextual.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/tooltip.html" class="component-card">
+                        <h3>Tooltip</h3>
+                        <p>Descripción emergente al pasar el mouse.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/dropdown-menu.html" class="component-card">
+                        <h3>Dropdown Menu</h3>
+                        <p>Menú desplegable de acciones.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/accordion.html" class="component-card">
+                        <h3>Accordion</h3>
+                        <p>Acordeón expandible.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/progress.html" class="component-card">
+                        <h3>Progress</h3>
+                        <p>Barra de progreso.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/slider.html" class="component-card">
+                        <h3>Slider</h3>
+                        <p>Control deslizante de valores.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                    <a href="./components/ui/separator.html" class="component-card">
+                        <h3>Separator</h3>
+                        <p>Línea separadora visual.</p>
+                        <span class="badge">ShadCN</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- PÁGINAS -->
+            <div class="section" id="pages">
+                <div class="search-box">
+                    <input type="text" id="searchPages" placeholder="Buscar página...">
+                    <span class="search-icon">🔍</span>
+                </div>
+
+                <div class="component-grid" id="pagesGrid">
+                    <a href="./pages/LoginPage.html" class="component-card">
+                        <h3>LoginPage</h3>
+                        <p>Página de inicio de sesión con validación.</p>
+                        <span class="badge">Auth</span>
+                    </a>
+                    <a href="./pages/DashboardPage.html" class="component-card">
+                        <h3>DashboardPage</h3>
+                        <p>Panel principal con estadísticas.</p>
+                        <span class="badge">Main</span>
+                    </a>
+                    <a href="./pages/PrescripcionesPage.html" class="component-card">
+                        <h3>PrescripcionesPage</h3>
+                        <p>Gestión completa de prescripciones.</p>
+                        <span class="badge">Core</span>
+                    </a>
+                    <a href="./pages/PacientesPage.html" class="component-card">
+                        <h3>PacientesPage</h3>
+                        <p>Gestión de pacientes.</p>
+                        <span class="badge">Core</span>
+                    </a>
+                    <a href="./pages/MedicosPage.html" class="component-card">
+                        <h3>MedicosPage</h3>
+                        <p>Gestión de médicos.</p>
+                        <span class="badge">Core</span>
+                    </a>
+                    <a href="./pages/InventarioPage.html" class="component-card">
+                        <h3>InventarioPage</h3>
+                        <p>Control de inventario de medicamentos.</p>
+                        <span class="badge">Inventory</span>
+                    </a>
+                    <a href="./pages/DispensacionPage.html" class="component-card">
+                        <h3>DispensacionPage</h3>
+                        <p>Dispensación y verificación de recetas.</p>
+                        <span class="badge">Pharmacy</span>
+                    </a>
+                    <a href="./pages/ReportesPage.html" class="component-card">
+                        <h3>ReportesPage</h3>
+                        <p>Generación de reportes y analítica.</p>
+                        <span class="badge">Analytics</span>
+                    </a>
+                    <a href="./pages/InteropPage.html" class="component-card">
+                        <h3>InteropPage</h3>
+                        <p>Interoperabilidad HL7 FHIR.</p>
+                        <span class="badge">Integration</span>
+                    </a>
+                    <a href="./pages/SeguridadPage.html" class="component-card">
+                        <h3>SeguridadPage</h3>
+                        <p>Gestión de seguridad y usuarios.</p>
+                        <span class="badge">Security</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- UTILIDADES -->
+            <div class="section" id="utils">
+                <h2 style="margin-bottom: 1rem; color: #2d3748;">🛠️ Utilidades JavaScript</h2>
+                <p style="margin-bottom: 2rem; color: #718096;">Las utilidades han sido convertidas a JavaScript vanilla y están disponibles en la carpeta /html-static/utils/</p>
+                
+                <div class="component-grid">
+                    <div class="component-card" style="cursor: default;">
+                        <h3>authStore.js</h3>
+                        <p>Gestión de autenticación y sesiones.</p>
+                        <span class="badge">Auth</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>usersStore.js</h3>
+                        <p>Store de usuarios del sistema.</p>
+                        <span class="badge">Data</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>multiRoleSession.js</h3>
+                        <p>Gestión de sesiones multi-rol.</p>
+                        <span class="badge">Session</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>searchUtils.js</h3>
+                        <p>Utilidades de búsqueda sin tildes.</p>
+                        <span class="badge">Utils</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>exportUtils.js</h3>
+                        <p>Exportación PDF, CSV y Excel.</p>
+                        <span class="badge">Export</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>pdfGenerator.js</h3>
+                        <p>Generación de PDFs profesionales.</p>
+                        <span class="badge">Export</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>emailValidation.js</h3>
+                        <p>Validación profesional de emails.</p>
+                        <span class="badge">Validation</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>drugInteractionsDatabase.js</h3>
+                        <p>Base de datos de interacciones medicamentosas.</p>
+                        <span class="badge">Medical</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>costaRicaData.js</h3>
+                        <p>Datos geográficos de Costa Rica.</p>
+                        <span class="badge">Data</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>draftsStore.js</h3>
+                        <p>Gestión de borradores de prescripciones.</p>
+                        <span class="badge">Data</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>emittedPrescriptionsStore.js</h3>
+                        <p>Store de prescripciones emitidas.</p>
+                        <span class="badge">Data</span>
+                    </div>
+                    <div class="component-card" style="cursor: default;">
+                        <h3>usePagination.js</h3>
+                        <p>Hook de paginación universal.</p>
+                        <span class="badge">Hook</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab navigation
+        const tabs = document.querySelectorAll('.nav-tab');
+        const sections = document.querySelectorAll('.section');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                sections.forEach(s => s.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+
+        // Search functionality
+        function setupSearch(inputId, gridId) {
+            const input = document.getElementById(inputId);
+            const grid = document.getElementById(gridId);
+            
+            if (!input || !grid) return;
+            
+            input.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const cards = grid.querySelectorAll('.component-card');
+                
+                cards.forEach(card => {
+                    const title = card.querySelector('h3').textContent.toLowerCase();
+                    const description = card.querySelector('p').textContent.toLowerCase();
+                    
+                    if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        setupSearch('searchComponents', 'componentsGrid');
+        setupSearch('searchUI', 'uiGrid');
+        setupSearch('searchPages', 'pagesGrid');
+
+        // Prevent default link behavior for demo purposes
+        document.addEventListener('DOMContentLoaded', () => {
+            const links = document.querySelectorAll('a[href^="./"]');
+            links.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    // Allow navigation to work
+                    console.log('Navegando a:', link.href);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2 bg-blue-600 rounded-lg">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5Z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">ePrescription</h1>
+          <p class="text-sm text-gray-600">Registro de Usuario</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stepper -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+      <div class="p-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center flex-1" *ngFor="let paso of [1, 2, 3, 4, 5, 6]; let i = index">
+            <div class="flex flex-col items-center flex-1">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all"
+                   [ngClass]="{
+                     'bg-blue-600 border-blue-600 text-white': paso <= pasoActual,
+                     'bg-white border-gray-300 text-gray-400': paso > pasoActual
+                   }">
+                <svg *ngIf="paso < pasoActual" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span *ngIf="paso >= pasoActual" class="text-sm">{{ paso }}</span>
+              </div>
+              <p class="text-xs mt-1" [ngClass]="{'text-blue-600 font-medium': paso === pasoActual, 'text-gray-500': paso !== pasoActual}">
+                Paso {{ paso }}
+              </p>
+            </div>
+            <div *ngIf="i < 5" class="h-0.5 flex-1 mx-2" [ngClass]="{'bg-blue-600': paso < pasoActual, 'bg-gray-200': paso >= pasoActual}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div *ngIf="!solicitudEnviada" class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div class="p-8">
+        
+        <!-- Paso 1: Perfil y medicamentos controlados -->
+        <div *ngIf="pasoActual === 1" class="space-y-6">
+          <div>
+            <h3 class="text-lg font-semibold mb-2">Perfil y medicamentos controlados</h3>
+            <p class="text-gray-600 text-sm mb-6">
+              Define tu perfil y los medicamentos que prescribirás o dispensarás
+            </p>
+          </div>
+
+          <form [formGroup]="paso1Form" class="space-y-6">
+            <div class="space-y-2">
+              <label for="perfilUsuario" class="block text-sm font-medium text-gray-700">
+                Tipo de perfil de usuario
+              </label>
+              <select id="perfilUsuario" formControlName="perfilUsuario" 
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Seleccione su perfil...</option>
+                <option *ngFor="let perfil of PERFILES_USUARIO" [value]="perfil.value">
+                  {{ perfil.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="space-y-4">
+              <label class="block text-sm font-medium text-gray-700">
+                ¿Prescribirás o dispensarás medicamentos controlados?
+              </label>
+              
+              <div class="space-y-3">
+                <div class="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input type="radio" id="ninguno" name="tipoMedicamentosControlados" value="ninguno" 
+                         formControlName="tipoMedicamentosControlados"
+                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" />
+                  <label for="ninguno" class="flex-1 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>No, solo medicamentos de libre venta</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">Sin restricciones especiales</p>
+                  </label>
+                </div>
+                
+                <div class="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input type="radio" id="antimicrobianos" name="tipoMedicamentosControlados" value="antimicrobianos" 
+                         formControlName="tipoMedicamentosControlados"
+                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" />
+                  <label for="antimicrobianos" class="flex-1 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span>Antimicrobianos (Antibióticos)</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">Requiere registro especial</p>
+                  </label>
+                </div>
+                
+                <div class="flex items-center space-x-3 p-4 border border-orange-300 bg-orange-50 rounded-lg cursor-pointer">
+                  <input type="radio" id="psicotropicos" name="tipoMedicamentosControlados" value="psicotropicos" 
+                         formControlName="tipoMedicamentosControlados"
+                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" />
+                  <label for="psicotropicos" class="flex-1 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                      </svg>
+                      <span>Psicotrópicos</span>
+                    </div>
+                    <p class="text-sm text-orange-700 mt-1">Requiere Firma Digital obligatoria</p>
+                  </label>
+                </div>
+                
+                <div class="flex items-center space-x-3 p-4 border border-red-300 bg-red-50 rounded-lg cursor-pointer">
+                  <input type="radio" id="estupefacientes" name="tipoMedicamentosControlados" value="estupefacientes" 
+                         formControlName="tipoMedicamentosControlados"
+                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" />
+                  <label for="estupefacientes" class="flex-1 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                      <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                      </svg>
+                      <span>Estupefacientes</span>
+                    </div>
+                    <p class="text-sm text-red-700 mt-1">Requiere Firma Digital obligatoria</p>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <div class="flex justify-between pt-6">
+            <button type="button" (click)="volverAlLogin()" 
+                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+              Cancelar
+            </button>
+            <button type="button" (click)="siguientePaso()" [disabled]="!isStep1Valid"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+              Continuar
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Paso 2: Validación profesional -->
+        <div *ngIf="pasoActual === 2" class="space-y-6">
+          <div>
+            <h3 class="text-lg font-semibold mb-2">Validación profesional</h3>
+            <p class="text-gray-600 text-sm mb-6">
+              Valida tu código profesional con el colegio correspondiente
+            </p>
+          </div>
+
+          <div class="p-4 bg-blue-50 border border-blue-200 rounded-md">
+            <div class="flex items-start">
+              <svg class="h-4 w-4 text-blue-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+              <div>
+                <h4 class="font-medium text-blue-800">Validación con colegio profesional</h4>
+                <p class="text-blue-700 text-sm mt-1">
+                  Ingresa tu código profesional para validar automáticamente tus datos
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <form [formGroup]="paso2Form" class="space-y-4">
+            <div class="space-y-2">
+              <label for="codigoProfesional" class="block text-sm font-medium text-gray-700">
+                Código profesional
+              </label>
+              <div class="flex gap-2">
+                <input id="codigoProfesional" type="text" placeholder="Ej: MED-1234" 
+                       formControlName="codigoProfesional" [disabled]="profesionalValidado"
+                       class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                <button type="button" (click)="validarCodigoProfesional()" 
+                        [disabled]="validandoProfesional || profesionalValidado || !formData.codigoProfesional"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                  <div *ngIf="validandoProfesional" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <svg *ngIf="profesionalValidado && !validandoProfesional" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  <span *ngIf="!validandoProfesional && !profesionalValidado">Validar</span>
+                  <span *ngIf="validandoProfesional">Validando...</span>
+                  <span *ngIf="profesionalValidado">Validado</span>
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="profesionalValidado" class="p-3 bg-green-50 border border-green-200 rounded-md">
+              <div class="flex items-center">
+                <svg class="h-4 w-4 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <p class="text-sm text-green-800">
+                  Código profesional validado correctamente. Puede continuar con el siguiente paso.
+                </p>
+              </div>
+            </div>
+          </form>
+
+          <div class="flex justify-between pt-6">
+            <button type="button" (click)="pasoAnterior()"
+                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+              </svg>
+              Atrás
+            </button>
+            <button type="button" (click)="siguientePaso()" [disabled]="!isStep2Valid"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+              Continuar
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mensaje de éxito final -->
+        <div *ngIf="pasoActual > 6" class="text-center py-12">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">¡Solicitud enviada!</h2>
+          <p class="text-gray-600 mb-6">Tu registro está en proceso de revisión</p>
+          <button type="button" (click)="volverAlLogin()"
+                  class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Volver al inicio de sesión
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Pantalla de solicitud enviada -->
+    <div *ngIf="solicitudEnviada" class="max-w-2xl mx-auto">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-8 text-center">
+          <div class="mb-6">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">¡Solicitud enviada!</h2>
+            <p class="text-gray-600">Tu registro está en proceso de revisión</p>
+          </div>
+
+          <div class="bg-gray-50 p-6 rounded-lg mb-6">
+            <h3 class="font-semibold text-gray-900 mb-4">Solicitud en revisión</h3>
+            <p class="text-sm text-gray-600 mb-4">
+              Te notificaremos cuando tu cuenta sea aprobada
+            </p>
+
+            <div class="space-y-3 text-left">
+              <div class="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span class="text-green-800 text-sm">Hemos recibido tu solicitud de registro exitosamente</span>
+              </div>
+
+              <div class="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-blue-800">Correo de confirmación enviado</p>
+                  <p class="text-xs text-blue-600">
+                    Enviamos un correo confirmando que recibimos tu solicitud
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-orange-800">Tiempo de revisión</p>
+                  <p class="text-xs text-orange-600">
+                    Un administrador revisará tu solicitud. Este proceso toma aproximadamente <strong>1-2 días hábiles</strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" (click)="volverAlLogin()"
+                  class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Volver al inicio de sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

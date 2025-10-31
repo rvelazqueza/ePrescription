@@ -1,0 +1,171 @@
+<div style="min-height: 100vh; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #ecfdf5 100%); display: flex; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="width: 100%; max-width: 32rem;">
+    
+    <!-- Icono de éxito -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div style="display: inline-flex; align-items: center; justify-content: center; width: 6rem; height: 6rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; margin-bottom: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+        <svg style="width: 3rem; height: 3rem; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+      <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">¡Solicitud enviada!</h1>
+      <p style="font-size: 1.125rem; color: #4b5563;">Tu registro está en proceso de revisión</p>
+    </div>
+
+    <!-- Card principal -->
+    <div style="background: white; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #f3f4f6; overflow: hidden;">
+      
+      <!-- Header de la card -->
+      <div style="padding: 1.5rem; padding-bottom: 1rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem;">Solicitud en revisión</h2>
+        <p style="color: #4b5563;">Te notificaremos cuando tu cuenta sea aprobada</p>
+      </div>
+
+      <!-- Contenido de la card -->
+      <div style="padding: 0 1.5rem 1.5rem 1.5rem;">
+        
+        <!-- Confirmación de envío -->
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem; padding: 1rem; display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 1.5rem;">
+          <div style="flex-shrink: 0;">
+            <svg style="width: 1.25rem; height: 1.25rem; color: #16a34a; margin-top: 0.125rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <p style="color: #166534; font-size: 0.875rem; font-weight: 500;">
+            Hemos recibido tu solicitud de registro exitosamente
+          </p>
+        </div>
+
+        <!-- Correo de confirmación -->
+        <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
+          <div style="flex-shrink: 0; width: 3rem; height: 3rem; background: #dbeafe; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+            <svg style="width: 1.5rem; height: 1.5rem; color: #2563eb;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <div style="flex: 1;">
+            <h3 style="font-weight: 600; color: #111827; margin-bottom: 0.25rem;">Correo de confirmación enviado</h3>
+            <p style="font-size: 0.875rem; color: #4b5563;">
+              Enviamos un correo a <strong style="color: #111827;">{{ userEmail }}</strong> confirmando que recibimos tu solicitud.
+            </p>
+          </div>
+        </div>
+
+        <!-- Tiempo de revisión -->
+        <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
+          <div style="flex-shrink: 0; width: 3rem; height: 3rem; background: #fed7aa; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+            <svg style="width: 1.5rem; height: 1.5rem; color: #ea580c;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div style="flex: 1;">
+            <h3 style="font-weight: 600; color: #111827; margin-bottom: 0.25rem;">Tiempo de revisión</h3>
+            <p style="font-size: 0.875rem; color: #4b5563;">
+              Un administrador revisará tu solicitud. Este proceso toma aproximadamente <strong style="color: #111827;">1-2 días hábiles</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Notificación de aprobación -->
+        <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem;">
+          <div style="flex-shrink: 0; width: 3rem; height: 3rem; background: #dcfce7; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+            <svg style="width: 1.5rem; height: 1.5rem; color: #16a34a;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <div style="flex: 1;">
+            <h3 style="font-weight: 600; color: #111827; margin-bottom: 0.25rem;">Notificación de aprobación</h3>
+            <p style="font-size: 0.875rem; color: #4b5563;">
+              Una vez aprobada tu cuenta, recibirás un correo con instrucciones para acceder al sistema.
+            </p>
+          </div>
+        </div>
+
+        <!-- Próximos pasos -->
+        <div style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 1rem;">Próximos pasos</h3>
+          
+          <div style="margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+              <span style="flex-shrink: 0; width: 2rem; height: 2rem; background: #2563eb; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 600;">1</span>
+              <p style="font-size: 0.875rem; color: #4b5563; padding-top: 0.25rem;">
+                Revisa tu correo electrónico (incluyendo spam) para confirmar que recibimos tu solicitud
+              </p>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+              <span style="flex-shrink: 0; width: 2rem; height: 2rem; background: #2563eb; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 600;">2</span>
+              <p style="font-size: 0.875rem; color: #4b5563; padding-top: 0.25rem;">
+                Espera la notificación de aprobación (1-2 días hábiles)
+              </p>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+              <span style="flex-shrink: 0; width: 2rem; height: 2rem; background: #2563eb; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 600;">3</span>
+              <p style="font-size: 0.875rem; color: #4b5563; padding-top: 0.25rem;">
+                Una vez aprobada, podrás iniciar sesión con las credenciales que configuraste
+              </p>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+              <span style="flex-shrink: 0; width: 2rem; height: 2rem; background: #2563eb; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 600;">4</span>
+              <p style="font-size: 0.875rem; color: #4b5563; padding-top: 0.25rem;">
+                Si no configuraste MFA durante el registro, el sistema te pedirá hacerlo en tu primer acceso
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información de ayuda -->
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+            <div style="flex-shrink: 0;">
+              <svg style="width: 1.25rem; height: 1.25rem; color: #2563eb; margin-top: 0.125rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <div>
+              <h4 style="font-weight: 600; color: #1e3a8a; margin-bottom: 0.25rem;">¿Necesitas ayuda?</h4>
+              <p style="font-size: 0.875rem; color: #1e40af;">
+                Si tienes preguntas sobre tu solicitud, contacta a soporte técnico en
+                <a href="mailto:soporte&#64;eprescription.cr" style="font-weight: 600; text-decoration: underline; color: #1e40af;">
+                  soporte&#64;eprescription.cr
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón para volver -->
+        <button 
+          type="button"
+          (click)="volverAlLogin()"
+          style="width: 100%; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; font-weight: 600; padding: 0.75rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: all 0.2s;">
+          <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Volver al inicio de sesión
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="margin-top: 2rem; text-align: center;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.5rem;">
+        <svg style="width: 0.75rem; height: 0.75rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>ePrescription - Sistema Hospitalario de Recetas Médicas</span>
+      </div>
+      <p style="font-size: 0.75rem; color: #6b7280;">
+        Certificado bajo normativas HL7, FDA y OMS
+      </p>
+    </div>
+  </div>
+</div>

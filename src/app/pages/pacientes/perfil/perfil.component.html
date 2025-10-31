@@ -1,0 +1,595 @@
+<!-- Breadcrumbs -->
+<app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
+
+<!-- Patient Header -->
+<div>
+<div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+  <div class="p-6">
+    <div class="flex items-start gap-4">
+      <!-- Avatar -->
+      <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-xl">
+        {{ getPatientInitials() }}
+      </div>
+
+      <!-- Patient Info -->
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="text-2xl font-bold text-gray-900">{{ selectedPatient.fullName }}</h1>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            Activo
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
+          <div>
+            <span class="font-medium">Identificación</span><br>
+            <span>{{ selectedPatient.idType }} {{ selectedPatient.idNumber }}</span>
+          </div>
+          <div>
+            <span class="font-medium">Edad</span><br>
+            <span>{{ selectedPatient.age }} años ({{ getGenderText(selectedPatient.gender) }})</span>
+          </div>
+          <div>
+            <span class="font-medium">Tipo de sangre</span><br>
+            <span>{{ selectedPatient.bloodType }}</span>
+          </div>
+          <div>
+            <span class="font-medium">Última visita</span><br>
+            <span>{{ selectedPatient.lastVisit }}</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3">
+          <button 
+            (click)="onNewPrescription()"
+            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+            <lucide-icon [img]="plusIcon" class="w-4 h-4 mr-2"></lucide-icon>
+            Nueva receta
+          </button>
+          
+          <button 
+            (click)="onEditPatient()"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50">
+            <lucide-icon [img]="editIcon" class="w-4 h-4 mr-2"></lucide-icon>
+            Editar perfil
+          </button>
+
+          <button class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50">
+            <lucide-icon [img]="phoneIcon" class="w-4 h-4 mr-2"></lucide-icon>
+            Contactar
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="flex gap-4">
+        <div class="text-center bg-blue-50 rounded-lg p-4 min-w-[80px]">
+          <lucide-icon [img]="fileTextIcon" class="w-6 h-6 text-blue-600 mx-auto mb-1"></lucide-icon>
+          <div class="text-2xl font-semibold text-gray-900">{{ selectedPatient.totalPrescriptions }}</div>
+          <div class="text-xs text-gray-600">Recetas totales</div>
+        </div>
+        
+        <div class="text-center bg-green-50 rounded-lg p-4 min-w-[80px]">
+          <lucide-icon [img]="activityIcon" class="w-6 h-6 text-green-600 mx-auto mb-1"></lucide-icon>
+          <div class="text-2xl font-semibold text-gray-900">{{ selectedPatient.activePrescriptions }}</div>
+          <div class="text-xs text-gray-600">Activas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Medical Alerts -->
+<div class="grid md:grid-cols-2 gap-4 mb-6">
+  <!-- Allergies -->
+  <div class="bg-red-50 border border-red-200 border-l-4 border-l-red-500 rounded-lg p-4">
+    <h3 class="flex items-center gap-2 text-red-900 font-semibold mb-3">
+      <lucide-icon [img]="alertTriangleIcon" class="w-5 h-5"></lucide-icon>
+      Alergias Conocidas
+    </h3>
+    <div class="space-y-2">
+      <div *ngFor="let allergy of allergies" class="flex items-center gap-2">
+        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+        <span class="text-sm font-medium text-red-900">{{ allergy.name }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chronic Conditions -->
+  <div class="bg-orange-50 border border-orange-200 border-l-4 border-l-orange-500 rounded-lg p-4">
+    <h3 class="flex items-center gap-2 text-orange-900 font-semibold mb-3">
+      <lucide-icon [img]="heartIcon" class="w-5 h-5"></lucide-icon>
+      Condiciones Crónicas
+    </h3>
+    <div class="space-y-2">
+      <div *ngFor="let condition of chronicConditions" class="flex items-center gap-2">
+        <lucide-icon [img]="activityIcon" class="w-4 h-4 text-orange-600"></lucide-icon>
+        <span class="text-sm font-medium text-orange-900">{{ condition.name }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs Navigation - Estilo estándar -->
+<div class="bg-white rounded-lg shadow border border-gray-200 mb-6">
+  <div class="p-6">
+    <div class="grid w-full grid-cols-4 bg-gray-100 rounded-lg p-1">
+      <button
+        type="button"
+        [ngClass]="getStandardTabClass('overview')"
+        (click)="switchTab('overview')">
+        <lucide-icon [img]="userCheckIcon" class="w-4 h-4 mr-2"></lucide-icon>
+        Información General
+      </button>
+
+      <button
+        type="button"
+        [ngClass]="getStandardTabClass('medical-history')"
+        (click)="switchTab('medical-history')">
+        <lucide-icon [img]="activityIcon" class="w-4 h-4 mr-2"></lucide-icon>
+        Historial Médico
+      </button>
+
+      <button
+        type="button"
+        [ngClass]="getStandardTabClass('prescriptions')"
+        (click)="switchTab('prescriptions')">
+        <lucide-icon [img]="fileTextIcon" class="w-4 h-4 mr-2"></lucide-icon>
+        Prescripciones
+      </button>
+
+      <button
+        type="button"
+        [ngClass]="getStandardTabClass('documents')"
+        (click)="switchTab('documents')">
+        <lucide-icon [img]="fileTextIcon" class="w-4 h-4 mr-2"></lucide-icon>
+        Documentos
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Content -->
+<div class="bg-white rounded-lg shadow border border-gray-200">
+  
+  <!-- Información General Tab -->
+  <div *ngIf="activeTab === 'overview'" class="p-6 space-y-6">
+    <div class="grid gap-6 lg:grid-cols-2">
+      <!-- Datos Personales -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <lucide-icon [img]="userIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+          Datos Personales
+        </h2>
+        
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Nombres</label>
+              <p class="text-gray-900">{{ selectedPatient.firstName }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
+              <p class="text-gray-900">{{ selectedPatient.lastName }}</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento</label>
+              <p class="text-gray-900">{{ selectedPatient.birthDate }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Edad / Sexo</label>
+              <p class="text-gray-900">{{ selectedPatient.age }} años / {{ getGenderText(selectedPatient.gender) }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de sangre</label>
+              <p class="text-gray-900 font-semibold">{{ selectedPatient.bloodType }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Ocupación</label>
+              <p class="text-gray-900">{{ selectedPatient.occupation }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contacto -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <lucide-icon [img]="phoneIcon" class="w-5 h-5 text-green-600"></lucide-icon>
+          Contacto
+        </h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+            <div class="flex items-center gap-2">
+              <lucide-icon [img]="phoneIcon" class="w-4 h-4 text-gray-500"></lucide-icon>
+              <p class="text-gray-900">{{ selectedPatient.phone }}</p>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <div class="flex items-center gap-2">
+              <lucide-icon [img]="mailIcon" class="w-4 h-4 text-gray-500"></lucide-icon>
+              <p class="text-gray-900">{{ selectedPatient.email }}</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+            <div class="flex items-center gap-2">
+              <lucide-icon [img]="mapPinIcon" class="w-4 h-4 text-gray-500"></lucide-icon>
+              <p class="text-gray-900">{{ selectedPatient.address }}</p>
+            </div>
+            <p class="text-sm text-gray-600 ml-6">{{ selectedPatient.city }}, {{ selectedPatient.country }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos Antropométricos -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <lucide-icon [img]="activityIcon" class="w-5 h-5 text-purple-600"></lucide-icon>
+          Datos Antropométricos
+        </h2>
+        
+        <div class="grid grid-cols-3 gap-4">
+          <div class="text-center p-4 bg-white rounded-lg">
+            <div class="text-2xl font-bold text-gray-900">68 kg</div>
+            <div class="text-sm text-gray-600">Peso</div>
+          </div>
+          <div class="text-center p-4 bg-green-50 rounded-lg">
+            <div class="text-2xl font-bold text-gray-900">1.65 m</div>
+            <div class="text-sm text-gray-600">Altura</div>
+          </div>
+          <div class="text-center p-4 bg-blue-50 rounded-lg">
+            <div class="text-2xl font-bold text-gray-900">24.98</div>
+            <div class="text-sm text-gray-600">IMC</div>
+          </div>
+        </div>
+        <p class="text-center text-sm text-gray-600 mt-2">Clasificación: Peso normal</p>
+      </div>
+
+      <!-- Seguro Médico -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <lucide-icon [img]="shieldIcon" class="w-5 h-5 text-indigo-600"></lucide-icon>
+          Seguro Médico
+        </h2>
+        
+        <div class="bg-blue-50 rounded-lg p-4 mb-4">
+          <h3 class="font-semibold text-blue-900">{{ selectedPatient.insuranceProvider }}</h3>
+          <p class="text-sm text-blue-700">Póliza: {{ selectedPatient.insuranceNumber }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Contacto de emergencia</label>
+          <div class="bg-white rounded-lg p-3">
+            <p class="font-medium text-gray-900">{{ selectedPatient.emergencyContact.name }}</p>
+            <p class="text-sm text-gray-600">{{ selectedPatient.emergencyContact.relationship }} • {{ selectedPatient.emergencyContact.phone }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medicación Actual -->
+    <div class="bg-gray-50 rounded-lg p-4">
+      <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <lucide-icon [img]="pillIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+        Medicación Actual
+      </h2>
+      
+      <div class="space-y-3">
+        <div *ngFor="let medication of selectedPatient.currentMedications" 
+             class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <lucide-icon [img]="pillIcon" class="w-4 h-4 text-blue-600"></lucide-icon>
+          <div class="flex-1">
+            <p class="font-medium text-blue-900">{{ medication }}</p>
+          </div>
+          <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+            Activo
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notas Clínicas -->
+    <div class="bg-gray-50 rounded-lg p-4">
+      <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <lucide-icon [img]="fileTextIcon" class="w-5 h-5 text-gray-600"></lucide-icon>
+        Notas Clínicas
+      </h2>
+      
+      <div class="bg-white rounded-lg p-4">
+        <p class="text-gray-700">{{ selectedPatient.clinicalNotes }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historial Médico Tab -->
+  <div *ngIf="activeTab === 'medical-history'" class="p-6">
+    <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
+      <lucide-icon [img]="stethoscopeIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+      Historial Médico
+    </h3>
+    
+    <!-- Timeline de eventos médicos -->
+    <div class="space-y-4">
+      <div *ngFor="let event of timelineEvents; let i = index" class="relative">
+        <!-- Línea vertical (excepto en el último elemento) -->
+        <div *ngIf="i < timelineEvents.length - 1" class="absolute left-[19px] top-10 bottom-0 w-0.5 bg-gray-200"></div>
+        
+        <div class="flex gap-4">
+          <!-- Icono del evento -->
+          <div class="relative z-10 flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 border-white shadow"
+               [ngClass]="getEventTypeColor(event.type)">
+            <lucide-icon [img]="getEventTypeIcon(event.type)" class="w-5 h-5"></lucide-icon>
+          </div>
+          
+          <!-- Contenido del evento -->
+          <div class="flex-1 bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full border"
+                        [ngClass]="getEventTypeColor(event.type)">
+                    {{ getEventTypeLabel(event.type) }}
+                  </span>
+                  <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full border border-green-300">
+                    Completado
+                  </span>
+                </div>
+                <h4 class="font-medium text-gray-900">{{ event.title }}</h4>
+                <p class="text-sm text-gray-600 mt-1">{{ event.description }}</p>
+                <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                  <lucide-icon [img]="stethoscopeIcon" class="w-3 h-3"></lucide-icon>
+                  {{ event.doctor }}
+                </p>
+              </div>
+              <div class="flex flex-col items-end gap-1 text-sm text-gray-600 ml-4">
+                <div class="flex items-center gap-1">
+                  <lucide-icon [img]="calendarIcon" class="w-4 h-4"></lucide-icon>
+                  <span>{{ event.date }}</span>
+                </div>
+                <div class="flex items-center gap-1 text-xs">
+                  <lucide-icon [img]="clockIcon" class="w-3 h-3"></lucide-icon>
+                  <span>{{ event.time }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prescripciones Tab -->
+  <div *ngIf="activeTab === 'prescriptions'" class="p-6">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-2">
+        <lucide-icon [img]="fileTextIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+        <h3 class="text-lg font-semibold text-gray-900">Historial de Prescripciones</h3>
+      </div>
+      <div class="text-sm text-gray-600">
+        {{ recentPrescriptions.length }} prescripciones registradas
+      </div>
+      <button 
+        (click)="onViewAllPrescriptions()"
+        class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-2">
+        Ver todas
+      </button>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[800px]" role="table" aria-label="Tabla de prescripciones del paciente">
+        <thead class="bg-gray-50">
+          <tr role="row">
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                role="columnheader" scope="col">Número de receta</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                role="columnheader" scope="col">Fecha</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                role="columnheader" scope="col">Médico</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                role="columnheader" scope="col">Medicamentos</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" 
+                role="columnheader" scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200" role="rowgroup">
+          <tr *ngFor="let prescription of recentPrescriptions" 
+              class="hover:bg-blue-50/50 transition-all"
+              role="row">
+            
+            <!-- Número de Receta -->
+            <td class="px-6 py-4 whitespace-nowrap" role="gridcell">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                  <lucide-icon [img]="fileTextIcon" class="w-4 h-4 text-blue-600"></lucide-icon>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-blue-600">{{ prescription.prescriptionNumber }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Fecha -->
+            <td class="px-6 py-4 whitespace-nowrap" role="gridcell">
+              <div class="flex items-center gap-2">
+                <lucide-icon [img]="calendarIcon" class="w-4 h-4 text-gray-400"></lucide-icon>
+                <div class="text-sm text-gray-900">{{ prescription.date }}</div>
+              </div>
+            </td>
+
+            <!-- Médico -->
+            <td class="px-6 py-4" role="gridcell">
+              <div class="text-sm font-medium text-gray-900">{{ prescription.doctor.name }}</div>
+              <div class="text-xs text-gray-500">{{ prescription.doctor.specialty }}</div>
+            </td>
+
+            <!-- Medicamentos -->
+            <td class="px-6 py-4" role="gridcell">
+              <div class="text-sm text-gray-900">
+                <div class="space-y-1">
+                  <div *ngFor="let medication of prescription.medications" 
+                       class="flex items-center gap-1">
+                    <span class="font-medium">{{ medication.name }}</span>
+                    <span class="text-gray-500">{{ medication.dosage }}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Estado -->
+            <td class="px-6 py-4 whitespace-nowrap" role="gridcell">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    [ngClass]="getPrescriptionStatusClass(prescription.status)">
+                {{ getPrescriptionStatusText(prescription.status) }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Documentos Tab -->
+  <div *ngIf="activeTab === 'documents'" class="p-6">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-lg font-semibold flex items-center gap-2">
+        <lucide-icon [img]="fileTextIcon" class="w-5 h-5 text-green-600"></lucide-icon>
+        Documentos Clínicos
+      </h3>
+      <button class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700">
+        <lucide-icon [img]="uploadIcon" class="w-4 h-4 mr-2"></lucide-icon>
+        Subir documento
+      </button>
+    </div>
+
+    <!-- Filtros de documentos -->
+    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+          <div class="relative">
+            <lucide-icon [img]="searchIcon" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></lucide-icon>
+            <input 
+              type="text" 
+              placeholder="Buscar documentos..."
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+        </div>
+        <select class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          <option value="all">Todos los tipos</option>
+          <option value="lab">Laboratorio</option>
+          <option value="imaging">Imagen diagnóstica</option>
+          <option value="report">Informe médico</option>
+          <option value="prescription">Prescripción</option>
+          <option value="other">Otro</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Lista de documentos -->
+    <div class="space-y-3">
+      <div *ngFor="let doc of clinicalDocuments" 
+           class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+        <div class="flex items-start gap-4">
+          <!-- Icono del documento -->
+          <div class="flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center"
+               [ngClass]="getDocumentTypeColor(doc.type)">
+            <lucide-icon [img]="getDocumentTypeIcon(doc.type)" class="w-6 h-6"></lucide-icon>
+          </div>
+
+          <!-- Información del documento -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-900 truncate">{{ doc.name }}</h4>
+                <p class="text-sm text-gray-600 mt-1">{{ doc.description }}</p>
+                
+                <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                  <div class="flex items-center gap-1">
+                    <lucide-icon [img]="calendarIcon" class="w-3 h-3"></lucide-icon>
+                    <span>{{ doc.date }}</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <lucide-icon [img]="userIcon" class="w-3 h-3"></lucide-icon>
+                    <span>{{ doc.uploadedBy }}</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <lucide-icon [img]="getFormatIcon(doc.format)" class="w-3 h-3"></lucide-icon>
+                    <span>{{ doc.size }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acciones del documento -->
+              <div class="flex items-center gap-2 ml-4">
+                <span class="px-2 py-1 text-xs font-medium rounded-full border"
+                      [ngClass]="getDocumentTypeColor(doc.type)">
+                  {{ doc.category }}
+                </span>
+                <button 
+                  (click)="onViewDocument(doc.id)"
+                  class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Ver documento">
+                  <lucide-icon [img]="eyeIcon" class="w-4 h-4"></lucide-icon>
+                </button>
+                <button 
+                  (click)="onDownloadDocument(doc.id)"
+                  class="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                  title="Descargar documento">
+                  <lucide-icon [img]="downloadIcon" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen de documentos -->
+    <div class="mt-6 bg-gray-50 rounded-lg p-4">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+        <div>
+          <div class="text-2xl font-semibold text-gray-900">{{ clinicalDocuments.length }}</div>
+          <div class="text-xs text-gray-600">Total documentos</div>
+        </div>
+        <div>
+          <div class="text-2xl font-semibold text-green-600">{{ getLabDocumentsCount() }}</div>
+          <div class="text-xs text-gray-600">Laboratorios</div>
+        </div>
+        <div>
+          <div class="text-2xl font-semibold text-blue-600">{{ getImagingDocumentsCount() }}</div>
+          <div class="text-xs text-gray-600">Imágenes</div>
+        </div>
+        <div>
+          <div class="text-2xl font-semibold text-purple-600">{{ getReportDocumentsCount() }}</div>
+          <div class="text-xs text-gray-600">Informes</div>
+        </div>
+        <div>
+          <div class="text-2xl font-semibold text-indigo-600">{{ getPrescriptionDocumentsCount() }}</div>
+          <div class="text-xs text-gray-600">Prescripciones</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Role Suggestion Modal -->
+<app-role-suggestion-modal
+  [isOpen]="showRoleSuggestionModal()"
+  [suggestedRole]="'Médico'"
+  [pageName]="'pacientes-perfil'"
+  (dismiss)="onRoleSuggestionDismiss()"
+  (roleChanged)="onRoleChanged()"
+></app-role-suggestion-modal>

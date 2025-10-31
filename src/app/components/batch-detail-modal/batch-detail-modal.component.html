@@ -1,0 +1,177 @@
+<!-- Modal Backdrop -->
+<div *ngIf="isOpen" 
+     class="batch-modal-backdrop fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+     (click)="onBackdropClick($event)">
+  
+  <!-- Modal Content -->
+  <div class="modal-container bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+       style="border: 1px solid #e5e7eb !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;"
+       (click)="$event.stopPropagation()" *ngIf="batch">
+    
+    <!-- Modal Header -->
+    <div class="modal-header flex items-center justify-between p-6 rounded-t-xl text-white" 
+         style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #15803d 100%); border: none !important; border-bottom: none !important;">
+      <div class="flex items-center gap-3">
+        <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+          <lucide-icon [img]="packageIcon" class="w-6 h-6 text-white"></lucide-icon>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-white">Detalles del lote</h2>
+          <p class="text-sm text-white/90">Información completa del lote {{ batch.batchNumber }}</p>
+        </div>
+      </div>
+      <button 
+        (click)="onClose()"
+        class="p-2 hover:bg-white/20 rounded-lg transition-colors"
+        title="Cerrar">
+        <lucide-icon [img]="xIcon" class="w-5 h-5 text-white"></lucide-icon>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 space-y-6">
+      
+      <!-- Información del lote -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <lucide-icon [img]="fileTextIcon" class="w-5 h-5 text-gray-600"></lucide-icon>
+          Información del lote
+        </h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-500">Número de lote</label>
+            <p class="text-sm font-semibold text-gray-900">{{ batch.batchNumber }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">ID interno</label>
+            <p class="text-sm text-gray-900">{{ batch.id }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Ubicación</label>
+            <p class="text-sm text-gray-900 flex items-center gap-1">
+              <lucide-icon [img]="mapPinIcon" class="w-4 h-4 text-gray-400"></lucide-icon>
+              {{ batch.location }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medicamento -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Medicamento</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-500">Nombre</label>
+            <p class="text-sm font-semibold text-gray-900">{{ batch.medicineName }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Presentación</label>
+            <p class="text-sm text-gray-900">{{ batch.presentation }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Proveedor</label>
+            <p class="text-sm text-gray-900">{{ batch.supplier }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Documento de ingreso</label>
+            <p class="text-sm text-gray-900">{{ batch.documentNumber }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fechas -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <lucide-icon [img]="calendarIcon" class="w-5 h-5 text-gray-600"></lucide-icon>
+          Fechas
+        </h3>
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-500">Fabricación</label>
+            <p class="text-sm text-gray-900">{{ formatDate(batch.manufacturingDate) }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Vencimiento</label>
+            <p class="text-sm font-semibold text-gray-900">{{ formatDate(batch.expiryDate) }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Ingreso al sistema</label>
+            <p class="text-sm text-gray-900">{{ formatDate(batch.entryDate) }}</p>
+          </div>
+        </div>
+        <div class="mt-4 p-3 bg-white rounded-lg border">
+          <label class="text-sm font-medium text-gray-500">Días hasta vencimiento</label>
+          <p [class]="getDiasVencimientoClass(batch.daysToExpiry)" class="text-lg font-bold">
+            {{ getDiasVencimientoTexto(batch.daysToExpiry) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Stock y valores -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <lucide-icon [img]="dollarSignIcon" class="w-5 h-5 text-gray-600"></lucide-icon>
+          Stock y valores
+        </h3>
+        <div class="grid grid-cols-4 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-500">Cantidad inicial</label>
+            <p class="text-lg font-bold text-gray-900">{{ batch.quantity.toLocaleString() }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Stock actual</label>
+            <p class="text-lg font-bold text-blue-600">{{ batch.remainingQuantity.toLocaleString() }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Costo unitario</label>
+            <p class="text-lg font-bold text-gray-900">₡{{ batch.unitCost.toFixed(2) }}</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-500">Valor total</label>
+            <p class="text-lg font-bold text-green-600">₡{{ batch.totalValue.toLocaleString() }}</p>
+          </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="mt-4">
+          <div class="flex justify-between text-sm text-gray-600 mb-2">
+            <span>Disponibilidad</span>
+            <span>{{ ((batch.remainingQuantity / batch.quantity) * 100).toFixed(1) }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-3">
+            <div 
+              class="h-3 rounded-full transition-all"
+              [class]="(batch.remainingQuantity / batch.quantity) > 0.5 ? 'bg-green-500' : (batch.remainingQuantity / batch.quantity) > 0.2 ? 'bg-yellow-500' : 'bg-red-500'"
+              [style.width.%]="(batch.remainingQuantity / batch.quantity) * 100">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado del lote -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Estado del lote</h3>
+        <div class="flex items-center justify-center">
+          <span [class]="getEstadoClass(batch.status)" class="px-6 py-3 text-lg font-semibold rounded-full">
+            {{ getEstadoTexto(batch.status) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+      <button 
+        (click)="exportarTrazabilidad()"
+        class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm">
+        <lucide-icon [img]="downloadIcon" class="w-4 h-4"></lucide-icon>
+        Exportar trazabilidad
+      </button>
+      <button 
+        (click)="onClose()"
+        class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-gray-300">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
