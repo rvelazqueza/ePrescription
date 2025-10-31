@@ -8,6 +8,8 @@
     "start:force": "ng serve --port 4200 --poll 2000",
     "build": "ng build",
     "build:clean": "ng cache clean && ng build",
+    "build:prod": "ng build --configuration production --base-href /ePrescription/",
+    "deploy": "ng build --configuration production --base-href /ePrescription/ && npx angular-cli-ghpages --dir=dist/eprescription-angular",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -38,6 +40,7 @@
     "@angular/compiler-cli": "^18.0.0",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^18.7.0",
+    "angular-cli-ghpages": "^2.0.3",
     "autoprefixer": "^10.4.21",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
