@@ -63,6 +63,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 - [x] 2. Diseñar y crear esquema de base de datos Oracle normalizado (4NF/5NF)
 
 
+
   - [x] 2.1 Diseñar modelo entidad-relación completo con todas las tablas
 
 
