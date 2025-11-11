@@ -133,7 +133,7 @@ dotnet run --project EPrescription.API
 # Conectar con Oracle SQL Developer
 Host: localhost
 Port: 1521
-Service Name: XE
+Service Name: XEPDB1  # ⚠️ Importante: usar XEPDB1, no XE
 Username: eprescription_user
 Password: EprescriptionPass123!
 ```

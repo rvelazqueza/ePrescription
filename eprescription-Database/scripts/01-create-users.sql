@@ -5,8 +5,8 @@
 -- Fecha: 2024
 -- =====================================================
 
--- Conectar como SYSDBA
-WHENEVER SQLERROR EXIT SQL.SQLCODE
+-- Conectar al PDB (Pluggable Database)
+ALTER SESSION SET CONTAINER = XEPDB1;
 
 -- Crear usuario para la aplicación ePrescription
 CREATE USER eprescription_user IDENTIFIED BY "EprescriptionPass123!"

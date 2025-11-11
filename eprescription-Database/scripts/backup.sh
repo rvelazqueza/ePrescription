@@ -29,7 +29,7 @@ fi
 
 # Realizar backup del esquema EPRESCRIPTION
 echo "Realizando backup del esquema EPRESCRIPTION..."
-docker exec ${CONTAINER_NAME} sh -c "expdp eprescription_user/EprescriptionPass123!@XE \
+docker exec ${CONTAINER_NAME} sh -c "expdp eprescription_user/EprescriptionPass123!@localhost:1521/XEPDB1 \
     schemas=EPRESCRIPTION_USER \
     directory=DATA_PUMP_DIR \
     dumpfile=${BACKUP_FILE} \
@@ -42,7 +42,7 @@ docker cp ${CONTAINER_NAME}:/opt/oracle/admin/XE/dpdump/${BACKUP_FILE} ${BACKUP_
 # Realizar backup del esquema KEYCLOAK
 echo "Realizando backup del esquema KEYCLOAK..."
 KEYCLOAK_BACKUP_FILE="keycloak_backup_${TIMESTAMP}.dmp"
-docker exec ${CONTAINER_NAME} sh -c "expdp keycloak_user/KeycloakPass123!@XE \
+docker exec ${CONTAINER_NAME} sh -c "expdp keycloak_user/KeycloakPass123!@localhost:1521/XEPDB1 \
     schemas=KEYCLOAK_USER \
     directory=DATA_PUMP_DIR \
     dumpfile=${KEYCLOAK_BACKUP_FILE} \

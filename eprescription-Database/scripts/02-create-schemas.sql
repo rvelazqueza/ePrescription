@@ -5,8 +5,8 @@
 -- Fecha: 2024
 -- =====================================================
 
--- Conectar como eprescription_user
-CONNECT eprescription_user/EprescriptionPass123!@XE
+-- Conectar como eprescription_user al PDB
+CONNECT eprescription_user/EprescriptionPass123!@localhost:1521/XEPDB1
 
 -- Crear tabla de verificación del esquema EPRESCRIPTION
 CREATE TABLE schema_info (
@@ -22,8 +22,8 @@ VALUES ('EPRESCRIPTION', 'Esquema principal de la aplicación ePrescription');
 
 COMMIT;
 
--- Conectar como keycloak_user
-CONNECT keycloak_user/KeycloakPass123!@XE
+-- Conectar como keycloak_user al PDB
+CONNECT keycloak_user/KeycloakPass123!@localhost:1521/XEPDB1
 
 -- Crear tabla de verificación del esquema KEYCLOAK
 CREATE TABLE schema_info (
@@ -40,7 +40,7 @@ VALUES ('KEYCLOAK', 'Esquema para Keycloak Identity and Access Management');
 COMMIT;
 
 -- Verificar esquemas creados
-CONNECT sys/OraclePassword123!@XE as sysdba
+CONNECT sys/OraclePassword123!@localhost:1521/XEPDB1 as sysdba
 
 SELECT username, account_status, created 
 FROM dba_users 

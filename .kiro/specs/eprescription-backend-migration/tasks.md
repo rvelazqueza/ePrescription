@@ -110,22 +110,40 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 12-16 hours_ (aumentado por catálogo CIE-10)
   - _Note: Requiere contenedor Oracle de Task 4 corriendo para ejecutar y probar scripts_
 
-- [-] 4. Configurar Docker para Oracle Database (compartido con Keycloak)
+- [ ] 4. Configurar Docker para Oracle Database (compartido con Keycloak)
 
-  - [ ] 4.1 Crear carpeta eprescription-Database/docker con configuración
-  - [ ] 4.2 Crear docker-compose.yml inicial con servicio Oracle Database (usar imagen container-registry.oracle.com/database/express:21.3.0-xe)
-  - [ ] 4.3 Configurar volúmenes para persistencia de datos Oracle (oracle-data:/opt/oracle/oradata)
-  - [ ] 4.4 Configurar montaje de scripts de inicialización (/docker-entrypoint-initdb.d/startup)
-  - [ ] 4.5 Exponer puerto 1521 para acceso externo (Oracle SQL Developer y Postman)
-  - [ ] 4.6 Configurar health check para Oracle Database (verificar listener en puerto 1521)
-  - [ ] 4.7 Crear script de creación de usuario eprescription_user y keycloak_user
-  - [ ] 4.8 Crear script de creación de esquemas (EPRESCRIPTION, KEYCLOAK, CIE10_CATALOG)
-  - [ ] 4.9 Probar inicio de Oracle con docker-compose up -d
-  - [ ] 4.10 Verificar conexión desde Oracle SQL Developer (localhost:1521/XE)
-  - [ ] 4.11 Verificar que ambos esquemas estén creados correctamente
-  - [ ] 4.12 Crear script de backup automático (backup.sh) con docker exec
-  - [ ] 4.13 Documentar proceso de conexión y comandos Docker en README.md
-  - [ ] 4.14 Commit y push de configuración Docker
+
+
+  - [x] 4.1 Crear carpeta eprescription-Database/docker con configuración
+
+  - [x] 4.2 Crear docker-compose.yml inicial con servicio Oracle Database (usar imagen container-registry.oracle.com/database/express:21.3.0-xe)
+
+  - [x] 4.3 Configurar volúmenes para persistencia de datos Oracle (oracle-data:/opt/oracle/oradata)
+
+  - [x] 4.4 Configurar montaje de scripts de inicialización (/docker-entrypoint-initdb.d/startup)
+
+  - [x] 4.5 Exponer puerto 1521 para acceso externo (Oracle SQL Developer y Postman)
+
+  - [x] 4.6 Configurar health check para Oracle Database (verificar listener en puerto 1521)
+
+  - [x] 4.7 Crear script de creación de usuario eprescription_user y keycloak_user
+
+  - [x] 4.8 Crear script de creación de esquemas (EPRESCRIPTION, KEYCLOAK, CIE10_CATALOG)
+
+  - [x] 4.9 Probar inicio de Oracle con docker-compose up -d
+
+  - [x] 4.10 Verificar conexión desde Oracle SQL Developer (localhost:1521/XE)
+
+
+  - [x] 4.11 Verificar que ambos esquemas estén creados correctamente
+
+  - [x] 4.12 Crear script de backup automático (backup.sh) con docker exec
+
+  - [x] 4.13 Documentar proceso de conexión y comandos Docker en README.md
+
+
+  - [-] 4.14 Commit y push de configuración Docker
+
   - _Requirements: 5.2, 5.3, 5.4, 5.8, 5.10_
   - _Branch: feature/task-4-docker-oracle_
   - _Commit strategy: Push después de configuración básica (4.5) y después de pruebas (4.11)_
