@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Este documento define los requisitos para la migración completa del sistema ePrescription de Angular a una arquitectura empresarial moderna con backend .NET 8 LTS, base de datos Oracle SQL normalizada (4NF/5NF), contenedorización Docker y orquestación Kubernetes. El proyecto incluye la migración del asistente de IA desde el frontend React al backend, implementación de auditoría completa, y generación de diagramas de arquitectura del sistema completo.
+Este documento define los requisitos para la migración completa del sistema ePrescription de Angular a una arquitectura empresarial moderna con backend .NET 8 LTS, base de datos Oracle SQL normalizada (4NF/5NF), contenedorización Docker y orquestación Kubernetes. El proyecto incluye la migración del asistente de IA desde el frontend React al backend, implementación de auditoría completa, cumplimiento de normativas médicas internacionales (HL7 FHIR, FDA 21 CFR Part 11, OMS/WHO ICD-10), integración con WHO API para catálogo CIE-10 oficial, servicio de traducción español-inglés para IA, y generación de diagramas de arquitectura del sistema completo.
 
 ## Glossary
 
@@ -22,10 +22,14 @@ Este documento define los requisitos para la migración completa del sistema ePr
 - **JWT Token**: JSON Web Token para autenticación y autorización
 - **HIPAA Compliance**: Cumplimiento de normativas de privacidad de datos médicos
 - **FDA 21 CFR Part 11**: Regulación de la FDA para registros electrónicos y firmas digitales
-- **HL7 FHIR**: Estándar de interoperabilidad para intercambio de información de salud
-- **CIE-10**: Clasificación Internacional de Enfermedades, 10ª revisión
+- **HL7 FHIR**: Estándar de interoperabilidad para intercambio de información de salud (Fast Healthcare Interoperability Resources)
+- **CIE-10 (ICD-10)**: Clasificación Internacional de Enfermedades, 10ª revisión - estándar de la OMS
+- **WHO API**: API oficial de la Organización Mundial de la Salud para acceso al catálogo ICD-10
 - **NLP Service**: Servicio de procesamiento de lenguaje natural para análisis clínico
 - **Hugging Face API**: API de modelos de inteligencia artificial para análisis médico
+- **Translation Service**: Servicio de traducción automática español-inglés para procesamiento de IA
+- **OMS (WHO)**: Organización Mundial de la Salud - establece estándares médicos internacionales
+- **FDA 21 CFR Part 11**: Regulación de la FDA para registros electrónicos y firmas digitales en sistemas médicos
 
 ## Requirements
 
@@ -57,19 +61,28 @@ Este documento define los requisitos para la migración completa del sistema ePr
 8. THE Backend_API SHALL use Entity Framework Core for database access with Oracle provider
 9. THE Backend_API SHALL implement repository and unit of work patterns for data access
 
-### Requirement 3: Migración del Asistente de IA al Backend
+### Requirement 3: Migración del Asistente de IA al Backend con Catálogo CIE-10
 
-**User Story:** Como médico usuario del sistema, quiero que el asistente de IA funcione desde el backend, para mejorar la seguridad, rendimiento y centralización de la lógica de negocio médica.
+**User Story:** Como médico usuario del sistema, quiero que el asistente de IA funcione desde el backend con integración completa al catálogo CIE-10, para mejorar la seguridad, rendimiento, precisión diagnóstica y cumplimiento de estándares médicos internacionales.
 
 #### Acceptance Criteria
 
-1. THE AI_Assistant_Service SHALL be implemented in the backend using .NET 8 with integration to Hugging Face API or similar NLP services
-2. THE AI_Assistant_Service SHALL analyze clinical descriptions and suggest CIE-10 diagnoses with confidence scores
-3. THE AI_Assistant_Service SHALL generate medication recommendations based on selected diagnoses
-4. THE AI_Assistant_Service SHALL validate drug interactions and contraindications
-5. THE AI_Assistant_Service SHALL log all AI operations in the audit system with timestamps, user information, and decision metrics
-6. THE Backend_API SHALL expose endpoints for AI analysis, diagnosis selection, and medication generation
-7. WHERE AI_models ARE required, THE Backend_API SHALL support configuration of multiple AI providers (Hugging Face, OpenAI, local models)
+1. THE System SHALL include a complete CIE-10 catalog table in Oracle database with minimum 500 most common diagnosis codes
+2. THE CIE10_Catalog_Service SHALL provide search capabilities by code, description, category, and subcategory
+3. THE AI_Assistant_Service SHALL be implemented in the backend using .NET 8 with integration to Hugging Face API or similar NLP services
+4. THE AI_Assistant_Service SHALL migrate functionality from React AI assistant located in "PorMigrar" folder to backend
+5. THE AI_Assistant_Service SHALL migrate CIE-10 API integrations from "PorMigrar" to backend services
+6. THE AI_Assistant_Service SHALL securely store API keys in backend configuration (NOT in frontend code)
+7. THE AI_Assistant_Service SHALL analyze clinical descriptions and suggest CIE-10 diagnoses validated against the local catalog
+8. THE AI_Assistant_Service SHALL validate all suggested diagnosis codes against CIE10_CATALOG table before returning results
+9. THE AI_Assistant_Service SHALL generate medication recommendations based on selected diagnoses
+10. THE AI_Assistant_Service SHALL validate drug interactions and contraindications
+11. THE AI_Assistant_Service SHALL log all AI operations in the audit system with timestamps, user information, decision metrics, and CIE-10 codes used
+12. THE Backend_API SHALL expose endpoints for AI analysis, diagnosis selection, medication generation, and CIE-10 catalog search
+13. THE Backend_API SHALL expose endpoints for searching CIE-10 catalog independently of AI operations
+14. WHERE AI_models ARE required, THE Backend_API SHALL support configuration of multiple AI providers (Hugging Face, OpenAI, local models)
+15. THE Migration_Process SHALL ensure Hugging Face API keys from "PorMigrar" folder are moved to backend environment variables
+16. THE Prescription_Diagnoses SHALL reference CIE10_CATALOG table via foreign key for data integrity
 
 ### Requirement 4: Sistema de Auditoría Completo
 
@@ -101,22 +114,18 @@ Este documento define los requisitos para la migración completa del sistema ePr
 9. THE Docker_Configuration SHALL allow API testing from Postman using exposed HTTP/HTTPS ports
 10. WHERE backup_scripts ARE needed, THE Docker_Configuration SHALL include volume mounts for database backups and persistent data
 
-### Requirement 6: Orquestación con Kubernetes (Opcional para Producción)
+### Requirement 6: Orquestación con Kubernetes (Futuro - No en Alcance Inicial)
 
-**User Story:** Como administrador de infraestructura, quiero manifiestos de Kubernetes opcionales para desplegar el sistema en un clúster de producción, para lograr alta disponibilidad y escalabilidad automática cuando sea necesario.
+**User Story:** Como administrador de infraestructura, quiero la posibilidad de desplegar el sistema en Kubernetes en el futuro para producción, pero inicialmente el proyecto se enfocará en Docker Compose para desarrollo y pruebas locales.
 
 #### Acceptance Criteria
 
-1. THE Kubernetes_Manifests SHALL be provided as optional deployment method for production environments
-2. THE Kubernetes_Manifests SHALL include deployments for backend API with replica configuration
-3. THE Kubernetes_Manifests SHALL include StatefulSet for Oracle database with persistent volume claims
-4. THE Kubernetes_Manifests SHALL include services with NodePort or LoadBalancer for external access during development
-5. THE Kubernetes_Manifests SHALL include ConfigMaps for application configuration
-6. THE Kubernetes_Manifests SHALL include Secrets for sensitive data (database passwords, API keys)
-7. THE Kubernetes_Manifests SHALL include ingress configuration for external access in production
-8. THE Kubernetes_Manifests SHALL include horizontal pod autoscaler for backend API based on CPU/memory metrics
-9. THE Kubernetes_Configuration SHALL maintain compatibility with Docker Compose for local development
-10. THE Documentation SHALL clearly explain the difference between Docker Compose (development) and Kubernetes (production) deployments
+1. THE Project SHALL use Docker Compose as primary deployment method for development and testing
+2. THE Docker_Compose_Configuration SHALL allow direct access to all services (Oracle, Keycloak, Backend API)
+3. THE Docker_Compose_Configuration SHALL expose ports for external tools (Postman, Oracle SQL Developer)
+4. THE Documentation SHALL explain how to use Docker Compose for local development
+5. THE Architecture SHALL be designed to be Kubernetes-ready for future production deployment
+6. THE Kubernetes_Implementation SHALL be deferred to future phases (not in initial scope)
 
 ### Requirement 7: Organización del Proyecto por Carpetas
 
@@ -124,13 +133,15 @@ Este documento define los requisitos para la migración completa del sistema ePr
 
 #### Acceptance Criteria
 
-1. THE Project_Structure SHALL separate frontend Angular code in "eprescription-frontend" folder
-2. THE Project_Structure SHALL separate backend API code in "eprescription-API" folder
-3. THE Project_Structure SHALL separate database scripts in "eprescription-Database" folder
-4. THE Project_Structure SHALL separate Docker configurations in appropriate folders within each component
-5. THE Project_Structure SHALL include documentation folders for API documentation, database schema diagrams, and deployment guides
-6. THE Project_Structure SHALL maintain clear separation between frontend, backend, and database components
-7. WHERE backup_files ARE needed, THE Project_Structure SHALL include folders for database backup scripts and Docker volume backups
+1. THE Project_Structure SHALL create three main folders: "eprescription-frontend", "eprescription-API", and "eprescription-Database"
+2. THE Project_Structure SHALL separate frontend Angular code in "eprescription-frontend" folder
+3. THE Project_Structure SHALL separate backend API code in "eprescription-API" folder with Clean Architecture layers
+4. THE Project_Structure SHALL separate database scripts in "eprescription-Database" folder
+5. THE Project_Structure SHALL separate Docker configurations in appropriate folders within each component
+6. THE Project_Structure SHALL include documentation folders for API documentation, database schema diagrams, and deployment guides
+7. THE Project_Structure SHALL maintain clear separation between frontend, backend, and database components
+8. WHERE backup_files ARE needed, THE Project_Structure SHALL include folders for database backup scripts and Docker volume backups
+9. THE Project_Structure SHALL move existing Angular project from root to "eprescription-frontend" folder during initial setup
 
 ### Requirement 8: Datos Mock Consistentes
 
@@ -206,3 +217,32 @@ Este documento define los requisitos para la migración completa del sistema ePr
 5. THE Architecture_Diagrams SHALL include a sequence diagram for critical workflows (prescription creation, AI analysis, dispensation)
 6. THE Architecture_Diagrams SHALL be created using standard notation (UML, C4 model, or similar)
 7. THE Architecture_Diagrams SHALL be exported in multiple formats (PNG, SVG, PDF) and stored in the documentation folder
+
+
+### Requirement 13: Cumplimiento de Normativas y Estándares Médicos Internacionales
+
+**User Story:** Como administrador del sistema de salud, quiero que el sistema cumpla con todas las normativas y estándares médicos internacionales (HL7 FHIR, FDA 21 CFR Part 11, OMS/WHO ICD-10), para garantizar interoperabilidad, seguridad, trazabilidad y cumplimiento legal en el manejo de información médica.
+
+#### Acceptance Criteria
+
+1. THE System SHALL comply with HL7 FHIR R4 standard for healthcare data interoperability
+2. THE System SHALL provide FHIR resource mappings for Patient, Practitioner, MedicationRequest, MedicationDispense, and Condition
+3. THE System SHALL support export of prescriptions and medical records in FHIR JSON format
+4. THE System SHALL comply with FDA 21 CFR Part 11 requirements for electronic records and electronic signatures
+5. THE System SHALL maintain complete immutable audit trails for all prescription-related operations
+6. THE System SHALL use Keycloak authentication as electronic signature mechanism for prescription creation
+7. THE System SHALL integrate with WHO ICD API to obtain official ICD-10 (CIE-10) catalog
+8. THE WHO_API_Service SHALL authenticate using OAuth 2.0 client credentials
+9. THE WHO_API_Service SHALL synchronize ICD-10 catalog daily from WHO API
+10. THE WHO_API_Service SHALL support both Spanish and English language versions of ICD-10
+11. THE System SHALL validate all diagnosis codes against official WHO ICD-10 catalog
+12. THE System SHALL include Translation_Service for Spanish-English medical text translation
+13. THE Translation_Service SHALL translate clinical descriptions from Spanish to English before AI analysis
+14. THE Translation_Service SHALL translate AI results from English back to Spanish for user display
+15. THE Translation_Service SHALL use Azure Translator API or Google Cloud Translation API with medical terminology support
+16. THE System SHALL store WHO API credentials securely in environment variables
+17. THE System SHALL store Translation API credentials securely in environment variables
+18. THE System SHALL provide fallback to local CIE10_CATALOG when WHO API is unavailable
+19. THE System SHALL track ICD-10 catalog version and update date from WHO API
+20. THE System SHALL log all WHO API calls and translation operations in audit system
+
