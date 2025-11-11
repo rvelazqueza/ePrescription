@@ -60,24 +60,58 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Branch: feature/task-1-project-structure_
 
 
-- [ ] 2. Diseñar y crear esquema de base de datos Oracle normalizado (4NF/5NF)
-  - [ ] 2.1 Diseñar modelo entidad-relación completo con todas las tablas
-  - [ ] 2.2 Crear usuario y esquema para Keycloak (keycloak_user, esquema KEYCLOAK)
-  - [ ] 2.3 Crear tabla de catálogo CIE-10 (cie10_catalog) con índices para búsqueda
-  - [ ] 2.4 Crear scripts SQL para tablas principales (patients, doctors, medical_centers, specialties)
-  - [ ] 2.5 Crear scripts SQL para tablas de prescripciones (prescriptions, prescription_diagnoses con FK a CIE-10, prescription_medications)
-  - [ ] 2.6 Crear scripts SQL para tablas de medicamentos (medications, administration_routes, drug_interactions)
-  - [ ] 2.7 Crear scripts SQL para tablas de farmacias e inventario (pharmacies, inventory, dispensations, dispensation_items)
-  - [ ] 2.8 Crear scripts SQL para tablas de seguridad (users, roles, permissions, user_roles, role_permissions)
-  - [ ] 2.9 Crear scripts SQL para tablas de auditoría (audit_logs, ai_analysis_logs) - PRIORIDAD ALTA
-  - [ ] 2.10 Crear tabla addresses y relaciones
-  - [ ] 2.11 Definir índices, constraints, y foreign keys para integridad referencial
-  - [ ] 2.12 Crear script maestro de inicialización (init.sql) que ejecute todos los scripts en orden
-  - [ ] 2.13 Crear trigger para inmutabilidad de audit_logs
-  - [ ] 2.14 Probar scripts en contenedor Docker Oracle (docker exec -it eprescription-oracle-db sqlplus)
-  - [ ] 2.15 Verificar creación de tablas con Oracle SQL Developer (localhost:1521/XE)
-  - [ ] 2.16 Crear diagrama ERD del esquema completo (incluir esquema KEYCLOAK y catálogo CIE-10)
-  - [ ] 2.17 Commit y push de scripts de base de datos
+- [x] 2. Diseñar y crear esquema de base de datos Oracle normalizado (4NF/5NF)
+
+
+
+  - [x] 2.1 Diseñar modelo entidad-relación completo con todas las tablas
+
+
+  - [x] 2.2 Crear usuario y esquema para Keycloak (keycloak_user, esquema KEYCLOAK)
+
+  - [x] 2.3 Crear tabla de catálogo CIE-10 (cie10_catalog) con índices para búsqueda
+
+
+  - [x] 2.4 Crear scripts SQL para tablas principales (patients, doctors, medical_centers, specialties)
+
+
+
+  - [x] 2.5 Crear scripts SQL para tablas de prescripciones (prescriptions, prescription_diagnoses con FK a CIE-10, prescription_medications)
+
+
+  - [x] 2.6 Crear scripts SQL para tablas de medicamentos (medications, administration_routes, drug_interactions)
+
+
+  - [x] 2.7 Crear scripts SQL para tablas de farmacias e inventario (pharmacies, inventory, dispensations, dispensation_items)
+
+
+  - [x] 2.8 Crear scripts SQL para tablas de seguridad (users, roles, permissions, user_roles, role_permissions)
+
+
+  - [x] 2.9 Crear scripts SQL para tablas de auditoría (audit_logs, ai_analysis_logs) - PRIORIDAD ALTA
+
+
+  - [x] 2.10 Crear tabla addresses y relaciones
+
+  - [x] 2.11 Definir índices, constraints, y foreign keys para integridad referencial
+
+  - [x] 2.12 Crear script maestro de inicialización (init.sql) que ejecute todos los scripts en orden
+
+
+  - [x] 2.13 Crear trigger para inmutabilidad de audit_logs
+
+
+  - [x] 2.14 Probar scripts en contenedor Docker Oracle (docker exec -it eprescription-oracle-db sqlplus)
+
+
+
+  - [x] 2.15 Verificar creación de tablas con Oracle SQL Developer (localhost:1521/XE)
+
+  - [x] 2.16 Crear diagrama ERD del esquema completo (incluir esquema KEYCLOAK y catálogo CIE-10)
+
+  - [x] 2.17 Commit y push de scripts de base de datos
+
+
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 12.2_
   - _Branch: feature/task-2-database-schema_
   - _Commit strategy: Push después de cada grupo de tablas (2.4, 2.5, 2.6, etc.)_
