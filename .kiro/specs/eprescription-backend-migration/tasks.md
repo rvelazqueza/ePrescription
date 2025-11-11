@@ -146,8 +146,13 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
   - [x] 3.8 Crear script SQL con datos mock para interacciones medicamentosas (50 registros)
 
-  - [ ] 3.9 Crear script SQL con datos mock para farmacias e inventario (20 farmacias)
-  - [ ] 3.10 Crear script SQL con datos mock para prescripciones (100 registros con diagnósticos CIE-10 y medicamentos)
+
+  - [x] 3.9 Crear script SQL con datos mock para farmacias e inventario (20 farmacias)
+
+
+
+  - [x] 3.10 Crear script SQL con datos mock para prescripciones (100 registros con diagnósticos CIE-10 y medicamentos)
+
   - [ ] 3.11 Crear script SQL con datos mock para dispensaciones (50 registros)
   - [ ] 3.12 Crear script SQL con datos mock para usuarios, roles y permisos
   - [ ] 3.13 Crear script SQL con datos mock para audit_logs y ai_analysis_logs
