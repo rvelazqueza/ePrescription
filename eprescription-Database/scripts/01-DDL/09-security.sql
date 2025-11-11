@@ -34,11 +34,11 @@ CREATE TABLE ROLES (
 CREATE TABLE PERMISSIONS (
     permission_id RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
     permission_name VARCHAR2(100) UNIQUE NOT NULL,
-    resource VARCHAR2(100) NOT NULL,
+    resource_name VARCHAR2(100) NOT NULL,
     action VARCHAR2(50) NOT NULL CHECK (action IN ('create', 'read', 'update', 'delete', 'execute')),
     description VARCHAR2(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_resource_action UNIQUE (resource, action)
+    CONSTRAINT uq_resource_action UNIQUE (resource_name, action)
 );
 
 -- Crear tabla USER_ROLES (5NF - relación pura usuario-rol)
@@ -78,7 +78,7 @@ CREATE INDEX idx_role_active ON ROLES(is_active);
 
 -- Índices para PERMISSIONS
 CREATE INDEX idx_permission_name ON PERMISSIONS(permission_name);
-CREATE INDEX idx_permission_resource ON PERMISSIONS(resource);
+CREATE INDEX idx_permission_resource ON PERMISSIONS(resource_name);
 CREATE INDEX idx_permission_action ON PERMISSIONS(action);
 
 -- Índices para USER_ROLES
@@ -97,6 +97,7 @@ COMMENT ON TABLE USER_ROLES IS 'Asignación usuario-rol (5NF)';
 COMMENT ON TABLE ROLE_PERMISSIONS IS 'Asignación rol-permiso (5NF)';
 COMMENT ON COLUMN USERS.keycloak_user_id IS 'UUID del usuario en Keycloak';
 COMMENT ON COLUMN ROLES.keycloak_role_id IS 'ID del rol en Keycloak';
+COMMENT ON COLUMN PERMISSIONS.resource_name IS 'Nombre del recurso (ej: prescriptions, patients)';
 COMMENT ON COLUMN PERMISSIONS.action IS 'Acción: create, read, update, delete, execute';
 
 -- Insertar roles básicos
@@ -116,22 +117,22 @@ INSERT INTO ROLES (role_name, description) VALUES
 ('auditor', 'Auditor con acceso de solo lectura a logs');
 
 -- Insertar permisos básicos
-INSERT INTO PERMISSIONS (permission_name, resource, action, description) VALUES 
+INSERT INTO PERMISSIONS (permission_name, resource_name, action, description) VALUES 
 ('prescriptions.create', 'prescriptions', 'create', 'Crear prescripciones');
 
-INSERT INTO PERMISSIONS (permission_name, resource, action, description) VALUES 
+INSERT INTO PERMISSIONS (permission_name, resource_name, action, description) VALUES 
 ('prescriptions.read', 'prescriptions', 'read', 'Leer prescripciones');
 
-INSERT INTO PERMISSIONS (permission_name, resource, action, description) VALUES 
+INSERT INTO PERMISSIONS (permission_name, resource_name, action, description) VALUES 
 ('prescriptions.update', 'prescriptions', 'update', 'Actualizar prescripciones');
 
-INSERT INTO PERMISSIONS (permission_name, resource, action, description) VALUES 
+INSERT INTO PERMISSIONS (permission_name, resource_name, action, description) VALUES 
 ('prescriptions.delete', 'prescriptions', 'delete', 'Eliminar prescripciones');
 
-INSERT INTO PERMISSIONS (permission_name, resource, action, description) VALUES 
+INSERT INTO PERMISSIONS (permission_name, resource_name, action, description) VALUES 
 ('dispensations.create', 'dispensations', 'create', 'Crear dispensaciones');
 
-INSERT INTO PERMISSIONS (permission_name, resource, action, description) VALUES 
+INSERT INTO PERMISSIONS (permission_name, resource_name, action, description) VALUES 
 ('audit_logs.read', 'audit_logs', 'read', 'Leer logs de auditoría');
 
 COMMIT;

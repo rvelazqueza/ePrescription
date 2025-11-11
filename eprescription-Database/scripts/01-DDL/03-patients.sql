@@ -17,8 +17,7 @@ CREATE TABLE PATIENTS (
     gender VARCHAR2(10) NOT NULL CHECK (gender IN ('M', 'F', 'Otro')),
     blood_type VARCHAR2(5) CHECK (blood_type IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_patient_age CHECK (date_of_birth < SYSDATE)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Crear tabla PATIENT_CONTACTS (4NF)

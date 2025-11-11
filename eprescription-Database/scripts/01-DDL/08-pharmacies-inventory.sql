@@ -34,8 +34,7 @@ CREATE TABLE INVENTORY (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (pharmacy_id) REFERENCES PHARMACIES(pharmacy_id),
     FOREIGN KEY (medication_id) REFERENCES MEDICATIONS(medication_id),
-    CONSTRAINT uq_pharmacy_medication_batch UNIQUE (pharmacy_id, medication_id, batch_number),
-    CONSTRAINT chk_expiration_future CHECK (expiration_date > SYSDATE - 365)
+    CONSTRAINT uq_pharmacy_medication_batch UNIQUE (pharmacy_id, medication_id, batch_number)
 );
 
 -- Crear tabla DISPENSATIONS

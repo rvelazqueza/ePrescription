@@ -99,10 +99,16 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 2.13 Crear trigger para inmutabilidad de audit_logs
 
 
-  - [ ] 2.14 Probar scripts en contenedor Docker Oracle (docker exec -it eprescription-oracle-db sqlplus)
-  - [ ] 2.15 Verificar creación de tablas con Oracle SQL Developer (localhost:1521/XE)
-  - [ ] 2.16 Crear diagrama ERD del esquema completo (incluir esquema KEYCLOAK y catálogo CIE-10)
-  - [ ] 2.17 Commit y push de scripts de base de datos
+  - [x] 2.14 Probar scripts en contenedor Docker Oracle (docker exec -it eprescription-oracle-db sqlplus)
+
+
+
+  - [x] 2.15 Verificar creación de tablas con Oracle SQL Developer (localhost:1521/XE)
+
+  - [x] 2.16 Crear diagrama ERD del esquema completo (incluir esquema KEYCLOAK y catálogo CIE-10)
+
+  - [-] 2.17 Commit y push de scripts de base de datos
+
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 12.2_
   - _Branch: feature/task-2-database-schema_
   - _Commit strategy: Push después de cada grupo de tablas (2.4, 2.5, 2.6, etc.)_
