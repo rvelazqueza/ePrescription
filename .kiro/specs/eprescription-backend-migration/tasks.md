@@ -30,6 +30,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 ## Task List
 
 - [x] 1. Configurar estructura del proyecto y estrategia de branching
+
+
   - [x] 1.1 Crear estructura de carpetas (eprescription-API, eprescription-Database, docs)
   - [x] 1.2 Mover proyecto Angular existente a eprescription-frontend/
   - [x] 1.3 Crear documento de estrategia de branching (docs/BRANCHING_STRATEGY.md)
@@ -610,13 +612,15 @@ No hay subtareas opcionales. Todas deben completarse para tener un sistema produ
 - **Task 16**: Suite de tests completa - **20-24 horas**
 - **Task 17**: HL7 FHIR compliance y normativas - **14-16 horas**
 - **Task 18**: Documentación y diagramas completos - **14-16 horas**
+- **Task 19**: Imágenes Docker para distribución - **8-10 horas**
 
 ### Resumen de Estimación
 
-- **Total estimado**: **216-268 horas**
-- **Semanas (40 hrs/semana)**: **5.4-6.7 semanas**
-- **Semanas (20 hrs/semana)**: **10.8-13.4 semanas**
-- **Incremento por normativas y WHO API**: +22-30 horas vs estimación anterior
+- **Total estimado**: **224-278 horas**
+- **Semanas (40 hrs/semana)**: **5.6-7 semanas**
+- **Semanas (20 hrs/semana)**: **11.2-13.9 semanas**
+- **Incremento por Docker images**: +8-10 horas
+- **Incremento total por normativas, WHO API y Docker**: +30-40 horas vs estimación inicial
 
 ### Notas sobre Estimación
 
@@ -646,4 +650,31 @@ Las siguientes tareas son críticas y deben completarse en orden:
 Después de Task 7, las siguientes pueden paralelizarse parcialmente:
 - Task 8, 9, 10 (pueden trabajarse en paralelo)
 - Task 11, 12, 13 (requieren Task 6-9 completadas)
+
+
+
+- [ ] 19. Generar imágenes Docker para distribución y despliegue
+  - [ ] 19.1 Crear Dockerfile optimizado para backend API (multi-stage)
+  - [ ] 19.2 Crear Dockerfile optimizado para frontend Angular con nginx
+  - [ ] 19.3 Crear docker-compose.yml completo con todos los servicios
+  - [ ] 19.4 Incluir Keycloak en docker-compose usando Oracle como BD
+  - [ ] 19.5 Configurar health checks para todos los servicios
+  - [ ] 19.6 Configurar redes Docker para comunicación entre servicios
+  - [ ] 19.7 Crear archivo .env.example con todas las variables necesarias
+  - [ ] 19.8 Agregar .env a .gitignore
+  - [ ] 19.9 Probar docker-compose up con todos los servicios
+  - [ ] 19.10 Verificar conectividad entre servicios (backend -> Oracle, backend -> Keycloak)
+  - [ ] 19.11 Construir imágenes con tags de versión (1.0.0)
+  - [ ] 19.12 Generar archivos .tar de imágenes para distribución offline
+  - [ ] 19.13 Crear script de carga de imágenes (load-images.sh)
+  - [ ] 19.14 Documentar proceso de despliegue con imágenes Docker
+  - [ ] 19.15 Crear docker-compose.prod.yml para producción
+  - [ ] 19.16 Configurar volúmenes persistentes para datos
+  - [ ] 19.17 Probar despliegue completo en ambiente limpio
+  - [ ] 19.18 Crear guía de despliegue para otros equipos (docs/DOCKER_DEPLOYMENT.md)
+  - [ ] 19.19 Commit y push de configuración Docker completa
+  - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6, 5.7, 5.9, 6.1-6.10_
+  - _Branch: feature/task-19-docker-images_
+  - _Commit strategy: Push después de Dockerfiles (19.2), después de docker-compose (19.9), y después de imágenes (19.13)_
+  - _Estimated time: 8-10 hours_
 

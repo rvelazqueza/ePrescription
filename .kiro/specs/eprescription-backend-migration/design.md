@@ -2010,3 +2010,309 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 4. Add loading states and error handling
 5. Remove Hugging Face API key from frontend environment files
 
+
+- Digital signatures using Keycloak JWT tokens
+- System validation documented in test reports
+
+#### OMS (WHO) Compliance
+
+**ICD-10 (CIE-10) Standards**:
+- Official WHO ICD-10 catalog via WHO API
+- Daily synchronization with WHO ICD API
+- Spanish and English language support
+- Validation of all diagnosis codes against official WHO catalog
+- Audit trail of all ICD-10 codes used
+
+**WHO API Integration**:
+- Endpoint: https://icd.who.int/icdapi
+- OAuth 2.0 authentication
+- ICD-10 version tracking
+- Automatic updates when WHO releases new versions
+
+## Docker Configuration
+
+### Docker Compose Complete Setup
+
+```yaml
+version: '3.8'
+
+services:
+  # Oracle Database (compartido por aplicación y Keycloak)
+  oracle-db:
+    image: container-registry.oracle.com/database/express:21.3.0-xe
+    container_name: eprescription-oracle
+    environment:
+      - ORACLE_PWD=${ORACLE_PASSWORD}
+      - ORACLE_CHARACTERSET=AL32UTF8
+    ports:
+      - "1521:1521"  # Puerto para Oracle SQL Developer y aplicaciones
+      - "5500:5500"  # Enterprise Manager
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./eprescription-Database/scripts:/docker-entrypoint-initdb.d/startup
+      - ./eprescription-Database/mock-data:/docker-entrypoint-initdb.d/mock
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'SELECT 1 FROM DUAL;' | sqlplus -s sys/${ORACLE_PASSWORD}@//localhost:1521/XE as sysdba"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - eprescription-network
+
+  # Keycloak (usando Oracle como base de datos)
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: eprescription-keycloak
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KC_DB=oracle
+      - KC_DB_URL=jdbc:oracle:thin:@oracle-db:1521/XE
+      - KC_DB_USERNAME=keycloak_user
+      - KC_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
+      - KC_DB_SCHEMA=KEYCLOAK
+      - KC_HOSTNAME=localhost
+      - KC_HTTP_ENABLED=true
+      - KC_HEALTH_ENABLED=true
+    ports:
+      - "8080:8080"  # Puerto para Keycloak Admin Console y API
+    command: start-dev
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - eprescription-network
+
+  # Backend API (.NET 8)
+  backend-api:
+    build:
+      context: ./eprescription-API
+      dockerfile: Dockerfile
+    container_name: eprescription-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80;https://+:443
+      - ConnectionStrings__OracleDb=Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=oracle-db)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XE)));User Id=eprescription_user;Password=${EPRESCRIPTION_DB_PASSWORD};
+      - Authentication__Keycloak__Authority=http://keycloak:8080/realms/eprescription
+      - Authentication__Keycloak__Audience=eprescription-api
+      - Authentication__Keycloak__ClientId=eprescription-api
+      - Authentication__Keycloak__ClientSecret=${KEYCLOAK_CLIENT_SECRET}
+      - HuggingFace__ApiKey=${HUGGINGFACE_API_KEY}
+      - HuggingFace__ModelEndpoint=https://api-inference.huggingface.co/models/medical-ner-es
+      - WHO__ApiClientId=${WHO_API_CLIENT_ID}
+      - WHO__ApiClientSecret=${WHO_API_CLIENT_SECRET}
+      - WHO__ApiBaseUrl=https://icd.who.int/icdapi
+      - Translation__ApiKey=${TRANSLATION_API_KEY}
+      - Translation__Endpoint=${TRANSLATION_API_ENDPOINT}
+      - Translation__Region=${TRANSLATION_REGION}
+      - Logging__LogLevel__Default=Information
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+    ports:
+      - "5000:80"   # HTTP para desarrollo y Postman
+      - "5001:443"  # HTTPS
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - eprescription-network
+
+  # Frontend Angular (opcional para desarrollo)
+  frontend:
+    build:
+      context: ./eprescription-frontend
+      dockerfile: Dockerfile
+    container_name: eprescription-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend-api
+    networks:
+      - eprescription-network
+    profiles:
+      - with-frontend  # Solo se inicia si se especifica el profile
+
+volumes:
+  oracle-data:
+    driver: local
+
+networks:
+  eprescription-network:
+    driver: bridge
+
+# Notas de uso:
+# - Iniciar todos los servicios: docker-compose up -d
+# - Iniciar con frontend: docker-compose --profile with-frontend up -d
+# - Ver logs: docker-compose logs -f [service-name]
+# - Detener: docker-compose down
+# - Limpiar todo: docker-compose down -v
+```
+
+### Dockerfiles
+
+#### Backend API Dockerfile
+
+```dockerfile
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy csproj files and restore
+COPY ["EPrescription.API/EPrescription.API.csproj", "EPrescription.API/"]
+COPY ["EPrescription.Application/EPrescription.Application.csproj", "EPrescription.Application/"]
+COPY ["EPrescription.Domain/EPrescription.Domain.csproj", "EPrescription.Domain/"]
+COPY ["EPrescription.Infrastructure/EPrescription.Infrastructure.csproj", "EPrescription.Infrastructure/"]
+RUN dotnet restore "EPrescription.API/EPrescription.API.csproj"
+
+# Copy source code and build
+COPY . .
+WORKDIR "/src/EPrescription.API"
+RUN dotnet build "EPrescription.API.csproj" -c Release -o /app/build
+
+# Publish stage
+FROM build AS publish
+RUN dotnet publish "EPrescription.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "EPrescription.API.dll"]
+```
+
+#### Frontend Dockerfile (Production)
+
+```dockerfile
+# Build stage
+FROM node:20-alpine AS build
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+RUN npm ci
+
+# Copy source code and build
+COPY . .
+RUN npm run build --configuration=production
+
+# Runtime stage with nginx
+FROM nginx:alpine
+COPY --from=build /app/dist/eprescription-frontend /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+### Environment Variables (.env file)
+
+```env
+# Keycloak
+KEYCLOAK_ADMIN_PASSWORD=admin123
+KEYCLOAK_CLIENT_SECRET=your-keycloak-client-secret-here
+KEYCLOAK_DB_PASSWORD=KeycloakPass123!
+
+# WHO API (ICD-10 Catalog)
+WHO_API_CLIENT_ID=your-who-api-client-id-here
+WHO_API_CLIENT_SECRET=your-who-api-client-secret-here
+
+# Hugging Face API (AI Analysis)
+HUGGINGFACE_API_KEY=your-huggingface-api-key-here
+
+# Translation Service (Azure Translator or Google Cloud Translation)
+TRANSLATION_API_KEY=your-translation-api-key-here
+TRANSLATION_API_ENDPOINT=https://api.cognitive.microsofttranslator.com
+TRANSLATION_REGION=eastus
+
+# Oracle Database
+ORACLE_PASSWORD=OraclePassword123!
+EPRESCRIPTION_DB_PASSWORD=EprescriptionPass123!
+```
+
+### Docker Commands
+
+```bash
+# Desarrollo local
+docker-compose up -d                    # Iniciar backend y base de datos
+docker-compose --profile with-frontend up -d  # Incluir frontend
+
+# Ver logs
+docker-compose logs -f backend-api      # Logs del backend
+docker-compose logs -f keycloak         # Logs de Keycloak
+docker-compose logs -f oracle-db        # Logs de Oracle
+
+# Detener servicios
+docker-compose down                     # Detener sin eliminar volúmenes
+docker-compose down -v                  # Detener y eliminar volúmenes (limpieza completa)
+
+# Reconstruir imágenes
+docker-compose build                    # Reconstruir todas las imágenes
+docker-compose build backend-api        # Reconstruir solo backend
+
+# Acceso a servicios
+# - Backend API: http://localhost:5000
+# - Swagger: http://localhost:5000/swagger
+# - Keycloak: http://localhost:8080 (admin/admin123)
+# - Oracle: localhost:1521 (SID: XE)
+# - Frontend: http://localhost:4200 (si se inició con profile)
+```
+
+### Generación de Imágenes Docker para Distribución
+
+Para facilitar el despliegue en servidores o equipos de otros desarrolladores:
+
+```bash
+# Construir imágenes con tags
+docker build -t eprescription-api:1.0.0 ./eprescription-API
+docker build -t eprescription-frontend:1.0.0 ./eprescription-frontend
+
+# Guardar imágenes como archivos tar
+docker save -o eprescription-api-1.0.0.tar eprescription-api:1.0.0
+docker save -o eprescription-frontend-1.0.0.tar eprescription-frontend:1.0.0
+
+# Cargar imágenes en otro equipo
+docker load -i eprescription-api-1.0.0.tar
+docker load -i eprescription-frontend-1.0.0.tar
+
+# O publicar en Docker Hub / Registry privado
+docker tag eprescription-api:1.0.0 your-registry/eprescription-api:1.0.0
+docker push your-registry/eprescription-api:1.0.0
+```
+
+### Docker Registry Privado (Opcional)
+
+Para equipos que necesiten un registry privado:
+
+```yaml
+# Agregar al docker-compose.yml
+  registry:
+    image: registry:2
+    container_name: eprescription-registry
+    ports:
+      - "5050:5000"
+    volumes:
+      - registry-data:/var/lib/registry
+    networks:
+      - eprescription-network
+```
+
