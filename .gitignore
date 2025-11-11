@@ -4,11 +4,30 @@ dist/
 *.log
 .DS_Store
 .vscode/
+
+# Environment variables (NEVER commit secrets)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Docker volumes and data
+oracle-data/
+keycloak-data/
+
+# Database backups
+eprescription-Database/backups/
+*.dmp
+*.log
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
