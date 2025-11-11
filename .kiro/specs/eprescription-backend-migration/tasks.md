@@ -7,10 +7,27 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 - **Docker Compose**: Para desarrollo y pruebas locales (acceso directo con Postman y Oracle SQL Developer)
 - **Kubernetes**: Solo para producción (opcional, no se implementará en este proyecto inicialmente)
 
+**Estrategia de Contenedores Docker**:
+- **Oracle Database**: Contenedor con imagen `container-registry.oracle.com/database/express:21.3.0-xe`
+- **Keycloak**: Contenedor con imagen `quay.io/keycloak/keycloak:latest` configurado para usar Oracle
+- **Backend API**: Contenedor con Dockerfile multi-stage (.NET 8)
+- **Frontend Angular**: Contenedor con Dockerfile multi-stage (Node 18 + nginx)
+- **Red Docker**: Red personalizada `eprescription-network` para comunicación entre servicios
+- **Volúmenes**: Persistencia de datos con volúmenes nombrados (oracle-data, keycloak-data)
+- **Health Checks**: Todos los servicios tienen health checks configurados
+- **Dependencias**: Servicios configurados con `depends_on` y `condition: service_healthy`
+
+**Comunicación entre Contenedores**:
+- Los servicios se comunican usando **nombres de servicio Docker** (no localhost)
+- Backend se conecta a Oracle usando: `oracle-db:1521`
+- Backend se conecta a Keycloak usando: `http://keycloak:8080`
+- Frontend se conecta a Backend usando: `http://backend-api:5000` (interno) o `http://localhost:5000` (externo)
+
 **Manejo de Variables de Entorno**:
 - `.env.example`: Archivo de plantilla SIN secrets (SÍ se commitea)
 - `.env`: Archivo con secrets reales (en .gitignore, NO se commitea)
 - Al iniciar el proyecto, copiar .env.example a .env y llenar con valores reales
+- Variables de entorno se pasan a contenedores mediante `env_file` o `environment` en docker-compose.yml
 
 ## Branching Strategy
 
@@ -57,12 +74,15 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [ ] 2.11 Definir índices, constraints, y foreign keys para integridad referencial
   - [ ] 2.12 Crear script maestro de inicialización (init.sql) que ejecute todos los scripts en orden
   - [ ] 2.13 Crear trigger para inmutabilidad de audit_logs
-  - [ ] 2.14 Crear diagrama ERD del esquema completo (incluir esquema KEYCLOAK y catálogo CIE-10)
-  - [ ] 2.15 Commit y push de scripts de base de datos
+  - [ ] 2.14 Probar scripts en contenedor Docker Oracle (docker exec -it eprescription-oracle-db sqlplus)
+  - [ ] 2.15 Verificar creación de tablas con Oracle SQL Developer (localhost:1521/XE)
+  - [ ] 2.16 Crear diagrama ERD del esquema completo (incluir esquema KEYCLOAK y catálogo CIE-10)
+  - [ ] 2.17 Commit y push de scripts de base de datos
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 12.2_
   - _Branch: feature/task-2-database-schema_
   - _Commit strategy: Push después de cada grupo de tablas (2.4, 2.5, 2.6, etc.)_
   - _Estimated time: 14-18 hours_ (aumentado por catálogo CIE-10)
+  - _Note: Requiere contenedor Oracle de Task 4 corriendo para probar scripts_
 
 - [ ] 3. Crear datos mock consistentes y catálogo CIE-10 completo
   - [ ] 3.1 Importar catálogo completo de CIE-10 (puede ser desde API externa o archivo CSV/JSON)
@@ -79,32 +99,37 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [ ] 3.12 Crear script SQL con datos mock para usuarios, roles y permisos
   - [ ] 3.13 Crear script SQL con datos mock para audit_logs y ai_analysis_logs
   - [ ] 3.14 Crear script maestro de datos mock (seed-data.sql)
-  - [ ] 3.15 Verificar integridad referencial de todos los datos mock (especialmente CIE-10)
-  - [ ] 3.16 Commit y push de datos mock y catálogo CIE-10
+  - [ ] 3.15 Ejecutar scripts de datos mock en contenedor Docker Oracle (docker exec o SQL Developer)
+  - [ ] 3.16 Verificar integridad referencial de todos los datos mock (especialmente CIE-10)
+  - [ ] 3.17 Verificar datos insertados con queries SELECT en Oracle SQL Developer
+  - [ ] 3.18 Probar queries de búsqueda en catálogo CIE-10 (por código y descripción)
+  - [ ] 3.19 Commit y push de datos mock y catálogo CIE-10
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
   - _Branch: feature/task-3-mock-data-cie10_
   - _Commit strategy: Push después de CIE-10 (3.2), después de cada grupo de datos (3.5, 3.7, 3.10, etc.)_
   - _Estimated time: 12-16 hours_ (aumentado por catálogo CIE-10)
+  - _Note: Requiere contenedor Oracle de Task 4 corriendo para ejecutar y probar scripts_
 
 - [ ] 4. Configurar Docker para Oracle Database (compartido con Keycloak)
   - [ ] 4.1 Crear carpeta eprescription-Database/docker con configuración
-  - [ ] 4.2 Crear docker-compose.yml inicial con servicio Oracle Database
-  - [ ] 4.3 Configurar volúmenes para persistencia de datos Oracle
-  - [ ] 4.4 Configurar montaje de scripts de inicialización (/docker-entrypoint-initdb.d)
-  - [ ] 4.5 Exponer puerto 1521 para acceso externo (Oracle SQL Developer)
-  - [ ] 4.6 Configurar health check para Oracle Database
+  - [ ] 4.2 Crear docker-compose.yml inicial con servicio Oracle Database (usar imagen container-registry.oracle.com/database/express:21.3.0-xe)
+  - [ ] 4.3 Configurar volúmenes para persistencia de datos Oracle (oracle-data:/opt/oracle/oradata)
+  - [ ] 4.4 Configurar montaje de scripts de inicialización (/docker-entrypoint-initdb.d/startup)
+  - [ ] 4.5 Exponer puerto 1521 para acceso externo (Oracle SQL Developer y Postman)
+  - [ ] 4.6 Configurar health check para Oracle Database (verificar listener en puerto 1521)
   - [ ] 4.7 Crear script de creación de usuario eprescription_user y keycloak_user
-  - [ ] 4.8 Crear script de creación de esquemas (EPRESCRIPTION, KEYCLOAK)
-  - [ ] 4.9 Probar inicio de Oracle con docker-compose up
-  - [ ] 4.10 Verificar conexión desde Oracle SQL Developer
+  - [ ] 4.8 Crear script de creación de esquemas (EPRESCRIPTION, KEYCLOAK, CIE10_CATALOG)
+  - [ ] 4.9 Probar inicio de Oracle con docker-compose up -d
+  - [ ] 4.10 Verificar conexión desde Oracle SQL Developer (localhost:1521/XE)
   - [ ] 4.11 Verificar que ambos esquemas estén creados correctamente
-  - [ ] 4.12 Crear script de backup automático (backup.sh)
-  - [ ] 4.13 Documentar proceso de conexión en README.md
+  - [ ] 4.12 Crear script de backup automático (backup.sh) con docker exec
+  - [ ] 4.13 Documentar proceso de conexión y comandos Docker en README.md
   - [ ] 4.14 Commit y push de configuración Docker
   - _Requirements: 5.2, 5.3, 5.4, 5.8, 5.10_
   - _Branch: feature/task-4-docker-oracle_
   - _Commit strategy: Push después de configuración básica (4.5) y después de pruebas (4.11)_
   - _Estimated time: 6-8 hours_
+  - _Note: Oracle Express Edition es gratuito y suficiente para desarrollo_
 
 - [ ] 5. Crear proyecto backend .NET 8 con Clean Architecture
   - [ ] 5.1 Crear solución .NET 8 (EPrescription.sln) en eprescription-API/
@@ -150,30 +175,33 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 12-14 hours_
 
 - [ ] 7. Configurar Keycloak con Oracle y crear servicio de autenticación
-  - [ ] 7.1 Agregar servicio Keycloak al docker-compose.yml (usando Oracle como BD)
-  - [ ] 7.2 Configurar Keycloak para usar Oracle (KC_DB=oracle, esquema KEYCLOAK)
-  - [ ] 7.3 Configurar health checks para Keycloak
-  - [ ] 7.4 Iniciar Keycloak y verificar que use Oracle correctamente
-  - [ ] 7.5 Acceder a admin console de Keycloak (localhost:8080)
-  - [ ] 7.6 Crear realm "eprescription" en Keycloak
-  - [ ] 7.7 Crear client "eprescription-api" con configuración confidential
-  - [ ] 7.8 Crear roles en Keycloak (admin, doctor, pharmacist, patient, auditor)
-  - [ ] 7.9 Crear usuarios de prueba en Keycloak con diferentes roles
-  - [ ] 7.10 Verificar en Oracle SQL Developer que Keycloak creó sus tablas en esquema KEYCLOAK
-  - [ ] 7.11 Crear interfaz IAuthenticationService en Application layer
-  - [ ] 7.12 Implementar KeycloakAuthenticationService en Infrastructure
-  - [ ] 7.13 Instalar paquetes NuGet para OAuth (Microsoft.AspNetCore.Authentication.JwtBearer)
-  - [ ] 7.14 Configurar autenticación JWT en Program.cs con auditoría de login
-  - [ ] 7.15 Crear middleware de autenticación personalizado con logging de auditoría
-  - [ ] 7.16 Configurar appsettings.json con secciones Keycloak
-  - [ ] 7.17 Crear AuthController con endpoints (login, refresh, logout) con auditoría
-  - [ ] 7.18 Probar autenticación con Postman y verificar logs de auditoría
-  - [ ] 7.19 Crear tests unitarios para KeycloakAuthenticationService
-  - [ ] 7.20 Commit y push de autenticación Keycloak con Oracle
+  - [ ] 7.1 Agregar servicio Keycloak al docker-compose.yml (imagen quay.io/keycloak/keycloak:latest)
+  - [ ] 7.2 Configurar Keycloak para usar Oracle (KC_DB=oracle, KC_DB_URL_HOST=oracle-db, KC_DB_URL_DATABASE=XE, esquema KEYCLOAK)
+  - [ ] 7.3 Configurar dependencia de Keycloak con Oracle (depends_on con health check)
+  - [ ] 7.4 Configurar health checks para Keycloak (verificar endpoint /health/ready)
+  - [ ] 7.5 Exponer puerto 8080 para acceso a admin console
+  - [ ] 7.6 Iniciar Keycloak con docker-compose up -d y verificar logs
+  - [ ] 7.7 Acceder a admin console de Keycloak (http://localhost:8080)
+  - [ ] 7.8 Crear realm "eprescription" en Keycloak
+  - [ ] 7.9 Crear client "eprescription-api" con configuración confidential
+  - [ ] 7.10 Crear roles en Keycloak (admin, doctor, pharmacist, patient, auditor)
+  - [ ] 7.11 Crear usuarios de prueba en Keycloak con diferentes roles
+  - [ ] 7.12 Verificar en Oracle SQL Developer que Keycloak creó sus tablas en esquema KEYCLOAK
+  - [ ] 7.13 Crear interfaz IAuthenticationService en Application layer
+  - [ ] 7.14 Implementar KeycloakAuthenticationService en Infrastructure
+  - [ ] 7.15 Instalar paquetes NuGet para OAuth (Microsoft.AspNetCore.Authentication.JwtBearer)
+  - [ ] 7.16 Configurar autenticación JWT en Program.cs con auditoría de login
+  - [ ] 7.17 Crear middleware de autenticación personalizado con logging de auditoría
+  - [ ] 7.18 Configurar appsettings.json con secciones Keycloak (usar nombre de servicio Docker: http://keycloak:8080)
+  - [ ] 7.19 Crear AuthController con endpoints (login, refresh, logout) con auditoría
+  - [ ] 7.20 Probar autenticación con Postman y verificar logs de auditoría
+  - [ ] 7.21 Crear tests unitarios para KeycloakAuthenticationService
+  - [ ] 7.22 Commit y push de autenticación Keycloak con Oracle
   - _Requirements: 2.3, 2.4, 2.5, 4.1_
   - _Branch: feature/task-7-keycloak-oracle-auth_
-  - _Commit strategy: Push después de Keycloak con Oracle (7.10), después de servicio (7.12), y después de endpoints (7.17)_
+  - _Commit strategy: Push después de Keycloak con Oracle (7.12), después de servicio (7.14), y después de endpoints (7.19)_
   - _Estimated time: 10-12 hours_
+  - _Note: Keycloak se comunica con Oracle dentro de la red Docker usando nombre de servicio_
 
 - [ ] 8. Implementar sistema de autorización basado en roles
   - [ ] 8.1 Crear interfaz IAuthorizationService en Application layer
@@ -316,25 +344,28 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 - [ ] 14. Configurar Docker completo para backend API
-  - [ ] 14.1 Crear Dockerfile multi-stage para backend .NET 8 en eprescription-API/
-  - [ ] 14.2 Optimizar imagen Docker (multi-stage build, tamaño reducido)
+  - [ ] 14.1 Crear Dockerfile multi-stage para backend .NET 8 en eprescription-API/ (base: mcr.microsoft.com/dotnet/aspnet:8.0)
+  - [ ] 14.2 Optimizar imagen Docker (multi-stage build con SDK y runtime separados, tamaño reducido)
   - [ ] 14.3 Actualizar docker-compose.yml agregando servicio backend-api
-  - [ ] 14.4 Configurar variables de entorno para backend en docker-compose
-  - [ ] 14.5 Configurar dependencias entre servicios (backend depende de Oracle y Keycloak)
-  - [ ] 14.6 Exponer puertos 5000 (HTTP) y 5001 (HTTPS) para acceso externo
-  - [ ] 14.7 Configurar health check para backend API
-  - [ ] 14.8 Configurar red Docker para comunicación entre servicios
-  - [ ] 14.9 Crear archivo .env con variables de entorno (incluir .env.example sin secrets)
-  - [ ] 14.10 Agregar .env a .gitignore
-  - [ ] 14.11 Probar docker-compose up con todos los servicios
-  - [ ] 14.12 Verificar conectividad entre servicios (backend -> Oracle, backend -> Keycloak)
-  - [ ] 14.13 Probar endpoints desde Postman (http://localhost:5000)
-  - [ ] 14.14 Documentar comandos Docker en README.md
-  - [ ] 14.15 Commit y push de configuración Docker completa
+  - [ ] 14.4 Configurar variables de entorno para backend en docker-compose (ConnectionStrings, Keycloak, APIs externas)
+  - [ ] 14.5 Configurar dependencias entre servicios (depends_on: oracle-db, keycloak con condition: service_healthy)
+  - [ ] 14.6 Exponer puertos 5000 (HTTP) y 5001 (HTTPS) para acceso externo (Postman)
+  - [ ] 14.7 Configurar health check para backend API (verificar endpoint /health)
+  - [ ] 14.8 Configurar red Docker personalizada para comunicación entre servicios (eprescription-network)
+  - [ ] 14.9 Crear archivo .env.example con todas las variables necesarias (sin secrets)
+  - [ ] 14.10 Agregar .env a .gitignore (nunca commitear secrets)
+  - [ ] 14.11 Probar docker-compose up -d con todos los servicios (Oracle, Keycloak, Backend)
+  - [ ] 14.12 Verificar logs de cada servicio con docker-compose logs
+  - [ ] 14.13 Verificar conectividad entre servicios (backend -> Oracle: oracle-db:1521, backend -> Keycloak: keycloak:8080)
+  - [ ] 14.14 Probar endpoints desde Postman (http://localhost:5000/swagger)
+  - [ ] 14.15 Documentar comandos Docker en README.md (up, down, logs, exec, ps)
+  - [ ] 14.16 Crear script de inicio rápido (start.sh / start.bat)
+  - [ ] 14.17 Commit y push de configuración Docker completa
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6, 5.7, 5.9_
   - _Branch: feature/task-14-docker-backend_
-  - _Commit strategy: Push después de Dockerfile (14.2), después de docker-compose (14.8), y después de pruebas (14.13)_
+  - _Commit strategy: Push después de Dockerfile (14.2), después de docker-compose (14.8), y después de pruebas (14.14)_
   - _Estimated time: 6-8 hours_
+  - _Note: Todos los servicios se comunican dentro de la red Docker usando nombres de servicio_
 
 - [ ] 15. Integrar frontend Angular con backend API
   - [ ] 15.1 Actualizar environment.ts con URL del backend API (http://localhost:5000)
@@ -375,19 +406,21 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [ ] 16.11 Crear tests unitarios para servicios (AIAssistantService, AuditService, AuthService)
   - [ ] 16.12 Crear tests unitarios para repositorios (con in-memory database)
   - [ ] 16.13 Configurar WebApplicationFactory para tests de integración
-  - [ ] 16.14 Configurar Testcontainers para Oracle en tests de integración
-  - [ ] 16.15 Crear tests de integración para endpoints de autenticación
-  - [ ] 16.16 Crear tests de integración para endpoints de prescripciones
-  - [ ] 16.17 Crear tests de integración para endpoints de pacientes, médicos, farmacias
-  - [ ] 16.18 Crear tests de integración para endpoints de dispensación e inventario
-  - [ ] 16.19 Crear tests de integración para flujos completos (crear prescripción -> dispensar)
-  - [ ] 16.20 Configurar generación de reportes de cobertura de código (coverlet)
-  - [ ] 16.21 Ejecutar todos los tests y verificar cobertura (objetivo: 80%+ en business logic)
-  - [ ] 16.22 Commit y push de suite de tests
+  - [ ] 16.14 Configurar Testcontainers para Oracle en tests de integración (usa Docker para levantar Oracle automáticamente)
+  - [ ] 16.15 Configurar Testcontainers para Keycloak en tests de integración (opcional, puede usar mocks)
+  - [ ] 16.16 Crear tests de integración para endpoints de autenticación
+  - [ ] 16.17 Crear tests de integración para endpoints de prescripciones
+  - [ ] 16.18 Crear tests de integración para endpoints de pacientes, médicos, farmacias
+  - [ ] 16.19 Crear tests de integración para endpoints de dispensación e inventario
+  - [ ] 16.20 Crear tests de integración para flujos completos (crear prescripción -> dispensar)
+  - [ ] 16.21 Configurar generación de reportes de cobertura de código (coverlet)
+  - [ ] 16.22 Ejecutar todos los tests y verificar cobertura (objetivo: 80%+ en business logic)
+  - [ ] 16.23 Commit y push de suite de tests
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 11.10, 11.11, 11.12_
   - _Branch: feature/task-16-testing_
-  - _Commit strategy: Push después de unit tests (16.12), después de integration tests setup (16.14), y después de todos los tests (16.21)_
+  - _Commit strategy: Push después de unit tests (16.12), después de integration tests setup (16.15), y después de todos los tests (16.22)_
   - _Estimated time: 20-24 hours_
+  - _Note: Testcontainers levanta contenedores Docker automáticamente para tests de integración_
 
 
 - [ ] 17. Implementar compliance con HL7 FHIR y normativas médicas
@@ -546,11 +579,12 @@ git push origin --delete feature/task-N-description
 
 **Tareas críticas** (deben completarse en orden):
 1. Task 1: Estructura del proyecto ✅
-2. Task 2: Esquema de base de datos
-3. Task 4: Docker Oracle
-4. Task 5: Estructura backend
-5. Task 6: Entidades y EF Core
-6. Task 7: Keycloak y autenticación
+2. Task 4: Docker Oracle (DEBE hacerse primero para probar scripts SQL)
+3. Task 2: Esquema de base de datos (requiere Oracle corriendo)
+4. Task 3: Datos mock (requiere Oracle corriendo)
+5. Task 5: Estructura backend
+6. Task 6: Entidades y EF Core
+7. Task 7: Keycloak y autenticación
 
 **Tareas que pueden paralelizarse** (después de Task 7):
 - Task 8: Autorización
@@ -575,9 +609,10 @@ No hay subtareas opcionales. Todas deben completarse para tener un sistema produ
 **Docker Compose** (Implementar en este proyecto):
 - Para desarrollo local
 - Para pruebas con Postman y Oracle SQL Developer
-- Acceso directo a puertos (1521, 5000, 8080)
+- Acceso directo a puertos (1521, 5000, 8080, 4200)
 - Fácil de iniciar y detener
 - Configuración en docker-compose.yml
+- Todos los servicios en una sola máquina
 
 **Kubernetes** (NO implementar inicialmente):
 - Solo para producción
@@ -585,6 +620,83 @@ No hay subtareas opcionales. Todas deben completarse para tener un sistema produ
 - Configuración más compleja
 - Se puede agregar en el futuro si es necesario
 - No es parte del alcance actual del proyecto
+
+### Comandos Docker Útiles
+
+**Iniciar todos los servicios**:
+```bash
+docker-compose up -d
+```
+
+**Ver logs de todos los servicios**:
+```bash
+docker-compose logs -f
+```
+
+**Ver logs de un servicio específico**:
+```bash
+docker-compose logs -f oracle-db
+docker-compose logs -f keycloak
+docker-compose logs -f backend-api
+```
+
+**Ver estado de los servicios**:
+```bash
+docker-compose ps
+```
+
+**Detener todos los servicios**:
+```bash
+docker-compose down
+```
+
+**Detener y eliminar volúmenes (CUIDADO: borra datos)**:
+```bash
+docker-compose down -v
+```
+
+**Reconstruir imágenes**:
+```bash
+docker-compose build
+docker-compose up -d --build
+```
+
+**Ejecutar comandos dentro de un contenedor**:
+```bash
+# Conectar a Oracle SQL*Plus
+docker exec -it eprescription-oracle-db sqlplus eprescription_user/EprescriptionPass123!@XE
+
+# Ver logs de Keycloak
+docker exec -it eprescription-keycloak cat /opt/keycloak/data/log/keycloak.log
+
+# Bash en contenedor de backend
+docker exec -it eprescription-backend-api bash
+```
+
+**Verificar conectividad entre contenedores**:
+```bash
+# Desde backend, hacer ping a Oracle
+docker exec eprescription-backend-api ping oracle-db
+
+# Desde backend, verificar puerto de Keycloak
+docker exec eprescription-backend-api curl http://keycloak:8080/health/ready
+```
+
+**Backup de base de datos Oracle**:
+```bash
+docker exec eprescription-oracle-db sh -c 'expdp eprescription_user/EprescriptionPass123!@XE directory=DATA_PUMP_DIR dumpfile=backup.dmp'
+```
+
+**Inspeccionar red Docker**:
+```bash
+docker network inspect eprescription-network
+```
+
+**Ver volúmenes**:
+```bash
+docker volume ls
+docker volume inspect eprescription_oracle-data
+```
 
 
 
@@ -607,12 +719,12 @@ No hay subtareas opcionales. Todas deben completarse para tener un sistema produ
 - **Task 11**: Endpoints de prescripciones - **12-14 horas**
 - **Task 12**: Endpoints pacientes/médicos/farmacias - **16-18 horas**
 - **Task 13**: Endpoints dispensación/inventario - **12-14 horas**
-- **Task 14**: Docker completo backend - **6-8 horas**
+- **Task 14**: Docker completo backend (Dockerfile + docker-compose) - **6-8 horas**
 - **Task 15**: Integración frontend Angular - **16-20 horas**
-- **Task 16**: Suite de tests completa - **20-24 horas**
+- **Task 16**: Suite de tests completa (incluye Testcontainers) - **20-24 horas**
 - **Task 17**: HL7 FHIR compliance y normativas - **14-16 horas**
 - **Task 18**: Documentación y diagramas completos - **14-16 horas**
-- **Task 19**: Imágenes Docker para distribución - **8-10 horas**
+- **Task 19**: Imágenes Docker para distribución (.tar files) - **8-10 horas**
 
 ### Resumen de Estimación
 
@@ -645,7 +757,7 @@ No hay subtareas opcionales. Todas deben completarse para tener un sistema produ
 ### Ruta Crítica
 
 Las siguientes tareas son críticas y deben completarse en orden:
-1. Task 2 → Task 4 → Task 5 → Task 6 → Task 7
+1. Task 4 (Docker Oracle) → Task 2 (Esquema BD) → Task 3 (Datos mock) → Task 5 (Backend) → Task 6 (Entidades) → Task 7 (Keycloak)
 
 Después de Task 7, las siguientes pueden paralelizarse parcialmente:
 - Task 8, 9, 10 (pueden trabajarse en paralelo)
@@ -654,27 +766,29 @@ Después de Task 7, las siguientes pueden paralelizarse parcialmente:
 
 
 - [ ] 19. Generar imágenes Docker para distribución y despliegue
-  - [ ] 19.1 Crear Dockerfile optimizado para backend API (multi-stage)
-  - [ ] 19.2 Crear Dockerfile optimizado para frontend Angular con nginx
-  - [ ] 19.3 Crear docker-compose.yml completo con todos los servicios
-  - [ ] 19.4 Incluir Keycloak en docker-compose usando Oracle como BD
-  - [ ] 19.5 Configurar health checks para todos los servicios
-  - [ ] 19.6 Configurar redes Docker para comunicación entre servicios
-  - [ ] 19.7 Crear archivo .env.example con todas las variables necesarias
-  - [ ] 19.8 Agregar .env a .gitignore
-  - [ ] 19.9 Probar docker-compose up con todos los servicios
-  - [ ] 19.10 Verificar conectividad entre servicios (backend -> Oracle, backend -> Keycloak)
-  - [ ] 19.11 Construir imágenes con tags de versión (1.0.0)
-  - [ ] 19.12 Generar archivos .tar de imágenes para distribución offline
-  - [ ] 19.13 Crear script de carga de imágenes (load-images.sh)
+  - [ ] 19.1 Crear Dockerfile optimizado para backend API (multi-stage con mcr.microsoft.com/dotnet/sdk:8.0 y aspnet:8.0)
+  - [ ] 19.2 Crear Dockerfile optimizado para frontend Angular con nginx (multi-stage con node:18 y nginx:alpine)
+  - [ ] 19.3 Crear docker-compose.yml completo con todos los servicios (Oracle, Keycloak, Backend, Frontend)
+  - [ ] 19.4 Configurar Keycloak en docker-compose usando Oracle como BD (KC_DB=oracle)
+  - [ ] 19.5 Configurar health checks para todos los servicios (Oracle: 1521, Keycloak: /health/ready, Backend: /health, Frontend: nginx)
+  - [ ] 19.6 Configurar red Docker personalizada para comunicación entre servicios (eprescription-network)
+  - [ ] 19.7 Crear archivo .env.example con todas las variables necesarias (sin secrets)
+  - [ ] 19.8 Agregar .env a .gitignore (nunca commitear secrets)
+  - [ ] 19.9 Probar docker-compose up -d con todos los servicios
+  - [ ] 19.10 Verificar conectividad entre servicios usando nombres de servicio Docker (oracle-db, keycloak, backend-api, frontend)
+  - [ ] 19.11 Construir imágenes con tags de versión (docker build -t eprescription-backend:1.0.0)
+  - [ ] 19.12 Generar archivos .tar de imágenes para distribución offline (docker save -o eprescription-backend-1.0.0.tar)
+  - [ ] 19.13 Crear script de carga de imágenes (load-images.sh con docker load -i)
   - [ ] 19.14 Documentar proceso de despliegue con imágenes Docker
-  - [ ] 19.15 Crear docker-compose.prod.yml para producción
-  - [ ] 19.16 Configurar volúmenes persistentes para datos
-  - [ ] 19.17 Probar despliegue completo en ambiente limpio
-  - [ ] 19.18 Crear guía de despliegue para otros equipos (docs/DOCKER_DEPLOYMENT.md)
-  - [ ] 19.19 Commit y push de configuración Docker completa
+  - [ ] 19.15 Crear docker-compose.prod.yml para producción (sin puertos expuestos innecesarios, con restart policies)
+  - [ ] 19.16 Configurar volúmenes persistentes para datos (oracle-data, keycloak-data)
+  - [ ] 19.17 Probar despliegue completo en ambiente limpio (docker-compose -f docker-compose.prod.yml up -d)
+  - [ ] 19.18 Crear guía de despliegue para otros equipos (docs/DOCKER_DEPLOYMENT.md con comandos completos)
+  - [ ] 19.19 Documentar troubleshooting común (logs, restart, network issues)
+  - [ ] 19.20 Commit y push de configuración Docker completa
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6, 5.7, 5.9, 6.1-6.10_
   - _Branch: feature/task-19-docker-images_
   - _Commit strategy: Push después de Dockerfiles (19.2), después de docker-compose (19.9), y después de imágenes (19.13)_
   - _Estimated time: 8-10 hours_
+  - _Note: Las imágenes .tar permiten distribución sin acceso a internet o registry privado_
 
