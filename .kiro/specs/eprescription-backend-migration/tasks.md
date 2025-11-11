@@ -118,9 +118,14 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 14-18 hours_ (aumentado por catálogo CIE-10)
   - _Note: Requiere contenedor Oracle de Task 4 corriendo para probar scripts_
 
-- [ ] 3. Crear datos mock consistentes y catálogo CIE-10 completo
-  - [ ] 3.1 Importar catálogo completo de CIE-10 (puede ser desde API externa o archivo CSV/JSON)
-  - [ ] 3.2 Crear script SQL para poblar cie10_catalog con códigos CIE-10 más comunes (mínimo 500 registros)
+- [-] 3. Crear datos mock consistentes y catálogo CIE-10 completo
+
+  - [x] 3.1 Importar catálogo completo de CIE-10 (puede ser desde API externa o archivo CSV/JSON)
+
+
+  - [x] 3.2 Crear script SQL para poblar cie10_catalog con códigos CIE-10 más comunes (mínimo 500 registros)
+
+
   - [ ] 3.3 Crear script SQL con datos mock para addresses (50 registros)
   - [ ] 3.4 Crear script SQL con datos mock para specialties y administration_routes
   - [ ] 3.5 Crear script SQL con datos mock para pacientes (50 registros con contactos y alergias)
