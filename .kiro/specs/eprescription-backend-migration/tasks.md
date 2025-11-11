@@ -153,10 +153,19 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
   - [x] 3.10 Crear script SQL con datos mock para prescripciones (100 registros con diagnósticos CIE-10 y medicamentos)
 
-  - [ ] 3.11 Crear script SQL con datos mock para dispensaciones (50 registros)
-  - [ ] 3.12 Crear script SQL con datos mock para usuarios, roles y permisos
-  - [ ] 3.13 Crear script SQL con datos mock para audit_logs y ai_analysis_logs
-  - [ ] 3.14 Crear script maestro de datos mock (seed-data.sql)
+
+
+  - [x] 3.11 Crear script SQL con datos mock para dispensaciones (50 registros)
+
+  - [x] 3.12 Crear script SQL con datos mock para usuarios, roles y permisos
+
+
+  - [x] 3.13 Crear script SQL con datos mock para audit_logs y ai_analysis_logs
+
+
+  - [x] 3.14 Crear script maestro de datos mock (seed-data.sql)
+
+
   - [ ] 3.15 Ejecutar scripts de datos mock en contenedor Docker Oracle (docker exec o SQL Developer)
   - [ ] 3.16 Verificar integridad referencial de todos los datos mock (especialmente CIE-10)
   - [ ] 3.17 Verificar datos insertados con queries SELECT en Oracle SQL Developer
