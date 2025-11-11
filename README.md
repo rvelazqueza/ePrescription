@@ -104,10 +104,14 @@ docker-compose ps
 
 ### Acceso a los Servicios
 
-- **Frontend Angular**: http://localhost:4200
-- **Backend API**: http://localhost:5000
-- **Swagger/OpenAPI**: http://localhost:5000/swagger
-- **Keycloak Admin**: http://localhost:8080 (admin/admin123)
+- **Oracle Database**: localhost:1521 (Service: XEPDB1)
+  - Usuario: `eprescription_user`
+  - Password: `EprescriptionPass123!`
+  - Herramienta recomendada: Oracle SQL Developer
+- **Frontend Angular**: http://localhost:4200 (próximamente)
+- **Backend API**: http://localhost:5000 (próximamente)
+- **Swagger/OpenAPI**: http://localhost:5000/swagger (próximamente)
+- **Keycloak Admin**: http://localhost:8080 (próximamente)
 - **Oracle Database**: localhost:1521 (SID: XE)
 
 ### Desarrollo Local
@@ -198,18 +202,26 @@ EPRESCRIPTION_DB_PASSWORD=EprescriptionPass123!
 
 ## 📊 Estado del Proyecto
 
+**Progreso General**: 10.5% (2/19 tareas completadas)
+
 ### ✅ Completado
 
+- [x] **Task 1**: Estructura del proyecto organizada
+- [x] **Task 4**: Docker Oracle Database configurado y funcionando
+  - Contenedor Oracle Express 21c corriendo
+  - Usuarios `eprescription_user` y `keycloak_user` creados
+  - Esquemas EPRESCRIPTION y KEYCLOAK inicializados
+  - Scripts de backup automatizados
+  - Documentación completa de conexión
 - [x] Especificaciones completas (requirements, design, tasks)
-- [x] Estructura del proyecto organizada
 - [x] Frontend Angular 18 funcional
 - [x] Documentación técnica completa
-- [x] Configuración Docker completa con Keycloak
 
 ### 🚧 En Desarrollo
 
+- [ ] **Task 2**: Esquema de base de datos Oracle normalizado (4NF/5NF)
+- [ ] **Task 3**: Datos mock y catálogo CIE-10 completo
 - [ ] Backend .NET 8 con Clean Architecture
-- [ ] Base de datos Oracle con esquema normalizado
 - [ ] Integración con WHO API
 - [ ] Asistente de IA con traducción
 - [ ] Sistema de auditoría completo
