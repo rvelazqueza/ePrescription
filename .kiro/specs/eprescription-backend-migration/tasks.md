@@ -110,7 +110,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 12-16 hours_ (aumentado por catálogo CIE-10)
   - _Note: Requiere contenedor Oracle de Task 4 corriendo para ejecutar y probar scripts_
 
-- [ ] 4. Configurar Docker para Oracle Database (compartido con Keycloak)
+- [x] 4. Configurar Docker para Oracle Database (compartido con Keycloak)
+
 
 
 
@@ -142,7 +143,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 4.13 Documentar proceso de conexión y comandos Docker en README.md
 
 
-  - [-] 4.14 Commit y push de configuración Docker
+  - [x] 4.14 Commit y push de configuración Docker
+
 
   - _Requirements: 5.2, 5.3, 5.4, 5.8, 5.10_
   - _Branch: feature/task-4-docker-oracle_
