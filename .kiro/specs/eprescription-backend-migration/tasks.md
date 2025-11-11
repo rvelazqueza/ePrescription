@@ -73,16 +73,32 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 2.4 Crear scripts SQL para tablas principales (patients, doctors, medical_centers, specialties)
 
 
-  - [ ] 2.5 Crear scripts SQL para tablas de prescripciones (prescriptions, prescription_diagnoses con FK a CIE-10, prescription_medications)
-  - [ ] 2.6 Crear scripts SQL para tablas de medicamentos (medications, administration_routes, drug_interactions)
-  - [ ] 2.7 Crear scripts SQL para tablas de farmacias e inventario (pharmacies, inventory, dispensations, dispensation_items)
-  - [ ] 2.8 Crear scripts SQL para tablas de seguridad (users, roles, permissions, user_roles, role_permissions)
-  - [ ] 2.9 Crear scripts SQL para tablas de auditoría (audit_logs, ai_analysis_logs) - PRIORIDAD ALTA
+
+  - [x] 2.5 Crear scripts SQL para tablas de prescripciones (prescriptions, prescription_diagnoses con FK a CIE-10, prescription_medications)
+
+
+  - [x] 2.6 Crear scripts SQL para tablas de medicamentos (medications, administration_routes, drug_interactions)
+
+
+  - [x] 2.7 Crear scripts SQL para tablas de farmacias e inventario (pharmacies, inventory, dispensations, dispensation_items)
+
+
+  - [x] 2.8 Crear scripts SQL para tablas de seguridad (users, roles, permissions, user_roles, role_permissions)
+
+
+  - [x] 2.9 Crear scripts SQL para tablas de auditoría (audit_logs, ai_analysis_logs) - PRIORIDAD ALTA
+
+
   - [x] 2.10 Crear tabla addresses y relaciones
 
-  - [ ] 2.11 Definir índices, constraints, y foreign keys para integridad referencial
-  - [ ] 2.12 Crear script maestro de inicialización (init.sql) que ejecute todos los scripts en orden
-  - [ ] 2.13 Crear trigger para inmutabilidad de audit_logs
+  - [x] 2.11 Definir índices, constraints, y foreign keys para integridad referencial
+
+  - [x] 2.12 Crear script maestro de inicialización (init.sql) que ejecute todos los scripts en orden
+
+
+  - [x] 2.13 Crear trigger para inmutabilidad de audit_logs
+
+
   - [ ] 2.14 Probar scripts en contenedor Docker Oracle (docker exec -it eprescription-oracle-db sqlplus)
   - [ ] 2.15 Verificar creación de tablas con Oracle SQL Developer (localhost:1521/XE)
   - [ ] 2.16 Crear diagrama ERD del esquema completo (incluir esquema KEYCLOAK y catálogo CIE-10)
