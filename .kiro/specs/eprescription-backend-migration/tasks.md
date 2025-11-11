@@ -60,17 +60,26 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Branch: feature/task-1-project-structure_
 
 
-- [ ] 2. Diseñar y crear esquema de base de datos Oracle normalizado (4NF/5NF)
-  - [ ] 2.1 Diseñar modelo entidad-relación completo con todas las tablas
-  - [ ] 2.2 Crear usuario y esquema para Keycloak (keycloak_user, esquema KEYCLOAK)
-  - [ ] 2.3 Crear tabla de catálogo CIE-10 (cie10_catalog) con índices para búsqueda
-  - [ ] 2.4 Crear scripts SQL para tablas principales (patients, doctors, medical_centers, specialties)
+- [-] 2. Diseñar y crear esquema de base de datos Oracle normalizado (4NF/5NF)
+
+  - [x] 2.1 Diseñar modelo entidad-relación completo con todas las tablas
+
+
+  - [x] 2.2 Crear usuario y esquema para Keycloak (keycloak_user, esquema KEYCLOAK)
+
+  - [x] 2.3 Crear tabla de catálogo CIE-10 (cie10_catalog) con índices para búsqueda
+
+
+  - [x] 2.4 Crear scripts SQL para tablas principales (patients, doctors, medical_centers, specialties)
+
+
   - [ ] 2.5 Crear scripts SQL para tablas de prescripciones (prescriptions, prescription_diagnoses con FK a CIE-10, prescription_medications)
   - [ ] 2.6 Crear scripts SQL para tablas de medicamentos (medications, administration_routes, drug_interactions)
   - [ ] 2.7 Crear scripts SQL para tablas de farmacias e inventario (pharmacies, inventory, dispensations, dispensation_items)
   - [ ] 2.8 Crear scripts SQL para tablas de seguridad (users, roles, permissions, user_roles, role_permissions)
   - [ ] 2.9 Crear scripts SQL para tablas de auditoría (audit_logs, ai_analysis_logs) - PRIORIDAD ALTA
-  - [ ] 2.10 Crear tabla addresses y relaciones
+  - [x] 2.10 Crear tabla addresses y relaciones
+
   - [ ] 2.11 Definir índices, constraints, y foreign keys para integridad referencial
   - [ ] 2.12 Crear script maestro de inicialización (init.sql) que ejecute todos los scripts en orden
   - [ ] 2.13 Crear trigger para inmutabilidad de audit_logs
