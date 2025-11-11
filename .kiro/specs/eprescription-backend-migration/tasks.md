@@ -126,9 +126,16 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 3.2 Crear script SQL para poblar cie10_catalog con códigos CIE-10 más comunes (mínimo 500 registros)
 
 
-  - [ ] 3.3 Crear script SQL con datos mock para addresses (50 registros)
-  - [ ] 3.4 Crear script SQL con datos mock para specialties y administration_routes
-  - [ ] 3.5 Crear script SQL con datos mock para pacientes (50 registros con contactos y alergias)
+
+  - [x] 3.3 Crear script SQL con datos mock para addresses (50 registros)
+
+
+  - [x] 3.4 Crear script SQL con datos mock para specialties y administration_routes
+
+
+  - [x] 3.5 Crear script SQL con datos mock para pacientes (50 registros con contactos y alergias)
+
+
   - [ ] 3.6 Crear script SQL con datos mock para médicos (30 registros con asignaciones a centros médicos)
   - [ ] 3.7 Crear script SQL con datos mock para medicamentos (100 registros)
   - [ ] 3.8 Crear script SQL con datos mock para interacciones medicamentosas (50 registros)
