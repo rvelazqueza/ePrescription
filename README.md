@@ -204,6 +204,7 @@ EPRESCRIPTION_DB_PASSWORD=EprescriptionPass123!
 - [x] Estructura del proyecto organizada
 - [x] Frontend Angular 18 funcional
 - [x] Documentación técnica completa
+- [x] Configuración Docker completa con Keycloak
 
 ### 🚧 En Desarrollo
 
@@ -214,13 +215,7 @@ EPRESCRIPTION_DB_PASSWORD=EprescriptionPass123!
 - [ ] Sistema de auditoría completo
 - [ ] Exportación HL7 FHIR
 
-### 📅 Estimación de Tiempo
-
-- **Total**: 216-268 horas
-- **Tiempo completo (40 hrs/semana)**: 5.4-6.7 semanas
-- **Medio tiempo (20 hrs/semana)**: 10.8-13.4 semanas
-
-Ver [tasks.md](./.kiro/specs/eprescription-backend-migration/tasks.md) para detalles completos.
+Ver [tasks.md](./.kiro/specs/eprescription-backend-migration/tasks.md) para el plan de implementación completo.
 
 ## 🤝 Contribución
 
@@ -239,14 +234,92 @@ Ver [BRANCHING_STRATEGY.md](./docs/BRANCHING_STRATEGY.md) para más detalles.
 - [Diseño de Arquitectura](./.kiro/specs/eprescription-backend-migration/design.md)
 - [Plan de Implementación](./.kiro/specs/eprescription-backend-migration/tasks.md)
 
-## 📄 Licencia
+## 📄 Licencias
 
-[Especificar licencia del proyecto]
+Este proyecto utiliza múltiples licencias según el componente:
 
-## 👥 Equipo
+### Código de la Aplicación
 
-[Información del equipo de desarrollo]
+**Frontend (Angular)**: MIT License
+- Permite uso comercial, modificación y distribución
+- Requiere incluir aviso de copyright y licencia
+
+**Backend (.NET)**: MIT License
+- Permite uso comercial, modificación y distribución
+- Requiere incluir aviso de copyright y licencia
+
+### Dependencias y Frameworks
+
+- **Angular 18**: MIT License
+- **.NET 8**: MIT License
+- **Tailwind CSS**: MIT License
+- **Oracle Database Express Edition**: Oracle Free Use Terms and Conditions
+- **Keycloak**: Apache License 2.0
+- **Leaflet**: BSD 2-Clause License
+
+### APIs Externas
+
+- **WHO ICD API**: Sujeto a términos de uso de la OMS
+- **Hugging Face API**: Sujeto a términos de servicio de Hugging Face
+- **Azure Translator API**: Sujeto a términos de Microsoft Azure
+
+### Datos Médicos
+
+- **Catálogo CIE-10**: Propiedad de la Organización Mundial de la Salud (OMS)
+- Uso permitido para sistemas de salud según normativas internacionales
+
+### Licencia Recomendada para el Proyecto
+
+**MIT License** - Para máxima flexibilidad y adopción en el sector salud
+
+```
+MIT License
+
+Copyright (c) 2024 ePrescription Project
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ---
 
-**Nota**: Este es un sistema médico en desarrollo. Asegúrate de cumplir con todas las normativas locales e internacionales antes de usar en producción.
+## ⚠️ Avisos Importantes
+
+### Cumplimiento Normativo
+
+Este sistema está diseñado para cumplir con:
+- **HIPAA** (Health Insurance Portability and Accountability Act)
+- **FDA 21 CFR Part 11** (Electronic Records and Electronic Signatures)
+- **HL7 FHIR R4** (Fast Healthcare Interoperability Resources)
+- **OMS/WHO ICD-10** (International Classification of Diseases)
+
+### Uso en Producción
+
+**IMPORTANTE**: Este es un sistema médico en desarrollo. Antes de usar en producción:
+
+1. Realizar auditoría de seguridad completa
+2. Validar cumplimiento con normativas locales
+3. Obtener certificaciones necesarias
+4. Implementar plan de respaldo y recuperación
+5. Configurar monitoreo y alertas
+6. Realizar pruebas exhaustivas con datos reales
+7. Capacitar al personal médico y administrativo
+
+### Responsabilidad
+
+El uso de este sistema es responsabilidad del implementador. Asegúrate de cumplir con todas las normativas locales e internacionales de salud antes de usar en producción.
