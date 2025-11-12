@@ -227,22 +227,39 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 6-8 hours_
   - _Note: Oracle Express Edition es gratuito y suficiente para desarrollo_
 
-- [ ] 5. Crear proyecto backend .NET 8 con Clean Architecture
-  - [ ] 5.1 Crear solución .NET 8 (EPrescription.sln) en eprescription-API/
-  - [ ] 5.2 Crear proyecto EPrescription.Domain (Class Library)
-  - [ ] 5.3 Crear proyecto EPrescription.Application (Class Library)
-  - [ ] 5.4 Crear proyecto EPrescription.Infrastructure (Class Library)
-  - [ ] 5.5 Crear proyecto EPrescription.API (Web API)
-  - [ ] 5.6 Crear proyecto EPrescription.Tests (xUnit Test Project)
-  - [ ] 5.7 Configurar dependencias entre proyectos según Clean Architecture
-  - [ ] 5.8 Instalar paquetes NuGet en Domain (ninguno, debe ser independiente)
-  - [ ] 5.9 Instalar paquetes NuGet en Application (FluentValidation, AutoMapper, MediatR)
-  - [ ] 5.10 Instalar paquetes NuGet en Infrastructure (EF Core, Oracle.EntityFrameworkCore, Serilog)
-  - [ ] 5.11 Instalar paquetes NuGet en API (Swashbuckle, Serilog.AspNetCore)
-  - [ ] 5.12 Configurar Program.cs básico con dependency injection y auditoría
-  - [ ] 5.13 Crear estructura de carpetas en cada proyecto
-  - [ ] 5.14 Crear diagrama de componentes de Clean Architecture
-  - [ ] 5.15 Commit y push de estructura de proyectos
+- [x] 5. Crear proyecto backend .NET 8 con Clean Architecture
+  - [x] 5.1 Crear solución .NET 8 (EPrescription.sln) en eprescription-API/
+
+
+
+
+
+
+
+
+
+
+  - [x] 5.2 Crear proyecto EPrescription.Domain (Class Library)
+  - [x] 5.3 Crear proyecto EPrescription.Application (Class Library)
+  - [x] 5.4 Crear proyecto EPrescription.Infrastructure (Class Library)
+  - [x] 5.5 Crear proyecto EPrescription.API (Web API)
+  - [x] 5.6 Crear proyecto EPrescription.Tests (xUnit Test Project)
+  - [x] 5.7 Configurar dependencias entre proyectos según Clean Architecture
+  - [x] 5.8 Instalar paquetes NuGet en Domain (ninguno, debe ser independiente)
+  - [x] 5.9 Instalar paquetes NuGet en Application (FluentValidation, AutoMapper, MediatR)
+  - [x] 5.10 Instalar paquetes NuGet en Infrastructure (EF Core, Oracle.EntityFrameworkCore, Serilog)
+  - [x] 5.11 Instalar paquetes NuGet en API (Swashbuckle, Serilog.AspNetCore)
+  - [x] 5.12 Configurar Program.cs básico con dependency injection y auditoría
+
+
+
+  - [x] 5.13 Crear estructura de carpetas en cada proyecto
+
+  - [x] 5.14 Crear diagrama de componentes de Clean Architecture
+
+  - [x] 5.15 Commit y push de estructura de proyectos
+
+
   - _Requirements: 2.1, 12.3_
   - _Branch: feature/task-5-backend-structure_
   - _Commit strategy: Push después de crear proyectos (5.6) y después de NuGet packages (5.11)_
