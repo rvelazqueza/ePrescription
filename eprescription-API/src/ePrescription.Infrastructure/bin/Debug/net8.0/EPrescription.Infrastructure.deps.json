@@ -1,0 +1,50 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "EPrescription.Infrastructure/1.0.0": {
+        "dependencies": {
+          "EPrescription.Application": "1.0.0",
+          "EPrescription.Domain": "1.0.0"
+        },
+        "runtime": {
+          "EPrescription.Infrastructure.dll": {}
+        }
+      },
+      "EPrescription.Application/1.0.0": {
+        "dependencies": {
+          "EPrescription.Domain": "1.0.0"
+        },
+        "runtime": {
+          "EPrescription.Application.dll": {}
+        }
+      },
+      "EPrescription.Domain/1.0.0": {
+        "runtime": {
+          "EPrescription.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "EPrescription.Infrastructure/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "EPrescription.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "EPrescription.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

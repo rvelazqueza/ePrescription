@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "CjXBvPg/+Hts7mBlyrXAkCVDdK1xx1Lr4KNf8pL3DYA=",
+  "Source": "EPrescription.API",
+  "BasePath": "_content/EPrescription.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
