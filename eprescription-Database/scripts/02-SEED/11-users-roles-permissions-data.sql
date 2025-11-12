@@ -1,212 +1,209 @@
 -- =====================================================
 -- Script: 11-users-roles-permissions-data.sql
--- Description: Seed data for users, roles, permissions, user_roles, and role_permissions tables
+-- Description: Seed data for USERS, ROLES, PERMISSIONS, and relationship tables
+-- Creates roles, permissions, and sample users for the system
+-- Integrates with Keycloak for authentication
+-- Follows DATABASE-SCHEMA-REFERENCE.md structure
 -- =====================================================
 
+-- Configure session for UTF-8
+ALTER SESSION SET NLS_LANGUAGE='SPANISH';
+ALTER SESSION SET NLS_TERRITORY='COSTA RICA';
+
 SET DEFINE OFF;
+SET SERVEROUTPUT ON;
 
-PROMPT Inserting roles data...
+PROMPT ========================================
+PROMPT Inserting USERS, ROLES, and PERMISSIONS data
+PROMPT ========================================
 
--- System Roles
-INSERT INTO roles (role_name, description) 
-VALUES ('ADMIN', 'Administrador del sistema con acceso completo');
+-- Clear existing data
+DELETE FROM USER_ROLES;
+DELETE FROM ROLE_PERMISSIONS;
+DELETE FROM USERS;
+DELETE FROM PERMISSIONS;
+DELETE FROM ROLES;
 
-INSERT INTO roles (role_name, description) 
-VALUES ('DOCTOR', 'Médico con permisos para crear prescripciones');
+PROMPT Creating roles...
 
-INSERT INTO roles (role_name, description) 
-VALUES ('PHARMACIST', 'Farmacéutico con permisos para dispensar medicamentos');
+DECLARE
+    v_role_id RAW(16);
+    v_perm_id RAW(16);
+    v_user_id RAW(16);
+    v_doctor_id RAW(16);
+    v_patient_id RAW(16);
+BEGIN
+    -- Create Roles
+    INSERT INTO ROLES (ROLE_NAME, DESCRIPTION, IS_ACTIVE)
+    VALUES ('ADMIN', 'Administrador del sistema con acceso completo', 1)
+    RETURNING ROLE_ID INTO v_role_id;
+    
+    INSERT INTO ROLES (ROLE_NAME, DESCRIPTION, IS_ACTIVE)
+    VALUES ('DOCTOR', 'Médico con capacidad de crear prescripciones', 1);
+    
+    INSERT INTO ROLES (ROLE_NAME, DESCRIPTION, IS_ACTIVE)
+    VALUES ('PHARMACIST', 'Farmacéutico con capacidad de dispensar medicamentos', 1);
+    
+    INSERT INTO ROLES (ROLE_NAME, DESCRIPTION, IS_ACTIVE)
+    VALUES ('PATIENT', 'Paciente con acceso a sus propias prescripciones', 1);
+    
+    INSERT INTO ROLES (ROLE_NAME, DESCRIPTION, IS_ACTIVE)
+    VALUES ('NURSE', 'Enfermero con acceso de lectura a prescripciones', 1);
+    
+    DBMS_OUTPUT.PUT_LINE('Created 5 roles');
+    
+    -- Create Permissions
+    -- Prescription permissions
+    INSERT INTO PERMISSIONS (PERMISSION_NAME, RESOURCE_NAME, ACTION, DESCRIPTION)
+    VALUES ('prescription.create', 'prescriptions', 'create', 'Crear nuevas prescripciones')
+    RETURNING PERMISSION_ID INTO v_perm_id;
+    
+    INSERT INTO PERMISSIONS (PERMISSION_NAME, RESOURCE_NAME, ACTION, DESCRIPTION)
+    VALUES ('prescription.read', 'prescriptions', 'read', 'Ver prescripciones');
+    
+    INSERT INTO PERMISSIONS (PERMISSION_NAME, RESOURCE_NAME, ACTION, DESCRIPTION)
+    VALUES ('prescription.update', 'prescriptions', 'update', 'Actualizar prescripciones');
+    
+    INSERT INTO PERMISSIONS (PERMISSION_NAME, RESOURCE_NAME, ACTION, DESCRIPTION)
+    VALUES ('prescription.delete', 'prescriptions', 'delete', 'Eliminar prescripciones');
 
-INSERT INTO roles (role_name, description) 
-VALUES ('PATIENT', 'Paciente con acceso a su información médica');
-
-INSERT INTO roles (role_name, description) 
-VALUES ('AUDITOR', 'Auditor con acceso de solo lectura a logs y auditoría');
-
-COMMIT;
-
-PROMPT Inserting permissions data...
-
--- System Permissions
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('VIEW_ALL_PATIENTS', 'Ver todos los pacientes', 'patients', 'read');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('CREATE_PATIENT', 'Crear nuevo paciente', 'patients', 'create');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('UPDATE_PATIENT', 'Actualizar información de paciente', 'patients', 'update');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('DELETE_PATIENT', 'Eliminar paciente', 'patients', 'delete');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('VIEW_OWN_PATIENT_DATA', 'Ver propia información médica', 'patients', 'read_own');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('CREATE_PRESCRIPTION', 'Crear prescripción médica', 'prescriptions', 'create');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('VIEW_PRESCRIPTION', 'Ver prescripciones', 'prescriptions', 'read');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('UPDATE_PRESCRIPTION', 'Actualizar prescripción', 'prescriptions', 'update');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('DELETE_PRESCRIPTION', 'Eliminar prescripción', 'prescriptions', 'delete');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('DISPENSE_MEDICATION', 'Dispensar medicamentos', 'dispensations', 'create');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('VIEW_DISPENSATION', 'Ver dispensaciones', 'dispensations', 'read');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('MANAGE_INVENTORY', 'Gestionar inventario de farmacia', 'inventory', 'manage');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('VIEW_AUDIT_LOGS', 'Ver logs de auditoría', 'audit_logs', 'read');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('MANAGE_USERS', 'Gestionar usuarios del sistema', 'users', 'manage');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('MANAGE_ROLES', 'Gestionar roles y permisos', 'roles', 'manage');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('USE_AI_ASSISTANT', 'Usar asistente de IA para análisis clínico', 'ai_assistant', 'use');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('VIEW_MEDICATIONS', 'Ver catálogo de medicamentos', 'medications', 'read');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('MANAGE_MEDICATIONS', 'Gestionar catálogo de medicamentos', 'medications', 'manage');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('VIEW_DRUG_INTERACTIONS', 'Ver interacciones medicamentosas', 'drug_interactions', 'read');
-
-INSERT INTO permissions (permission_name, description, resource_name, action_name) 
-VALUES ('VIEW_CIE10_CATALOG', 'Ver catálogo CIE-10', 'cie10_catalog', 'read');
-
-COMMIT;
-
-PROMPT Inserting role_permissions data...
-
--- ADMIN role permissions (all permissions)
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 1);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 2);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 3);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 4);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 6);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 7);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 8);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 9);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 10);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 11);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 12);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 13);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 14);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 15);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 16);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 17);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 18);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 19);
-INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 20);
-
--- DOCTOR role permissions
-INSERT INTO role_permissions (role_id, permission_id) VALUES (2, 1);  -- VIEW_ALL_PATIENTS
-INSERT INTO role_permissions (role_id, permission_id) VALUES (2, 2);  -- CREATE_PATIENT
-INSERT INTO role_permissions (role_id, permission_id) VALUES (2, 3);  -- UPDATE_PATIENT
-INSERT INTO role_permissions (role_id, permission_id) VALUES (2, 6);  -- CREATE_PRESCRIPTION
-INSERT INTO role_permissions (role_id, permission_id) VALUES (2, 7);  -- VIEW_PRESCRIPTION
-INSERT INTO role_permissions (role_id, permission_id) VALUES (2, 8);  -- UPDATE_PRESCRIPTION
-INSERT INTO role_permissions (role_id, permission_id) VALUES (2, 16); -- USE_AI_ASSISTANT
-INSERT INTO role_permissions (role_id, permission_id) VALUES (2, 17); -- VIEW_MEDICATIONS
-INSERT INTO role_permissions (role_id, permission_id) VALUES (2, 19); -- VIEW_DRUG_INTERACTIONS
-INSERT INTO role_permissions (role_id, permission_id) VALUES (2, 20); -- VIEW_CIE10_CATALOG
-
--- PHARMACIST role permissions
-INSERT INTO role_permissions (role_id, permission_id) VALUES (3, 7);  -- VIEW_PRESCRIPTION
-INSERT INTO role_permissions (role_id, permission_id) VALUES (3, 10); -- DISPENSE_MEDICATION
-INSERT INTO role_permissions (role_id, permission_id) VALUES (3, 11); -- VIEW_DISPENSATION
-INSERT INTO role_permissions (role_id, permission_id) VALUES (3, 12); -- MANAGE_INVENTORY
-INSERT INTO role_permissions (role_id, permission_id) VALUES (3, 17); -- VIEW_MEDICATIONS
-INSERT INTO role_permissions (role_id, permission_id) VALUES (3, 19); -- VIEW_DRUG_INTERACTIONS
-
--- PATIENT role permissions
-INSERT INTO role_permissions (role_id, permission_id) VALUES (4, 5);  -- VIEW_OWN_PATIENT_DATA
-INSERT INTO role_permissions (role_id, permission_id) VALUES (4, 7);  -- VIEW_PRESCRIPTION (own)
-INSERT INTO role_permissions (role_id, permission_id) VALUES (4, 11); -- VIEW_DISPENSATION (own)
-
--- AUDITOR role permissions
-INSERT INTO role_permissions (role_id, permission_id) VALUES (5, 1);  -- VIEW_ALL_PATIENTS
-INSERT INTO role_permissions (role_id, permission_id) VALUES (5, 7);  -- VIEW_PRESCRIPTION
-INSERT INTO role_permissions (role_id, permission_id) VALUES (5, 11); -- VIEW_DISPENSATION
-INSERT INTO role_permissions (role_id, permission_id) VALUES (5, 13); -- VIEW_AUDIT_LOGS
-
-COMMIT;
-
-PROMPT Inserting users data...
-
--- Admin user
-INSERT INTO users (username, email, password_hash, is_active) 
-VALUES ('admin', 'admin@eprescription.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1);
-
--- Doctor users (linked to doctors table)
-INSERT INTO users (username, email, password_hash, is_active, doctor_id) 
-VALUES ('roberto.andrade', 'roberto.andrade@hospital.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1, 1);
-
-INSERT INTO users (username, email, password_hash, is_active, doctor_id) 
-VALUES ('patricia.salinas', 'patricia.salinas@hospital.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1, 2);
-
-INSERT INTO users (username, email, password_hash, is_active, doctor_id) 
-VALUES ('carlos.mendoza', 'carlos.mendoza@clinica.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1, 3);
-
--- Pharmacist users
-INSERT INTO users (username, email, password_hash, is_active) 
-VALUES ('maria.gonzalez', 'maria.gonzalez@farmacia.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1);
-
-INSERT INTO users (username, email, password_hash, is_active) 
-VALUES ('carlos.perez', 'carlos.perez@farmacia.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1);
-
--- Patient users (linked to patients table)
-INSERT INTO users (username, email, password_hash, is_active, patient_id) 
-VALUES ('juan.perez', 'juan.perez@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1, 1);
-
-INSERT INTO users (username, email, password_hash, is_active, patient_id) 
-VALUES ('maria.gonzalez.p', 'maria.gonzalez@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1, 2);
-
--- Auditor user
-INSERT INTO users (username, email, password_hash, is_active) 
-VALUES ('auditor', 'auditor@eprescription.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1);
-
-COMMIT;
-
-PROMPT Inserting user_roles data...
-
--- Assign roles to users
-INSERT INTO user_roles (user_id, role_id) VALUES (1, 1); -- admin -> ADMIN
-INSERT INTO user_roles (user_id, role_id) VALUES (2, 2); -- roberto.andrade -> DOCTOR
-INSERT INTO user_roles (user_id, role_id) VALUES (3, 2); -- patricia.salinas -> DOCTOR
-INSERT INTO user_roles (user_id, role_id) VALUES (4, 2); -- carlos.mendoza -> DOCTOR
-INSERT INTO user_roles (user_id, role_id) VALUES (5, 3); -- maria.gonzalez -> PHARMACIST
-INSERT INTO user_roles (user_id, role_id) VALUES (6, 3); -- carlos.perez -> PHARMACIST
-INSERT INTO user_roles (user_id, role_id) VALUES (7, 4); -- juan.perez -> PATIENT
-INSERT INTO user_roles (user_id, role_id) VALUES (8, 4); -- maria.gonzalez.p -> PATIENT
-INSERT INTO user_roles (user_id, role_id) VALUES (9, 5); -- auditor -> AUDITOR
-
-COMMIT;
-
-PROMPT Users, roles, and permissions data insertion completed successfully!
-PROMPT Total roles inserted: 5
-PROMPT Total permissions inserted: 20
-PROMPT Total users inserted: 9
-PROMPT Total role-permission assignments: 40+
-PROMPT Total user-role assignments: 9
+    
+    -- Dispensation permissions
+    INSERT INTO PERMISSIONS (PERMISSION_NAME, RESOURCE_NAME, ACTION, DESCRIPTION)
+    VALUES ('dispensation.create', 'dispensations', 'create', 'Crear dispensaciones');
+    
+    INSERT INTO PERMISSIONS (PERMISSION_NAME, RESOURCE_NAME, ACTION, DESCRIPTION)
+    VALUES ('dispensation.read', 'dispensations', 'read', 'Ver dispensaciones');
+    
+    -- Patient permissions
+    INSERT INTO PERMISSIONS (PERMISSION_NAME, RESOURCE_NAME, ACTION, DESCRIPTION)
+    VALUES ('patient.read', 'patients', 'read', 'Ver información de pacientes');
+    
+    INSERT INTO PERMISSIONS (PERMISSION_NAME, RESOURCE_NAME, ACTION, DESCRIPTION)
+    VALUES ('patient.update', 'patients', 'update', 'Actualizar información de pacientes');
+    
+    -- Medication permissions
+    INSERT INTO PERMISSIONS (PERMISSION_NAME, RESOURCE_NAME, ACTION, DESCRIPTION)
+    VALUES ('medication.read', 'medications', 'read', 'Ver catálogo de medicamentos');
+    
+    -- AI permissions
+    INSERT INTO PERMISSIONS (PERMISSION_NAME, RESOURCE_NAME, ACTION, DESCRIPTION)
+    VALUES ('ai.execute', 'ai', 'execute', 'Usar asistente de IA para sugerencias');
+    
+    DBMS_OUTPUT.PUT_LINE('Created 10 permissions');
+    
+    -- Assign permissions to roles
+    -- ADMIN role gets all permissions
+    FOR perm IN (SELECT PERMISSION_ID FROM PERMISSIONS) LOOP
+        INSERT INTO ROLE_PERMISSIONS (ROLE_ID, PERMISSION_ID)
+        SELECT r.ROLE_ID, perm.PERMISSION_ID
+        FROM ROLES r
+        WHERE r.ROLE_NAME = 'ADMIN';
+    END LOOP;
+    
+    -- DOCTOR role
+    INSERT INTO ROLE_PERMISSIONS (ROLE_ID, PERMISSION_ID)
+    SELECT r.ROLE_ID, p.PERMISSION_ID
+    FROM ROLES r, PERMISSIONS p
+    WHERE r.ROLE_NAME = 'DOCTOR'
+    AND p.PERMISSION_NAME IN ('prescription.create', 'prescription.read', 'prescription.update', 
+                               'patient.read', 'patient.update', 'medication.read', 'ai.execute');
+    
+    -- PHARMACIST role
+    INSERT INTO ROLE_PERMISSIONS (ROLE_ID, PERMISSION_ID)
+    SELECT r.ROLE_ID, p.PERMISSION_ID
+    FROM ROLES r, PERMISSIONS p
+    WHERE r.ROLE_NAME = 'PHARMACIST'
+    AND p.PERMISSION_NAME IN ('prescription.read', 'dispensation.create', 'dispensation.read', 
+                               'patient.read', 'medication.read');
+    
+    -- PATIENT role
+    INSERT INTO ROLE_PERMISSIONS (ROLE_ID, PERMISSION_ID)
+    SELECT r.ROLE_ID, p.PERMISSION_ID
+    FROM ROLES r, PERMISSIONS p
+    WHERE r.ROLE_NAME = 'PATIENT'
+    AND p.PERMISSION_NAME IN ('prescription.read', 'dispensation.read');
+    
+    -- NURSE role
+    INSERT INTO ROLE_PERMISSIONS (ROLE_ID, PERMISSION_ID)
+    SELECT r.ROLE_ID, p.PERMISSION_ID
+    FROM ROLES r, PERMISSIONS p
+    WHERE r.ROLE_NAME = 'NURSE'
+    AND p.PERMISSION_NAME IN ('prescription.read', 'patient.read', 'medication.read');
+    
+    DBMS_OUTPUT.PUT_LINE('Assigned permissions to roles');
+    
+    -- Create sample users
+    -- Admin user
+    INSERT INTO USERS (USERNAME, EMAIL, IS_ACTIVE)
+    VALUES ('admin', 'admin@eprescription.cr', 1)
+    RETURNING USER_ID INTO v_user_id;
+    
+    INSERT INTO USER_ROLES (USER_ID, ROLE_ID)
+    SELECT v_user_id, ROLE_ID FROM ROLES WHERE ROLE_NAME = 'ADMIN';
+    
+    -- Create users for first 5 doctors
+    FOR doc IN (
+        SELECT d.DOCTOR_ID, d.FIRST_NAME, d.LAST_NAME, d.EMAIL, ROWNUM as RN
+        FROM DOCTORS d
+        WHERE ROWNUM <= 5
+    ) LOOP
+        INSERT INTO USERS (USERNAME, EMAIL, IS_ACTIVE)
+        VALUES ('doctor' || doc.RN, doc.EMAIL, 1)
+        RETURNING USER_ID INTO v_user_id;
+        
+        INSERT INTO USER_ROLES (USER_ID, ROLE_ID)
+        SELECT v_user_id, ROLE_ID FROM ROLES WHERE ROLE_NAME = 'DOCTOR';
+    END LOOP;
+    
+    -- Create users for first 5 patients
+    FOR pat IN (
+        SELECT p.PATIENT_ID, p.FIRST_NAME, p.LAST_NAME, p.IDENTIFICATION_NUMBER, ROWNUM as RN
+        FROM PATIENTS p
+        WHERE ROWNUM <= 5
+    ) LOOP
+        INSERT INTO USERS (USERNAME, EMAIL, IS_ACTIVE)
+        VALUES ('patient' || pat.RN, 
+                'patient' || pat.RN || '@eprescription.cr', 1)
+        RETURNING USER_ID INTO v_user_id;
+        
+        INSERT INTO USER_ROLES (USER_ID, ROLE_ID)
+        SELECT v_user_id, ROLE_ID FROM ROLES WHERE ROLE_NAME = 'PATIENT';
+    END LOOP;
+    
+    DBMS_OUTPUT.PUT_LINE('Created 11 users (1 admin + 5 doctors + 5 patients)');
+    
+    COMMIT;
+END;
+/
 
 PROMPT 
-PROMPT NOTE: All users have the same password hash for testing purposes
-PROMPT Default password: 'password123' (hashed with bcrypt)
-PROMPT 
+PROMPT ========================================
+PROMPT USERS, ROLES, and PERMISSIONS Completed!
+PROMPT ========================================
 
-SET DEFINE ON;
+-- Verify data
+SELECT COUNT(*) as TOTAL_ROLES FROM ROLES;
+SELECT COUNT(*) as TOTAL_PERMISSIONS FROM PERMISSIONS;
+SELECT COUNT(*) as TOTAL_USERS FROM USERS;
+
+SELECT 'Roles:' as INFO FROM DUAL;
+SELECT ROLE_NAME, DESCRIPTION FROM ROLES ORDER BY ROLE_NAME;
+
+SELECT 'Permissions by role:' as INFO FROM DUAL;
+SELECT r.ROLE_NAME, COUNT(rp.PERMISSION_ID) as PERMISSION_COUNT
+FROM ROLES r
+LEFT JOIN ROLE_PERMISSIONS rp ON r.ROLE_ID = rp.ROLE_ID
+GROUP BY r.ROLE_NAME
+ORDER BY PERMISSION_COUNT DESC;
+
+SELECT 'Sample users:' as INFO FROM DUAL;
+SELECT u.USERNAME, u.EMAIL, r.ROLE_NAME
+FROM USERS u
+JOIN USER_ROLES ur ON u.USER_ID = ur.USER_ID
+JOIN ROLES r ON ur.ROLE_ID = r.ROLE_ID
+FETCH FIRST 5 ROWS ONLY;
+
+PROMPT ========================================
+
+EXIT;
