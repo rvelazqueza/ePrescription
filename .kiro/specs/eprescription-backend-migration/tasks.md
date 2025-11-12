@@ -118,7 +118,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 14-18 hours_ (aumentado por catálogo CIE-10)
   - _Note: Requiere contenedor Oracle de Task 4 corriendo para probar scripts_
 
-- [-] 3. Crear datos mock consistentes y catálogo CIE-10 completo
+- [x] 3. Crear datos mock consistentes y catálogo CIE-10 completo
 
   - [x] 3.1 Importar catálogo completo de CIE-10 (puede ser desde API externa o archivo CSV/JSON)
 
@@ -170,14 +170,11 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 3.15 Ejecutar scripts de datos mock en contenedor Docker Oracle (docker exec o SQL Developer)
 
 
+  - [x] 3.16 Verificar integridad referencial de todos los datos mock (especialmente CIE-10)
+  - [x] 3.17 Verificar datos insertados con queries SELECT en Oracle SQL Developer
+  - [x] 3.18 Probar queries de búsqueda en catálogo CIE-10 (por código y descripción)
+  - [x] 3.19 Commit y push de datos mock y catálogo CIE-10
 
-
-
-
-  - [ ] 3.16 Verificar integridad referencial de todos los datos mock (especialmente CIE-10)
-  - [ ] 3.17 Verificar datos insertados con queries SELECT en Oracle SQL Developer
-  - [ ] 3.18 Probar queries de búsqueda en catálogo CIE-10 (por código y descripción)
-  - [-] 3.19 Commit y push de datos mock y catálogo CIE-10
 
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
   - _Branch: feature/task-3-mock-data-cie10_
