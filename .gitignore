@@ -31,3 +31,16 @@ eprescription-Database/backups/
 *.swp
 *.swo
 *~
+.vs/
+.vscode/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.log

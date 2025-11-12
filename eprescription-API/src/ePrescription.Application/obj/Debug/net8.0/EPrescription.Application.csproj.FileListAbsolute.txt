@@ -9,8 +9,8 @@ C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescr
 C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\EPrescription.Application\obj\Debug\net8.0\EPrescription.Application.AssemblyInfo.cs
 C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\EPrescription.Application\obj\Debug\net8.0\EPrescription.Application.csproj.CoreCompileInputs.cache
 C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\EPrescription.Application\obj\Debug\net8.0\EPrescription.Application.sourcelink.json
-C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\EPrescription.Application\obj\Debug\net8.0\EPrescription.Application.csproj.CopyComplete
 C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\EPrescription.Application\obj\Debug\net8.0\EPrescription.Application.dll
 C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\EPrescription.Application\obj\Debug\net8.0\refint\EPrescription.Application.dll
 C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\EPrescription.Application\obj\Debug\net8.0\EPrescription.Application.pdb
 C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\EPrescription.Application\obj\Debug\net8.0\ref\EPrescription.Application.dll
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\EPrescription.Application\obj\Debug\net8.0\EPrescri.C2AD80B8.Up2Date
