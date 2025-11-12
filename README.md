@@ -140,6 +140,13 @@ Port: 1521
 Service Name: XEPDB1  # ⚠️ Importante: usar XEPDB1, no XE
 Username: eprescription_user
 Password: EprescriptionPass123!
+
+# Cargar datos de prueba (seed data)
+cd eprescription-Database/scripts/02-SEED
+execute-all-seeds.bat
+
+# Ver guía rápida
+# Ver: eprescription-Database/QUICK-START.md
 ```
 
 ## 📋 Estructura del Proyecto
@@ -163,9 +170,14 @@ ePrescription/
 │   ├── EPrescription.API/         # Controllers y middleware
 │   └── EPrescription.Tests/       # Tests unitarios e integración
 ├── eprescription-Database/         # Scripts Oracle SQL
-│   ├── schemas/                   # Definición de tablas
-│   ├── mock-data/                 # Datos de prueba
-│   └── migrations/                # Migraciones de BD
+│   ├── scripts/
+│   │   ├── 01-DDL/               # Definición de tablas y esquema
+│   │   └── 02-SEED/              # 12 scripts de datos de prueba ✅
+│   ├── old-scripts/              # Scripts históricos (referencia)
+│   ├── DATABASE-SCHEMA-REFERENCE.md  # Documentación del esquema
+│   ├── SEED-DATA-SUMMARY.md      # Resumen de seed data
+│   ├── QUICK-START.md            # Guía de inicio rápido
+│   └── PROGRESS-REPORT.md        # Estado del proyecto DB
 ├── docs/                          # Documentación del proyecto
 │   ├── BRANCHING_STRATEGY.md     # Estrategia de Git
 │   ├── SECURITY_COMPLIANCE.md    # Cumplimiento normativo
@@ -217,14 +229,23 @@ EPRESCRIPTION_DB_PASSWORD=EprescriptionPass123!
 - [x] Frontend Angular 18 funcional
 - [x] Documentación técnica completa
 
+### ✅ Recientemente Completado
+
+- [x] **Seed Data Scripts**: 12 scripts de datos de prueba (100% completado)
+  - 50 códigos CIE-10
+  - 50 pacientes con datos realistas de Costa Rica
+  - 30 doctores y 10 centros médicos
+  - 35 medicamentos con códigos ATC
+  - 50 prescripciones completas
+  - Sistema de auditoría y logs de IA (FDA/HIPAA compliance)
+  - Ver [SEED-DATA-SUMMARY.md](./eprescription-Database/SEED-DATA-SUMMARY.md)
+
 ### 🚧 En Desarrollo
 
 - [ ] **Task 2**: Esquema de base de datos Oracle normalizado (4NF/5NF)
-- [ ] **Task 3**: Datos mock y catálogo CIE-10 completo
 - [ ] Backend .NET 8 con Clean Architecture
 - [ ] Integración con WHO API
 - [ ] Asistente de IA con traducción
-- [ ] Sistema de auditoría completo
 - [ ] Exportación HL7 FHIR
 
 Ver [tasks.md](./.kiro/specs/eprescription-backend-migration/tasks.md) para el plan de implementación completo.

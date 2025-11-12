@@ -118,33 +118,72 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 14-18 hours_ (aumentado por catálogo CIE-10)
   - _Note: Requiere contenedor Oracle de Task 4 corriendo para probar scripts_
 
-- [ ] 3. Crear datos mock consistentes y catálogo CIE-10 completo
-  - [ ] 3.1 Importar catálogo completo de CIE-10 (puede ser desde API externa o archivo CSV/JSON)
-  - [ ] 3.2 Crear script SQL para poblar cie10_catalog con códigos CIE-10 más comunes (mínimo 500 registros)
-  - [ ] 3.3 Crear script SQL con datos mock para addresses (50 registros)
-  - [ ] 3.4 Crear script SQL con datos mock para specialties y administration_routes
-  - [ ] 3.5 Crear script SQL con datos mock para pacientes (50 registros con contactos y alergias)
-  - [ ] 3.6 Crear script SQL con datos mock para médicos (30 registros con asignaciones a centros médicos)
-  - [ ] 3.7 Crear script SQL con datos mock para medicamentos (100 registros)
-  - [ ] 3.8 Crear script SQL con datos mock para interacciones medicamentosas (50 registros)
-  - [ ] 3.9 Crear script SQL con datos mock para farmacias e inventario (20 farmacias)
-  - [ ] 3.10 Crear script SQL con datos mock para prescripciones (100 registros con diagnósticos CIE-10 y medicamentos)
-  - [ ] 3.11 Crear script SQL con datos mock para dispensaciones (50 registros)
-  - [ ] 3.12 Crear script SQL con datos mock para usuarios, roles y permisos
-  - [ ] 3.13 Crear script SQL con datos mock para audit_logs y ai_analysis_logs
-  - [ ] 3.14 Crear script maestro de datos mock (seed-data.sql)
-  - [ ] 3.15 Ejecutar scripts de datos mock en contenedor Docker Oracle (docker exec o SQL Developer)
-  - [ ] 3.16 Verificar integridad referencial de todos los datos mock (especialmente CIE-10)
-  - [ ] 3.17 Verificar datos insertados con queries SELECT en Oracle SQL Developer
-  - [ ] 3.18 Probar queries de búsqueda en catálogo CIE-10 (por código y descripción)
-  - [ ] 3.19 Commit y push de datos mock y catálogo CIE-10
+- [x] 3. Crear datos mock consistentes y catálogo CIE-10 completo
+
+  - [x] 3.1 Importar catálogo completo de CIE-10 (puede ser desde API externa o archivo CSV/JSON)
+
+
+  - [x] 3.2 Crear script SQL para poblar cie10_catalog con códigos CIE-10 más comunes (mínimo 500 registros)
+
+
+
+  - [x] 3.3 Crear script SQL con datos mock para addresses (50 registros)
+
+
+  - [x] 3.4 Crear script SQL con datos mock para specialties y administration_routes
+
+
+  - [x] 3.5 Crear script SQL con datos mock para pacientes (50 registros con contactos y alergias)
+
+
+
+  - [x] 3.6 Crear script SQL con datos mock para médicos (30 registros con asignaciones a centros médicos)
+
+
+
+  - [x] 3.7 Crear script SQL con datos mock para medicamentos (100 registros)
+
+
+  - [x] 3.8 Crear script SQL con datos mock para interacciones medicamentosas (50 registros)
+
+
+  - [x] 3.9 Crear script SQL con datos mock para farmacias e inventario (20 farmacias)
+
+
+
+  - [x] 3.10 Crear script SQL con datos mock para prescripciones (100 registros con diagnósticos CIE-10 y medicamentos)
+
+
+
+  - [x] 3.11 Crear script SQL con datos mock para dispensaciones (50 registros)
+
+  - [x] 3.12 Crear script SQL con datos mock para usuarios, roles y permisos
+
+
+  - [x] 3.13 Crear script SQL con datos mock para audit_logs y ai_analysis_logs
+
+
+  - [x] 3.14 Crear script maestro de datos mock (seed-data.sql)
+
+
+
+  - [x] 3.15 Ejecutar scripts de datos mock en contenedor Docker Oracle (docker exec o SQL Developer)
+
+
+  - [x] 3.16 Verificar integridad referencial de todos los datos mock (especialmente CIE-10)
+  - [x] 3.17 Verificar datos insertados con queries SELECT en Oracle SQL Developer
+  - [x] 3.18 Probar queries de búsqueda en catálogo CIE-10 (por código y descripción)
+  - [x] 3.19 Commit y push de datos mock y catálogo CIE-10
+
+
+
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
   - _Branch: feature/task-3-mock-data-cie10_
   - _Commit strategy: Push después de CIE-10 (3.2), después de cada grupo de datos (3.5, 3.7, 3.10, etc.)_
   - _Estimated time: 12-16 hours_ (aumentado por catálogo CIE-10)
   - _Note: Requiere contenedor Oracle de Task 4 corriendo para ejecutar y probar scripts_
 
-- [-] 4. Configurar Docker para Oracle Database (compartido con Keycloak)
+- [x] 4. Configurar Docker para Oracle Database (compartido con Keycloak)
 
 
 
