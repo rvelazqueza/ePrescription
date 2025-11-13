@@ -343,15 +343,31 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
   - [x] 7.12 Verificar en Oracle SQL Developer que Keycloak creó sus tablas en esquema KEYCLOAK
 
-  - [ ] 7.13 Crear interfaz IAuthenticationService en Application layer
-  - [ ] 7.14 Implementar KeycloakAuthenticationService en Infrastructure
-  - [ ] 7.15 Instalar paquetes NuGet para OAuth (Microsoft.AspNetCore.Authentication.JwtBearer)
-  - [ ] 7.16 Configurar autenticación JWT en Program.cs con auditoría de login
-  - [ ] 7.17 Crear middleware de autenticación personalizado con logging de auditoría
-  - [ ] 7.18 Configurar appsettings.json con secciones Keycloak (usar nombre de servicio Docker: http://keycloak:8080)
-  - [ ] 7.19 Crear AuthController con endpoints (login, refresh, logout) con auditoría
-  - [ ] 7.20 Probar autenticación con Postman y verificar logs de auditoría
-  - [ ] 7.21 Crear tests unitarios para KeycloakAuthenticationService
+  - [x] 7.13 Crear interfaz IAuthenticationService en Application layer
+
+
+  - [x] 7.14 Implementar KeycloakAuthenticationService en Infrastructure
+
+
+  - [x] 7.15 Instalar paquetes NuGet para OAuth (Microsoft.AspNetCore.Authentication.JwtBearer)
+
+
+  - [x] 7.16 Configurar autenticación JWT en Program.cs con auditoría de login
+
+
+
+  - [-] 7.17 Crear middleware de autenticación personalizado con logging de auditoría
+
+  - [x] 7.18 Configurar appsettings.json con secciones Keycloak (usar nombre de servicio Docker: http://keycloak:8080)
+
+
+  - [x] 7.19 Crear AuthController con endpoints (login, refresh, logout) con auditoría
+
+  - [x] 7.20 Probar autenticación con Postman y verificar logs de auditoría
+
+
+  - [-] 7.21 Crear tests unitarios para KeycloakAuthenticationService
+
   - [ ] 7.22 Commit y push de autenticación Keycloak con Oracle
   - _Requirements: 2.3, 2.4, 2.5, 4.1_
   - _Branch: feature/task-7-keycloak-oracle-auth_

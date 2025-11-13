@@ -43,9 +43,64 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Add HttpClient for Keycloak
+builder.Services.AddHttpClient<EPrescription.Application.Interfaces.IAuthenticationService, 
+    EPrescription.Infrastructure.Authentication.KeycloakAuthenticationService>();
+
+// Configure JWT Authentication
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        var keycloakUrl = builder.Configuration["Keycloak:Url"] ?? "http://localhost:8080";
+        var realm = builder.Configuration["Keycloak:Realm"] ?? "eprescription";
+        
+        options.Authority = $"{keycloakUrl}/realms/{realm}";
+        options.Audience = builder.Configuration["Keycloak:ClientId"] ?? "eprescription-api";
+        options.RequireHttpsMetadata = false; // Set to true in production
+        
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = false, // Keycloak doesn't always include audience
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ClockSkew = TimeSpan.FromMinutes(5)
+        };
+
+        // Log authentication events
+        options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Log.Warning("Authentication failed: {Error}", context.Exception.Message);
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                var username = context.Principal?.Identity?.Name ?? "Unknown";
+                Log.Information("Token validated for user: {Username}", username);
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+// Configure Authorization
+builder.Services.AddAuthorization(options =>
+{
+    // Define policies based on roles
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("admin"));
+    options.AddPolicy("RequireDoctorRole", policy => policy.RequireRole("doctor"));
+    options.AddPolicy("RequirePharmacistRole", policy => policy.RequireRole("pharmacist"));
+    options.AddPolicy("RequirePatientRole", policy => policy.RequireRole("patient"));
+    options.AddPolicy("RequireAuditorRole", policy => policy.RequireRole("auditor"));
+    
+    // Combined policies
+    options.AddPolicy("RequireMedicalStaff", policy => 
+        policy.RequireRole("doctor", "pharmacist", "admin"));
+});
+
 // TODO: Add Application layer services (MediatR, AutoMapper, FluentValidation)
 // TODO: Add Infrastructure layer services (DbContext, Repositories, External Services)
-// TODO: Add Authentication & Authorization (JWT, Keycloak)
 
 var app = builder.Build();
 
@@ -63,8 +118,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
-// TODO: Add Authentication middleware (app.UseAuthentication())
-// TODO: Add Authorization middleware (app.UseAuthorization())
+// Authentication & Authorization middleware (order matters!)
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
