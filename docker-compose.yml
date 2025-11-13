@@ -23,8 +23,55 @@ services:
     networks:
       - eprescription-network
 
+  # Keycloak (usando Oracle como base de datos)
+  keycloak:
+    build:
+      context: ./keycloak
+      dockerfile: Dockerfile
+    container_name: eprescription-keycloak
+    command: start-dev
+    ports:
+      - "8080:8080"
+    environment:
+      # Admin credentials
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin123
+      
+      # Oracle database configuration
+      - KC_DB=oracle
+      - KC_DB_URL=jdbc:oracle:thin:@oracle-db:1521/XEPDB1
+      - KC_DB_USERNAME=keycloak_user
+      - KC_DB_PASSWORD=KeycloakPass123!
+      - KC_DB_SCHEMA=keycloak_user
+      
+      # Keycloak configuration
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_HTTP_ENABLED=true
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
+      
+      # Logging
+      - KC_LOG_LEVEL=INFO
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    networks:
+      - eprescription-network
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+
 volumes:
   oracle-data:
+    driver: local
+  keycloak-data:
     driver: local
 
 networks:
