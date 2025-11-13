@@ -316,6 +316,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 - [x] 7. Configurar Keycloak con Oracle y crear servicio de autenticación
 
 
+
   - [x] 7.1 Agregar servicio Keycloak al docker-compose.yml (imagen quay.io/keycloak/keycloak:latest)
 
 
