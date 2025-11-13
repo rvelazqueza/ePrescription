@@ -257,6 +257,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
   - [x] 5.14 Crear diagrama de componentes de Clean Architecture
 
+
   - [x] 5.15 Commit y push de estructura de proyectos
 
 
