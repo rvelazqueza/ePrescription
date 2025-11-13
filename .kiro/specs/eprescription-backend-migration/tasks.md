@@ -329,12 +329,20 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 7.6 Iniciar Keycloak con docker-compose up -d y verificar logs
 
 
-  - [ ] 7.7 Acceder a admin console de Keycloak (http://localhost:8080)
-  - [ ] 7.8 Crear realm "eprescription" en Keycloak
-  - [ ] 7.9 Crear client "eprescription-api" con configuración confidential
-  - [ ] 7.10 Crear roles en Keycloak (admin, doctor, pharmacist, patient, auditor)
-  - [ ] 7.11 Crear usuarios de prueba en Keycloak con diferentes roles
-  - [ ] 7.12 Verificar en Oracle SQL Developer que Keycloak creó sus tablas en esquema KEYCLOAK
+  - [x] 7.7 Acceder a admin console de Keycloak (http://localhost:8080)
+
+
+  - [x] 7.8 Crear realm "eprescription" en Keycloak
+
+
+  - [x] 7.9 Crear client "eprescription-api" con configuración confidential
+
+  - [x] 7.10 Crear roles en Keycloak (admin, doctor, pharmacist, patient, auditor)
+
+  - [x] 7.11 Crear usuarios de prueba en Keycloak con diferentes roles
+
+  - [x] 7.12 Verificar en Oracle SQL Developer que Keycloak creó sus tablas en esquema KEYCLOAK
+
   - [ ] 7.13 Crear interfaz IAuthenticationService en Application layer
   - [ ] 7.14 Implementar KeycloakAuthenticationService en Infrastructure
   - [ ] 7.15 Instalar paquetes NuGet para OAuth (Microsoft.AspNetCore.Authentication.JwtBearer)
