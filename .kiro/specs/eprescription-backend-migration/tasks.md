@@ -313,7 +313,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Commit strategy: Push después de entidades de auditoría (6.5), después de value objects (6.6), y después de repositorios (6.13)_
   - _Estimated time: 12-14 hours_
 
-- [-] 7. Configurar Keycloak con Oracle y crear servicio de autenticación
+- [x] 7. Configurar Keycloak con Oracle y crear servicio de autenticación
+
 
   - [x] 7.1 Agregar servicio Keycloak al docker-compose.yml (imagen quay.io/keycloak/keycloak:latest)
 
@@ -356,7 +357,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [-] 7.17 Crear middleware de autenticación personalizado con logging de auditoría
+  - [x] 7.17 Crear middleware de autenticación personalizado con logging de auditoría
+
 
   - [x] 7.18 Configurar appsettings.json con secciones Keycloak (usar nombre de servicio Docker: http://keycloak:8080)
 
@@ -366,9 +368,11 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 7.20 Probar autenticación con Postman y verificar logs de auditoría
 
 
-  - [-] 7.21 Crear tests unitarios para KeycloakAuthenticationService
+  - [x] 7.21 Crear tests unitarios para KeycloakAuthenticationService
 
-  - [ ] 7.22 Commit y push de autenticación Keycloak con Oracle
+
+  - [x] 7.22 Commit y push de autenticación Keycloak con Oracle
+
   - _Requirements: 2.3, 2.4, 2.5, 4.1_
   - _Branch: feature/task-7-keycloak-oracle-auth_
   - _Commit strategy: Push después de Keycloak con Oracle (7.12), después de servicio (7.14), y después de endpoints (7.19)_
