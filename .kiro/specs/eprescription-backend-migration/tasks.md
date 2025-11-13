@@ -251,7 +251,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 4-6 hours_
 
 
-- [ ] 6. Implementar entidades del dominio, EF Core y auditoría básica
+- [x] 6. Implementar entidades del dominio, EF Core y auditoría básica
   - [x] 6.1 Crear entidades base (BaseEntity con Id, CreatedAt, UpdatedAt)
 
 
