@@ -8,18 +8,21 @@ public class UserRole : BaseEntity
 {
     public Guid UserId { get; private set; }
     public Guid RoleId { get; private set; }
-    public DateTime AssignedDate { get; private set; }
+    public DateTime AssignedAt { get; private set; }
+    public Guid? AssignedBy { get; private set; }
 
     // Navigation properties
     public virtual User User { get; private set; } = null!;
     public virtual Role Role { get; private set; } = null!;
+    public virtual User? AssignedByUser { get; private set; }
 
     private UserRole() { } // EF Core
 
-    public UserRole(Guid userId, Guid roleId)
+    public UserRole(Guid userId, Guid roleId, Guid? assignedBy = null)
     {
         UserId = userId;
         RoleId = roleId;
-        AssignedDate = DateTime.UtcNow;
+        AssignedAt = DateTime.UtcNow;
+        AssignedBy = assignedBy;
     }
 }

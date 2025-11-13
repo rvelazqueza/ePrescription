@@ -8,6 +8,7 @@ public class RolePermission : BaseEntity
 {
     public Guid RoleId { get; private set; }
     public Guid PermissionId { get; private set; }
+    public DateTime GrantedAt { get; private set; }
 
     // Navigation properties
     public virtual Role Role { get; private set; } = null!;
@@ -19,5 +20,6 @@ public class RolePermission : BaseEntity
     {
         RoleId = roleId;
         PermissionId = permissionId;
+        GrantedAt = DateTime.UtcNow;
     }
 }

@@ -8,7 +8,8 @@ public class DoctorMedicalCenter : BaseEntity
 {
     public Guid DoctorId { get; private set; }
     public Guid MedicalCenterId { get; private set; }
-    public DateTime AssignedDate { get; private set; }
+    public DateTime StartDate { get; private set; }
+    public DateTime? EndDate { get; private set; }
     public bool IsActive { get; private set; } = true;
 
     // Navigation properties
@@ -17,17 +18,18 @@ public class DoctorMedicalCenter : BaseEntity
 
     private DoctorMedicalCenter() { } // EF Core
 
-    public DoctorMedicalCenter(Guid doctorId, Guid medicalCenterId)
+    public DoctorMedicalCenter(Guid doctorId, Guid medicalCenterId, DateTime? startDate = null)
     {
         DoctorId = doctorId;
         MedicalCenterId = medicalCenterId;
-        AssignedDate = DateTime.UtcNow;
+        StartDate = startDate ?? DateTime.UtcNow;
         IsActive = true;
     }
 
-    public void Deactivate()
+    public void Deactivate(DateTime? endDate = null)
     {
         IsActive = false;
+        EndDate = endDate ?? DateTime.UtcNow;
         UpdateTimestamp();
     }
 }

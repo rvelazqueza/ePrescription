@@ -9,17 +9,19 @@ public class Medication : BaseEntity
     public string MedicationCode { get; private set; } = string.Empty;
     public string CommercialName { get; private set; } = string.Empty;
     public string GenericName { get; private set; } = string.Empty;
-    public string Manufacturer { get; private set; } = string.Empty;
-    public string Presentation { get; private set; } = string.Empty; // tablet, capsule, syrup, etc.
-    public string Concentration { get; private set; } = string.Empty;
+    public string? ActiveIngredient { get; private set; }
+    public string? Presentation { get; private set; }
+    public string? Concentration { get; private set; }
     public bool RequiresPrescription { get; private set; } = true;
-    public bool IsControlled { get; private set; }
     public bool IsActive { get; private set; } = true;
+    public Guid? AdministrationRouteId { get; private set; }
 
     // Navigation properties
+    public virtual AdministrationRoute? AdministrationRoute { get; private set; }
     public virtual ICollection<PrescriptionMedication> Prescriptions { get; private set; } = new List<PrescriptionMedication>();
     public virtual ICollection<DrugInteraction> InteractionsAsFirst { get; private set; } = new List<DrugInteraction>();
     public virtual ICollection<DrugInteraction> InteractionsAsSecond { get; private set; } = new List<DrugInteraction>();
+    public virtual ICollection<Inventory> Inventories { get; private set; } = new List<Inventory>();
 
     private Medication() { } // EF Core
 
@@ -27,20 +29,20 @@ public class Medication : BaseEntity
         string medicationCode,
         string commercialName,
         string genericName,
-        string manufacturer,
-        string presentation,
-        string concentration,
+        string? activeIngredient = null,
+        string? presentation = null,
+        string? concentration = null,
         bool requiresPrescription = true,
-        bool isControlled = false)
+        Guid? administrationRouteId = null)
     {
         MedicationCode = medicationCode;
         CommercialName = commercialName;
         GenericName = genericName;
-        Manufacturer = manufacturer;
+        ActiveIngredient = activeIngredient;
         Presentation = presentation;
         Concentration = concentration;
         RequiresPrescription = requiresPrescription;
-        IsControlled = isControlled;
+        AdministrationRouteId = administrationRouteId;
         IsActive = true;
     }
 

@@ -6,42 +6,46 @@ namespace EPrescription.Domain.Entities;
 /// </summary>
 public class DrugInteraction : BaseEntity
 {
-    public Guid FirstMedicationId { get; private set; }
-    public Guid SecondMedicationId { get; private set; }
-    public string SeverityLevel { get; private set; } = string.Empty; // mild, moderate, severe
-    public string InteractionType { get; private set; } = string.Empty;
-    public string Description { get; private set; } = string.Empty;
+    public Guid MedicationId1 { get; private set; }
+    public Guid MedicationId2 { get; private set; }
+    public string InteractionSeverity { get; private set; } = string.Empty; // mild, moderate, severe
+    public string InteractionDescription { get; private set; } = string.Empty;
     public string? ClinicalEffects { get; private set; }
-    public string? Recommendations { get; private set; }
 
     // Navigation properties
-    public virtual Medication FirstMedication { get; private set; } = null!;
-    public virtual Medication SecondMedication { get; private set; } = null!;
+    public virtual Medication Medication1 { get; private set; } = null!;
+    public virtual Medication Medication2 { get; private set; } = null!;
 
     private DrugInteraction() { } // EF Core
 
     public DrugInteraction(
-        Guid firstMedicationId,
-        Guid secondMedicationId,
-        string severityLevel,
-        string interactionType,
-        string description,
-        string? clinicalEffects = null,
-        string? recommendations = null)
+        Guid medicationId1,
+        Guid medicationId2,
+        string interactionSeverity,
+        string interactionDescription,
+        string? clinicalEffects = null)
     {
-        FirstMedicationId = firstMedicationId;
-        SecondMedicationId = secondMedicationId;
-        SeverityLevel = severityLevel;
-        InteractionType = interactionType;
-        Description = description;
+        // Ensure MedicationId1 < MedicationId2 to avoid duplicates
+        if (medicationId1.CompareTo(medicationId2) < 0)
+        {
+            MedicationId1 = medicationId1;
+            MedicationId2 = medicationId2;
+        }
+        else
+        {
+            MedicationId1 = medicationId2;
+            MedicationId2 = medicationId1;
+        }
+        
+        InteractionSeverity = interactionSeverity;
+        InteractionDescription = interactionDescription;
         ClinicalEffects = clinicalEffects;
-        Recommendations = recommendations;
     }
 
-    public void UpdateSeverity(string severityLevel, string? recommendations = null)
+    public void UpdateSeverity(string interactionSeverity, string? clinicalEffects = null)
     {
-        SeverityLevel = severityLevel;
-        if (recommendations != null) Recommendations = recommendations;
+        InteractionSeverity = interactionSeverity;
+        if (clinicalEffects != null) ClinicalEffects = clinicalEffects;
         UpdateTimestamp();
     }
 }

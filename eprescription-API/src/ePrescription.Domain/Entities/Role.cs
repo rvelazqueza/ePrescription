@@ -8,7 +8,8 @@ namespace EPrescription.Domain.Entities;
 public class Role : BaseEntity
 {
     public string RoleName { get; private set; } = string.Empty;
-    public string Description { get; private set; } = string.Empty;
+    public string? Description { get; private set; }
+    public string? KeycloakRoleId { get; private set; }
     public bool IsActive { get; private set; } = true;
 
     // Navigation properties
@@ -17,16 +18,23 @@ public class Role : BaseEntity
 
     private Role() { } // EF Core
 
-    public Role(string roleName, string description)
+    public Role(string roleName, string? description = null, string? keycloakRoleId = null)
     {
         RoleName = roleName;
         Description = description;
+        KeycloakRoleId = keycloakRoleId;
         IsActive = true;
     }
 
-    public void UpdateDescription(string description)
+    public void UpdateDescription(string? description)
     {
         Description = description;
+        UpdateTimestamp();
+    }
+
+    public void SyncWithKeycloak(string keycloakRoleId)
+    {
+        KeycloakRoleId = keycloakRoleId;
         UpdateTimestamp();
     }
 
