@@ -281,19 +281,37 @@ namespace EPrescription.Infrastructure.Authentication
     // Internal DTOs for Keycloak responses
     internal class KeycloakTokenResponse
     {
+        [System.Text.Json.Serialization.JsonPropertyName("access_token")]
         public string AccessToken { get; set; }
+        
+        [System.Text.Json.Serialization.JsonPropertyName("refresh_token")]
         public string RefreshToken { get; set; }
+        
+        [System.Text.Json.Serialization.JsonPropertyName("expires_in")]
         public int ExpiresIn { get; set; }
+        
+        [System.Text.Json.Serialization.JsonPropertyName("token_type")]
         public string TokenType { get; set; }
     }
 
     internal class KeycloakUserInfoResponse
     {
+        [System.Text.Json.Serialization.JsonPropertyName("sub")]
         public string Sub { get; set; }
+        
+        [System.Text.Json.Serialization.JsonPropertyName("preferred_username")]
         public string PreferredUsername { get; set; }
+        
+        [System.Text.Json.Serialization.JsonPropertyName("email")]
         public string Email { get; set; }
+        
+        [System.Text.Json.Serialization.JsonPropertyName("given_name")]
         public string GivenName { get; set; }
+        
+        [System.Text.Json.Serialization.JsonPropertyName("family_name")]
         public string FamilyName { get; set; }
+        
+        [System.Text.Json.Serialization.JsonPropertyName("email_verified")]
         public bool EmailVerified { get; set; }
     }
 }

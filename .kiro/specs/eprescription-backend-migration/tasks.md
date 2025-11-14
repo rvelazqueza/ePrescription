@@ -575,6 +575,10 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [ ] 16.3 Configurar proyecto EPrescription.Infrastructure.Tests
   - [ ] 16.4 Configurar proyecto EPrescription.API.IntegrationTests
   - [ ] 16.5 Instalar paquetes de testing (xUnit, FluentAssertions, Moq, NSubstitute)
+
+
+
+
   - [ ] 16.6 Crear tests unitarios para entidades del dominio
   - [ ] 16.7 Crear tests unitarios para value objects
   - [ ] 16.8 Crear tests unitarios para command handlers (CreatePrescription, etc.)
