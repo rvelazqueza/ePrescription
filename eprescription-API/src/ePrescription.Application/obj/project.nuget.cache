@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "XoUgJoBdW6s=",
+  "dgSpecHash": "9O8l0zwNLBtzJ8JVo3XQMurLdGX9EM1vUj9aWSwEWPcw6C741HIt8JBwuGwESPPh4nA6elCncNuTXEpu9b7l9Q==",
   "success": true,
   "projectFilePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Application\\EPrescription.Application.csproj",
   "expectedPackageFiles": [
@@ -17,19 +17,14 @@
     "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.identitymodel.abstractions\\8.14.0\\microsoft.identitymodel.abstractions.8.14.0.nupkg.sha512",
     "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\8.14.0\\microsoft.identitymodel.jsonwebtokens.8.14.0.nupkg.sha512",
     "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.identitymodel.logging\\8.14.0\\microsoft.identitymodel.logging.8.14.0.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.identitymodel.tokens\\8.14.0\\microsoft.identitymodel.tokens.8.14.0.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.22\\microsoft.netcore.app.ref.8.0.22.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.22\\microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.22\\microsoft.aspnetcore.app.ref.8.0.22.nupkg.sha512"
+    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.identitymodel.tokens\\8.14.0\\microsoft.identitymodel.tokens.8.14.0.nupkg.sha512"
   ],
   "logs": [
     {
       "code": "NU1608",
       "level": "Warning",
-      "message": "Detected package version outside of dependency constraint: AutoMapper.Extensions.Microsoft.DependencyInjection 12.0.1 requires AutoMapper (= 12.0.1) but version AutoMapper 15.1.0 was resolved.",
-      "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Application\\EPrescription.Application.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Application\\EPrescription.Application.csproj",
+      "message": "Detected package version outside of dependency constraint: AutoMapper.Extensions.Microsoft.DependencyInjection 12.0.1 requires AutoMapper (= 12.0.1) but version AutoMapper 15.1.0 was resolved.",
       "libraryId": "AutoMapper",
       "targetGraphs": [
         "net8.0"

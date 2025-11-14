@@ -137,12 +137,12 @@ public class EPrescriptionDbContext : DbContext
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
+                entry.Property(nameof(BaseEntity.CreatedAt)).CurrentValue = DateTime.UtcNow;
+                entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = DateTime.UtcNow;
             }
             else if (entry.State == EntityState.Modified)
             {
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
+                entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = DateTime.UtcNow;
             }
         }
     }

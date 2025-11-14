@@ -382,7 +382,9 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 10-12 hours_
   - _Note: Keycloak se comunica con Oracle dentro de la red Docker usando nombre de servicio_
 
-- [-] 8. Implementar sistema de autorización basado en roles
+- [x] 8. Implementar sistema de autorización basado en roles
+
+
 
   - [x] 8.1 Crear interfaz IAuthorizationService en Application layer
 
@@ -414,8 +416,10 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 8.9 Probar autorización con diferentes roles en Postman
 
 
-  - [ ] 8.10 Crear tests unitarios para autorización
-  - [-] 8.11 Commit y push de sistema de autorización
+  - [x] 8.10 Crear tests unitarios para autorización
+
+  - [x] 8.11 Commit y push de sistema de autorización
+
 
   - _Requirements: 2.4_
   - _Branch: feature/task-8-authorization_

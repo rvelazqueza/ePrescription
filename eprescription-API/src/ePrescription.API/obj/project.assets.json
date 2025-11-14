@@ -2995,11 +2995,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.API\\EPrescription.API.csproj",
-      "projectName": "EPrescription.API",
-      "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.API\\EPrescription.API.csproj",
+      "projectUniqueName": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.API\\ePrescription.API.csproj",
+      "projectName": "ePrescription.API",
+      "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.API\\ePrescription.API.csproj",
       "packagesPath": "C:\\Users\\Carlos\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.API\\obj\\",
+      "outputPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.API\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -3033,13 +3033,7 @@
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "10.0.100"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -3077,24 +3071,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[8.0.22, 8.0.22]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[8.0.22, 8.0.22]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[8.0.22, 8.0.22]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[8.0.22, 8.0.22]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -3103,7 +3079,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101/PortableRuntimeIdentifierGraph.json"
       }
     }
   },

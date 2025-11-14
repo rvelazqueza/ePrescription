@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EPrescription.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9d4292ae4797572455e5732fb1be8e962946bd43")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a58b2052c4f9fffc34d524534fd01a47b5901867")]
 [assembly: System.Reflection.AssemblyProductAttribute("EPrescription.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EPrescription.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

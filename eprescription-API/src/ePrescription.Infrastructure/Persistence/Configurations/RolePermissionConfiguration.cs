@@ -13,7 +13,7 @@ public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermissi
         builder.Property(rp => rp.Id).HasColumnName("ROLE_PERMISSION_ID");
         builder.Property(rp => rp.RoleId).HasColumnName("ROLE_ID").IsRequired();
         builder.Property(rp => rp.PermissionId).HasColumnName("PERMISSION_ID").IsRequired();
-        builder.Property(rp => rp.AssignedAt).HasColumnName("ASSIGNED_AT");
+        builder.Property(rp => rp.GrantedAt).HasColumnName("GRANTED_AT");
 
         // Relationships - Many-to-Many between Roles and Permissions
         builder.HasOne<Role>()

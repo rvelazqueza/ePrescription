@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using EPrescription.Application.Constants;
 using EPrescription.Application.Interfaces;
 using EPrescription.Domain.Entities;
 using EPrescription.Infrastructure.Persistence;
@@ -39,7 +40,7 @@ public class AuthorizationService : IAuthorizationService
                 return false;
             }
 
-            return user.UserRoles.Any(ur => ur.Role.Name == role);
+            return user.UserRoles.Any(ur => ur.Role.RoleName == role);
         }
         catch (Exception ex)
         {
@@ -67,7 +68,7 @@ public class AuthorizationService : IAuthorizationService
 
             return user.UserRoles
                 .SelectMany(ur => ur.Role.RolePermissions)
-                .Any(rp => rp.Permission.Name == permission);
+                .Any(rp => rp.Permission.PermissionName == permission);
         }
         catch (Exception ex)
         {
@@ -90,7 +91,7 @@ public class AuthorizationService : IAuthorizationService
                 return false;
             }
 
-            return user.UserRoles.Any(ur => roles.Contains(ur.Role.Name));
+            return user.UserRoles.Any(ur => roles.Contains(ur.Role.RoleName));
         }
         catch (Exception ex)
         {
@@ -113,7 +114,7 @@ public class AuthorizationService : IAuthorizationService
                 return false;
             }
 
-            var userRoles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
+            var userRoles = user.UserRoles.Select(ur => ur.Role.RoleName).ToList();
             return roles.All(role => userRoles.Contains(role));
         }
         catch (Exception ex)
@@ -137,7 +138,7 @@ public class AuthorizationService : IAuthorizationService
                 return new List<string>();
             }
 
-            return user.UserRoles.Select(ur => ur.Role.Name).ToList();
+            return user.UserRoles.Select(ur => ur.Role.RoleName).ToList();
         }
         catch (Exception ex)
         {
@@ -164,7 +165,7 @@ public class AuthorizationService : IAuthorizationService
 
             return user.UserRoles
                 .SelectMany(ur => ur.Role.RolePermissions)
-                .Select(rp => rp.Permission.Name)
+                .Select(rp => rp.Permission.PermissionName)
                 .Distinct()
                 .ToList();
         }

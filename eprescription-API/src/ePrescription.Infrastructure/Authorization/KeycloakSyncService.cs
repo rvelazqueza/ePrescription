@@ -63,16 +63,11 @@ public class KeycloakSyncService
         foreach (var roleData in roles)
         {
             var existingRole = await _context.Roles
-                .FirstOrDefaultAsync(r => r.Name == roleData.Name);
+                .FirstOrDefaultAsync(r => r.RoleName == roleData.Name);
 
             if (existingRole == null)
             {
-                var role = new Role
-                {
-                    Id = Guid.NewGuid(),
-                    Name = roleData.Name,
-                    Description = roleData.Description
-                };
+                var role = new Role(roleData.Name, roleData.Description);
 
                 _context.Roles.Add(role);
                 _logger.LogInformation("Created role: {RoleName}", roleData.Name);
@@ -115,16 +110,16 @@ public class KeycloakSyncService
         foreach (var permData in permissions)
         {
             var existingPerm = await _context.Permissions
-                .FirstOrDefaultAsync(p => p.Name == permData.Name);
+                .FirstOrDefaultAsync(p => p.PermissionName == permData.Name);
 
             if (existingPerm == null)
             {
-                var permission = new Permission
-                {
-                    Id = Guid.NewGuid(),
-                    Name = permData.Name,
-                    Description = permData.Description
-                };
+                // Parse permission name to extract resource and action
+                var parts = permData.Name.Split('.');
+                var resourceName = parts.Length > 0 ? parts[0] : "unknown";
+                var action = parts.Length > 1 ? parts[1] : "unknown";
+                
+                var permission = new Permission(permData.Name, resourceName, action, permData.Description);
 
                 _context.Permissions.Add(permission);
                 _logger.LogInformation("Created permission: {PermissionName}", permData.Name);
@@ -180,7 +175,7 @@ public class KeycloakSyncService
 
     private async Task AssignPermissionsToRole(string roleName, string[] permissionNames)
     {
-        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName);
         if (role == null)
         {
             _logger.LogWarning("Role {RoleName} not found", roleName);
@@ -189,7 +184,7 @@ public class KeycloakSyncService
 
         foreach (var permName in permissionNames)
         {
-            var permission = await _context.Permissions.FirstOrDefaultAsync(p => p.Name == permName);
+            var permission = await _context.Permissions.FirstOrDefaultAsync(p => p.PermissionName == permName);
             if (permission == null)
             {
                 _logger.LogWarning("Permission {PermissionName} not found", permName);
@@ -201,11 +196,7 @@ public class KeycloakSyncService
 
             if (existingAssignment == null)
             {
-                var rolePermission = new RolePermission
-                {
-                    RoleId = role.Id,
-                    PermissionId = permission.Id
-                };
+                var rolePermission = new RolePermission(role.Id, permission.Id);
 
                 _context.RolePermissions.Add(rolePermission);
                 _logger.LogDebug("Assigned permission {PermissionName} to role {RoleName}", 
@@ -224,14 +215,7 @@ public class KeycloakSyncService
         if (user == null)
         {
             // Create new user
-            user = new User
-            {
-                Id = Guid.NewGuid(),
-                KeycloakUserId = keycloakUserId,
-                Username = username,
-                Email = email,
-                IsActive = true
-            };
+            user = new User(username, email, keycloakUserId);
 
             _context.Users.Add(user);
             _logger.LogInformation("Created user {Username} from Keycloak", username);
@@ -239,8 +223,7 @@ public class KeycloakSyncService
         else
         {
             // Update existing user
-            user.Username = username;
-            user.Email = email;
+            user.UpdateProfile(email);
         }
 
         await _context.SaveChangesAsync();
@@ -261,14 +244,10 @@ public class KeycloakSyncService
         // Add new role assignments
         foreach (var roleName in roleNames)
         {
-            var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName);
             if (role != null)
             {
-                var userRole = new UserRole
-                {
-                    UserId = userId,
-                    RoleId = role.Id
-                };
+                var userRole = new UserRole(userId, role.Id);
 
                 _context.UserRoles.Add(userRole);
             }

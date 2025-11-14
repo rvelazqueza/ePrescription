@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EPrescription.API.Authorization;
-using EPrescription.Application.Interfaces;
+using EPrescription.API.DTOs;
+using EPrescription.Application.Constants;
 using EPrescription.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using AuthService = EPrescription.Application.Interfaces.IAuthorizationService;
 
 namespace EPrescription.API.Controllers;
 
@@ -14,12 +16,12 @@ namespace EPrescription.API.Controllers;
 public class RolesController : ControllerBase
 {
     private readonly EPrescriptionDbContext _context;
-    private readonly IAuthorizationService _authorizationService;
+    private readonly AuthService _authorizationService;
     private readonly ILogger<RolesController> _logger;
 
     public RolesController(
         EPrescriptionDbContext context,
-        IAuthorizationService authorizationService,
+        AuthService authorizationService,
         ILogger<RolesController> logger)
     {
         _context = context;
@@ -38,7 +40,7 @@ public class RolesController : ControllerBase
             .Select(r => new RoleDto
             {
                 Id = r.Id,
-                Name = r.Name,
+                Name = r.RoleName,
                 Description = r.Description,
                 CreatedAt = r.CreatedAt
             })
@@ -68,13 +70,13 @@ public class RolesController : ControllerBase
         var roleDto = new RoleDetailDto
         {
             Id = role.Id,
-            Name = role.Name,
+            Name = role.RoleName,
             Description = role.Description,
             CreatedAt = role.CreatedAt,
             Permissions = role.RolePermissions.Select(rp => new PermissionDto
             {
                 Id = rp.Permission.Id,
-                Name = rp.Permission.Name,
+                Name = rp.Permission.PermissionName,
                 Description = rp.Permission.Description
             }).ToList()
         };
@@ -100,7 +102,7 @@ public class RolesController : ControllerBase
 
         // Check if role already exists
         var existingRole = await _context.Roles
-            .FirstOrDefaultAsync(r => r.Name == request.Name);
+            .FirstOrDefaultAsync(r => r.RoleName == request.Name);
 
         if (existingRole != null)
         {
@@ -108,23 +110,18 @@ public class RolesController : ControllerBase
         }
 
         // Create role
-        var role = new Domain.Entities.Role
-        {
-            Id = Guid.NewGuid(),
-            Name = request.Name,
-            Description = request.Description
-        };
+        var role = new Domain.Entities.Role(request.Name, request.Description);
 
         _context.Roles.Add(role);
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Role {RoleName} created by user {Username}", 
-            role.Name, User.Identity?.Name);
+            role.RoleName, User.Identity?.Name);
 
         var roleDto = new RoleDto
         {
             Id = role.Id,
-            Name = role.Name,
+            Name = role.RoleName,
             Description = role.Description,
             CreatedAt = role.CreatedAt
         };
@@ -152,18 +149,18 @@ public class RolesController : ControllerBase
         // Update properties
         if (!string.IsNullOrWhiteSpace(request.Description))
         {
-            role.Description = request.Description;
+            role.UpdateDescription(request.Description);
         }
 
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Role {RoleName} updated by user {Username}", 
-            role.Name, User.Identity?.Name);
+            role.RoleName, User.Identity?.Name);
 
         var roleDto = new RoleDto
         {
             Id = role.Id,
-            Name = role.Name,
+            Name = role.RoleName,
             Description = role.Description,
             CreatedAt = role.CreatedAt
         };
@@ -190,7 +187,7 @@ public class RolesController : ControllerBase
 
         // Check if role is a system role (cannot be deleted)
         var systemRoles = new[] { "admin", "doctor", "pharmacist", "patient", "auditor" };
-        if (systemRoles.Contains(role.Name.ToLower()))
+        if (systemRoles.Contains(role.RoleName.ToLower()))
         {
             return BadRequest(new { message = "System roles cannot be deleted" });
         }
@@ -199,7 +196,7 @@ public class RolesController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Role {RoleName} deleted by user {Username}", 
-            role.Name, User.Identity?.Name);
+            role.RoleName, User.Identity?.Name);
 
         return NoContent();
     }
@@ -232,17 +229,13 @@ public class RolesController : ControllerBase
         }
 
         // Assign permission
-        var rolePermission = new Domain.Entities.RolePermission
-        {
-            RoleId = roleId,
-            PermissionId = permissionId
-        };
+        var rolePermission = new Domain.Entities.RolePermission(roleId, permissionId);
 
         _context.RolePermissions.Add(rolePermission);
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Permission {PermissionName} assigned to role {RoleName} by user {Username}", 
-            permission.Name, role.Name, User.Identity?.Name);
+            permission.PermissionName, role.RoleName, User.Identity?.Name);
 
         return Ok(new { message = "Permission assigned successfully" });
     }
@@ -272,36 +265,4 @@ public class RolesController : ControllerBase
 
         return NoContent();
     }
-}
-
-// DTOs
-public class RoleDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-public class RoleDetailDto : RoleDto
-{
-    public List<PermissionDto> Permissions { get; set; } = new();
-}
-
-public class PermissionDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-}
-
-public class CreateRoleRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-}
-
-public class UpdateRoleRequest
-{
-    public string? Description { get; set; }
 }

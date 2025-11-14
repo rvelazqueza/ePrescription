@@ -15,7 +15,9 @@ public class PrescriptionMedicationConfiguration : IEntityTypeConfiguration<Pres
         builder.Property(pm => pm.MedicationId).HasColumnName("MEDICATION_ID").IsRequired();
         builder.Property(pm => pm.Dosage).HasColumnName("DOSAGE").HasMaxLength(100).IsRequired();
         builder.Property(pm => pm.Frequency).HasColumnName("FREQUENCY").HasMaxLength(100).IsRequired();
-        builder.Property(pm => pm.Duration).HasColumnName("DURATION").HasMaxLength(100);
+        builder.Property(pm => pm.DurationDays).HasColumnName("DURATION_DAYS").IsRequired();
+        builder.Property(pm => pm.AdministrationRouteId).HasColumnName("ADMINISTRATION_ROUTE_ID").IsRequired();
+        builder.Property(pm => pm.AiSuggested).HasColumnName("AI_SUGGESTED").HasDefaultValue(false);
         builder.Property(pm => pm.Quantity).HasColumnName("QUANTITY").HasPrecision(10, 2).IsRequired();
         builder.Property(pm => pm.Instructions).HasColumnName("INSTRUCTIONS").HasColumnType("CLOB");
         builder.Property(pm => pm.CreatedAt).HasColumnName("CREATED_AT");
@@ -29,6 +31,11 @@ public class PrescriptionMedicationConfiguration : IEntityTypeConfiguration<Pres
         builder.HasOne<Medication>()
             .WithMany()
             .HasForeignKey(pm => pm.MedicationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<AdministrationRoute>()
+            .WithMany()
+            .HasForeignKey(pm => pm.AdministrationRouteId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

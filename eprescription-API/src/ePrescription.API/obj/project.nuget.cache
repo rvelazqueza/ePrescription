@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Ec+2qZzh3VQ=",
+  "dgSpecHash": "c6ELhKAuOHI8Yg0QprBZGf6CLP++hkUMYK9fn+MmOx4bLstKfFVI7WgaadqB32i7KJ57616AH1Ho0PKVo8qCAA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.API\\EPrescription.API.csproj",
+  "projectFilePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.API\\ePrescription.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Carlos\\.nuget\\packages\\automapper\\15.1.0\\automapper.15.1.0.nupkg.sha512",
     "C:\\Users\\Carlos\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
@@ -64,20 +64,14 @@
     "C:\\Users\\Carlos\\.nuget\\packages\\system.security.cryptography.pkcs\\8.0.0\\system.security.cryptography.pkcs.8.0.0.nupkg.sha512",
     "C:\\Users\\Carlos\\.nuget\\packages\\system.security.cryptography.protecteddata\\8.0.0\\system.security.cryptography.protecteddata.8.0.0.nupkg.sha512",
     "C:\\Users\\Carlos\\.nuget\\packages\\system.text.encodings.web\\9.0.0\\system.text.encodings.web.9.0.0.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\system.text.json\\9.0.0\\system.text.json.9.0.0.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.22\\microsoft.netcore.app.ref.8.0.22.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.22\\microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.22\\microsoft.aspnetcore.app.ref.8.0.22.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.22\\microsoft.netcore.app.host.win-x64.8.0.22.nupkg.sha512"
+    "C:\\Users\\Carlos\\.nuget\\packages\\system.text.json\\9.0.0\\system.text.json.9.0.0.nupkg.sha512"
   ],
   "logs": [
     {
       "code": "NU1608",
       "level": "Warning",
-      "message": "Detected package version outside of dependency constraint: AutoMapper.Extensions.Microsoft.DependencyInjection 12.0.1 requires AutoMapper (= 12.0.1) but version AutoMapper 15.1.0 was resolved.",
-      "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.API\\EPrescription.API.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.API\\EPrescription.API.csproj",
+      "message": "Detected package version outside of dependency constraint: AutoMapper.Extensions.Microsoft.DependencyInjection 12.0.1 requires AutoMapper (= 12.0.1) but version AutoMapper 15.1.0 was resolved.",
       "libraryId": "AutoMapper",
       "targetGraphs": [
         "net8.0"

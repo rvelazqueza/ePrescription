@@ -13,7 +13,7 @@ public class DispensationConfiguration : IEntityTypeConfiguration<Dispensation>
         builder.Property(d => d.Id).HasColumnName("DISPENSATION_ID");
         builder.Property(d => d.PrescriptionId).HasColumnName("PRESCRIPTION_ID").IsRequired();
         builder.Property(d => d.PharmacyId).HasColumnName("PHARMACY_ID").IsRequired();
-        builder.Property(d => d.PharmacistId).HasColumnName("PHARMACIST_ID").IsRequired();
+        builder.Property(d => d.PharmacistUserId).HasColumnName("PHARMACIST_USER_ID").IsRequired();
         builder.Property(d => d.DispensationDate).HasColumnName("DISPENSATION_DATE").IsRequired();
         builder.Property(d => d.Status).HasColumnName("STATUS").HasMaxLength(20).IsRequired();
         builder.Property(d => d.Notes).HasColumnName("NOTES").HasColumnType("CLOB");
@@ -32,8 +32,8 @@ public class DispensationConfiguration : IEntityTypeConfiguration<Dispensation>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne<User>()
-            .WithMany()
-            .HasForeignKey(d => d.PharmacistId)
+            .WithMany(u => u.Dispensations)
+            .HasForeignKey(d => d.PharmacistUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(d => d.Items)

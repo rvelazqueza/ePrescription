@@ -1,4 +1,5 @@
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +54,13 @@ builder.Services.AddScoped<EPrescription.Application.Interfaces.IAuthorizationSe
 
 // Add Keycloak Sync Service
 builder.Services.AddScoped<EPrescription.Infrastructure.Authorization.KeycloakSyncService>();
+
+// Configure Database
+builder.Services.AddDbContext<EPrescription.Infrastructure.Persistence.EPrescriptionDbContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseOracle(connectionString);
+});
 
 // Configure JWT Authentication
 builder.Services.AddAuthentication("Bearer")

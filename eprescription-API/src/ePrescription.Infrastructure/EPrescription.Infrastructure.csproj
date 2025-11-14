@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\EPrescription.Domain\EPrescription.Domain.csproj" />
-    <ProjectReference Include="..\EPrescription.Application\EPrescription.Application.csproj" />
+    <ProjectReference Include="..\ePrescription.Domain\EPrescription.Domain.csproj" />
+    <ProjectReference Include="..\ePrescription.Application\EPrescription.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

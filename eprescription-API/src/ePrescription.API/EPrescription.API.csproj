@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EPrescription.Application\EPrescription.Application.csproj" />
-    <ProjectReference Include="..\EPrescription.Infrastructure\EPrescription.Infrastructure.csproj" />
+    <ProjectReference Include="..\ePrescription.Application\EPrescription.Application.csproj" />
+    <ProjectReference Include="..\ePrescription.Infrastructure\EPrescription.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

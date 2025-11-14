@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EPrescription.API.Authorization;
-using EPrescription.Application.Interfaces;
+using EPrescription.Application.Constants;
 using System.Security.Claims;
+using AuthService = EPrescription.Application.Interfaces.IAuthorizationService;
 
 namespace EPrescription.API.Controllers;
 
@@ -16,11 +17,11 @@ namespace EPrescription.API.Controllers;
 [Produces("application/json")]
 public class ExamplesController : ControllerBase
 {
-    private readonly IAuthorizationService _authorizationService;
+    private readonly AuthService _authorizationService;
     private readonly ILogger<ExamplesController> _logger;
 
     public ExamplesController(
-        IAuthorizationService authorizationService,
+        AuthService authorizationService,
         ILogger<ExamplesController> logger)
     {
         _authorizationService = authorizationService;

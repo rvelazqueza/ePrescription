@@ -28,7 +28,7 @@ public class AIAnalysisLogConfiguration : IEntityTypeConfiguration<AIAnalysisLog
             .HasColumnType("CLOB")
             .IsRequired();
 
-        builder.Property(a => a.AIProvider)
+        builder.Property(a => a.AiProvider)
             .HasColumnName("AI_PROVIDER")
             .HasMaxLength(100);
 

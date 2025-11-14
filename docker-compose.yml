@@ -58,7 +58,7 @@ services:
       oracle-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200'"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -67,6 +67,49 @@ services:
       - eprescription-network
     volumes:
       - keycloak-data:/opt/keycloak/data
+
+  # Backend API (.NET 8)
+  backend-api:
+    build:
+      context: ./eprescription-API
+      dockerfile: Dockerfile
+    container_name: eprescription-backend-api
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    environment:
+      # ASP.NET Core
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      
+      # Database connection
+      - ConnectionStrings__DefaultConnection=User Id=eprescription_user;Password=EprescriptionPass123!;Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=oracle-db)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)))
+      
+      # Keycloak configuration
+      - Keycloak__Authority=http://keycloak:8080/realms/eprescription
+      - Keycloak__Audience=eprescription-api
+      - Keycloak__RequireHttpsMetadata=false
+      - Keycloak__TokenUrl=http://keycloak:8080/realms/eprescription/protocol/openid-connect/token
+      - Keycloak__UserInfoUrl=http://keycloak:8080/realms/eprescription/protocol/openid-connect/userinfo
+      - Keycloak__ClientId=eprescription-api
+      - Keycloak__ClientSecret=your-client-secret-here
+      
+      # Logging
+      - Logging__LogLevel__Default=Information
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - eprescription-network
 
 volumes:
   oracle-data:

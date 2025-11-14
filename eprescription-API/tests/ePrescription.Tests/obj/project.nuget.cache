@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "R0e3aiv/wxw=",
+  "dgSpecHash": "2Lk18t+2XwrxWBQJku330+ueYGPGZ/UH0xnbg6yBJ5diRX+sBQj6IhKq+TGp3WRhB5mDlOewTl7EKIUo/h1jTQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\tests\\EPrescription.Tests\\EPrescription.Tests.csproj",
   "expectedPackageFiles": [
@@ -156,19 +156,14 @@
     "C:\\Users\\Carlos\\.nuget\\packages\\xunit.core\\2.4.2\\xunit.core.2.4.2.nupkg.sha512",
     "C:\\Users\\Carlos\\.nuget\\packages\\xunit.extensibility.core\\2.4.2\\xunit.extensibility.core.2.4.2.nupkg.sha512",
     "C:\\Users\\Carlos\\.nuget\\packages\\xunit.extensibility.execution\\2.4.2\\xunit.extensibility.execution.2.4.2.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\xunit.runner.visualstudio\\2.4.5\\xunit.runner.visualstudio.2.4.5.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.22\\microsoft.netcore.app.ref.8.0.22.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.22\\microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512",
-    "C:\\Users\\Carlos\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.22\\microsoft.aspnetcore.app.ref.8.0.22.nupkg.sha512"
+    "C:\\Users\\Carlos\\.nuget\\packages\\xunit.runner.visualstudio\\2.4.5\\xunit.runner.visualstudio.2.4.5.nupkg.sha512"
   ],
   "logs": [
     {
       "code": "NU1608",
       "level": "Warning",
-      "message": "Detected package version outside of dependency constraint: AutoMapper.Extensions.Microsoft.DependencyInjection 12.0.1 requires AutoMapper (= 12.0.1) but version AutoMapper 15.1.0 was resolved.",
-      "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\tests\\EPrescription.Tests\\EPrescription.Tests.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\tests\\EPrescription.Tests\\EPrescription.Tests.csproj",
+      "message": "Detected package version outside of dependency constraint: AutoMapper.Extensions.Microsoft.DependencyInjection 12.0.1 requires AutoMapper (= 12.0.1) but version AutoMapper 15.1.0 was resolved.",
       "libraryId": "AutoMapper",
       "targetGraphs": [
         "net8.0"

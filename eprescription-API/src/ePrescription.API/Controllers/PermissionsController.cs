@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EPrescription.API.Authorization;
+using EPrescription.API.DTOs;
 using EPrescription.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using EPrescription.Application.Constants;
 
 namespace EPrescription.API.Controllers;
 
@@ -34,7 +36,7 @@ public class PermissionsController : ControllerBase
             .Select(p => new PermissionDto
             {
                 Id = p.Id,
-                Name = p.Name,
+                Name = p.PermissionName,
                 Description = p.Description,
                 CreatedAt = p.CreatedAt
             })
@@ -64,13 +66,13 @@ public class PermissionsController : ControllerBase
         var permissionDto = new PermissionDetailDto
         {
             Id = permission.Id,
-            Name = permission.Name,
+            Name = permission.PermissionName,
             Description = permission.Description,
             CreatedAt = permission.CreatedAt,
             Roles = permission.RolePermissions.Select(rp => new RoleDto
             {
                 Id = rp.Role.Id,
-                Name = rp.Role.Name,
+                Name = rp.Role.RoleName,
                 Description = rp.Role.Description,
                 CreatedAt = rp.Role.CreatedAt
             }).ToList()
@@ -97,31 +99,31 @@ public class PermissionsController : ControllerBase
 
         // Check if permission already exists
         var existingPermission = await _context.Permissions
-            .FirstOrDefaultAsync(p => p.Name == request.Name);
+            .FirstOrDefaultAsync(p => p.PermissionName == request.Name);
 
         if (existingPermission != null)
         {
             return BadRequest(new { message = "Permission already exists" });
         }
 
+        // Parse permission name to extract resource and action
+        var parts = request.Name.Split('.');
+        var resourceName = parts.Length > 0 ? parts[0] : "unknown";
+        var action = parts.Length > 1 ? parts[1] : "unknown";
+
         // Create permission
-        var permission = new Domain.Entities.Permission
-        {
-            Id = Guid.NewGuid(),
-            Name = request.Name,
-            Description = request.Description
-        };
+        var permission = new Domain.Entities.Permission(request.Name, resourceName, action, request.Description);
 
         _context.Permissions.Add(permission);
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Permission {PermissionName} created by user {Username}", 
-            permission.Name, User.Identity?.Name);
+            permission.PermissionName, User.Identity?.Name);
 
         var permissionDto = new PermissionDto
         {
             Id = permission.Id,
-            Name = permission.Name,
+            Name = permission.PermissionName,
             Description = permission.Description,
             CreatedAt = permission.CreatedAt
         };
@@ -149,18 +151,18 @@ public class PermissionsController : ControllerBase
         // Update properties
         if (!string.IsNullOrWhiteSpace(request.Description))
         {
-            permission.Description = request.Description;
+            permission.UpdateDescription(request.Description);
         }
 
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Permission {PermissionName} updated by user {Username}", 
-            permission.Name, User.Identity?.Name);
+            permission.PermissionName, User.Identity?.Name);
 
         var permissionDto = new PermissionDto
         {
             Id = permission.Id,
-            Name = permission.Name,
+            Name = permission.PermissionName,
             Description = permission.Description,
             CreatedAt = permission.CreatedAt
         };
@@ -189,7 +191,7 @@ public class PermissionsController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Permission {PermissionName} deleted by user {Username}", 
-            permission.Name, User.Identity?.Name);
+            permission.PermissionName, User.Identity?.Name);
 
         return NoContent();
     }
@@ -215,44 +217,11 @@ public class PermissionsController : ControllerBase
         var permissions = role.RolePermissions.Select(rp => new PermissionDto
         {
             Id = rp.Permission.Id,
-            Name = rp.Permission.Name,
+            Name = rp.Permission.PermissionName,
             Description = rp.Permission.Description,
             CreatedAt = rp.Permission.CreatedAt
         }).ToList();
 
         return Ok(permissions);
     }
-}
-
-// DTOs
-public class PermissionDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-public class PermissionDetailDto : PermissionDto
-{
-    public List<RoleDto> Roles { get; set; } = new();
-}
-
-public class RoleDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-public class CreatePermissionRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-}
-
-public class UpdatePermissionRequest
-{
-    public string? Description { get; set; }
 }

@@ -1,1 +1,11 @@
-{"Version":1,"Hash":"RhqflIJIYggjTxn0zOJOzI0ONoyjNOEq5Ykafke/4fQ=","Source":"EPrescription.API","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "CjXBvPg/+Hts7mBlyrXAkCVDdK1xx1Lr4KNf8pL3DYA=",
+  "Source": "EPrescription.API",
+  "BasePath": "_content/EPrescription.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\EPrescription.Domain\EPrescription.Domain.csproj" />
+    <ProjectReference Include="..\ePrescription.Domain\EPrescription.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
