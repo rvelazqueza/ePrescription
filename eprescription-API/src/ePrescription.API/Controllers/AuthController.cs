@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EPrescription.Application.Interfaces;
+using EPrescription.API.Authorization;
+using System.Security.Claims;
 
 namespace EPrescription.API.Controllers
 {

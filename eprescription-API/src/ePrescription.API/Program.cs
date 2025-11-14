@@ -51,6 +51,9 @@ builder.Services.AddHttpClient<EPrescription.Application.Interfaces.IAuthenticat
 builder.Services.AddScoped<EPrescription.Application.Interfaces.IAuthorizationService,
     EPrescription.Infrastructure.Authorization.AuthorizationService>();
 
+// Add Keycloak Sync Service
+builder.Services.AddScoped<EPrescription.Infrastructure.Authorization.KeycloakSyncService>();
+
 // Configure JWT Authentication
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
@@ -107,6 +110,21 @@ builder.Services.AddAuthorization(options =>
 // TODO: Add Infrastructure layer services (DbContext, Repositories, External Services)
 
 var app = builder.Build();
+
+// Initialize roles and permissions on startup
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var syncService = scope.ServiceProvider.GetRequiredService<EPrescription.Infrastructure.Authorization.KeycloakSyncService>();
+        await syncService.InitializeRolesAndPermissionsAsync();
+        Log.Information("Roles and permissions initialized successfully");
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Error initializing roles and permissions");
+    }
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
