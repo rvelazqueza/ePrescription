@@ -374,16 +374,26 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
   - [x] 7.22 Commit y push de autenticación Keycloak con Oracle
 
+
+
   - _Requirements: 2.3, 2.4, 2.5, 4.1_
   - _Branch: feature/task-7-keycloak-oracle-auth_
   - _Commit strategy: Push después de Keycloak con Oracle (7.12), después de servicio (7.14), y después de endpoints (7.19)_
   - _Estimated time: 10-12 hours_
   - _Note: Keycloak se comunica con Oracle dentro de la red Docker usando nombre de servicio_
 
-- [ ] 8. Implementar sistema de autorización basado en roles
-  - [ ] 8.1 Crear interfaz IAuthorizationService en Application layer
-  - [ ] 8.2 Implementar AuthorizationService en Infrastructure
-  - [ ] 8.3 Crear atributos personalizados [RequirePermission] y [RequireRole]
+- [-] 8. Implementar sistema de autorización basado en roles
+
+  - [x] 8.1 Crear interfaz IAuthorizationService en Application layer
+
+
+  - [x] 8.2 Implementar AuthorizationService en Infrastructure
+
+
+  - [x] 8.3 Crear atributos personalizados [RequirePermission] y [RequireRole]
+
+
+
   - [ ] 8.4 Implementar middleware de autorización
   - [ ] 8.5 Crear endpoints para gestión de roles (/api/roles)
   - [ ] 8.6 Crear endpoints para gestión de permisos (/api/permissions)
