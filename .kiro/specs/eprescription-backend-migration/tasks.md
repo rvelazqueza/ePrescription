@@ -394,9 +394,15 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 8.4 Implementar middleware de autorización
-  - [ ] 8.5 Crear endpoints para gestión de roles (/api/roles)
-  - [ ] 8.6 Crear endpoints para gestión de permisos (/api/permissions)
+  - [x] 8.4 Implementar middleware de autorización
+
+
+  - [x] 8.5 Crear endpoints para gestión de roles (/api/roles)
+
+
+  - [x] 8.6 Crear endpoints para gestión de permisos (/api/permissions)
+
+
   - [ ] 8.7 Implementar lógica de verificación de permisos en use cases
   - [ ] 8.8 Sincronizar roles de Keycloak con base de datos local
   - [ ] 8.9 Probar autorización con diferentes roles en Postman

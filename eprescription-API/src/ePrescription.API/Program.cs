@@ -47,6 +47,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient<EPrescription.Application.Interfaces.IAuthenticationService, 
     EPrescription.Infrastructure.Authentication.KeycloakAuthenticationService>();
 
+// Add Authorization Service
+builder.Services.AddScoped<EPrescription.Application.Interfaces.IAuthorizationService,
+    EPrescription.Infrastructure.Authorization.AuthorizationService>();
+
 // Configure JWT Authentication
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
@@ -120,6 +124,7 @@ app.UseCors("AllowFrontend");
 
 // Authentication & Authorization middleware (order matters!)
 app.UseAuthentication();
+app.UseMiddleware<EPrescription.API.Middleware.AuthorizationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
