@@ -410,9 +410,13 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 8.8 Sincronizar roles de Keycloak con base de datos local
 
 
-  - [ ] 8.9 Probar autorización con diferentes roles en Postman
+
+  - [x] 8.9 Probar autorización con diferentes roles en Postman
+
+
   - [ ] 8.10 Crear tests unitarios para autorización
-  - [ ] 8.11 Commit y push de sistema de autorización
+  - [-] 8.11 Commit y push de sistema de autorización
+
   - _Requirements: 2.4_
   - _Branch: feature/task-8-authorization_
   - _Commit strategy: Push después de servicio (8.2), después de endpoints (8.6), y después de pruebas (8.9)_
