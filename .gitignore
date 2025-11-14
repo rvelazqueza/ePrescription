@@ -44,3 +44,23 @@ obj/
 *.exe
 *.pdb
 *.log
+
+# Temporary test files and tokens
+last-token.json
+test-keycloak-auth.ps1
+test-login.ps1
+test-keycloak-direct.ps1
+
+# Temporary documentation (not for commit)
+TASK-7-PRE-PUSH-CHECKLIST.md
+PRE-PUSH-ACTIONS.md
+KEYCLOAK_PASSWORD_RESET_GUIDE.md
+KEYCLOAK_ROLES_ISSUE_ANALYSIS.md
+KEYCLOAK_AUTH_SUCCESS.md
+
+# Keycloak temporary scripts (keep only verified ones)
+keycloak/check-client-config.ps1
+keycloak/check-user-credentials.ps1
+keycloak/fix-passwords.ps1
+keycloak/get-client-secret.ps1
+keycloak/list-users.ps1
