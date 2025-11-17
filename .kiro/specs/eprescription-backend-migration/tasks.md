@@ -511,10 +511,20 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 10.12 Crear interfaz ICIE10CatalogService en Application layer
-  - [ ] 10.13 Implementar CIE10CatalogService (búsqueda local + WHO API fallback)
-  - [ ] 10.14 Crear interfaz IAIAssistantService en Application layer
-  - [ ] 10.15 Implementar HuggingFaceAIService en Infrastructure
+
+  - [x] 10.12 Crear interfaz ICIE10CatalogService en Application layer
+
+
+
+  - [x] 10.13 Implementar CIE10CatalogService (búsqueda local + WHO API fallback)
+
+
+  - [x] 10.14 Crear interfaz IAIAssistantService en Application layer
+
+
+  - [x] 10.15 Implementar HuggingFaceAIService en Infrastructure
+
+
   - [ ] 10.16 Implementar flujo de traducción: Español → Inglés → IA → Español
   - [ ] 10.17 Implementar método AnalyzeClinicalDescriptionAsync con traducción y validación CIE-10
   - [ ] 10.18 Implementar método GenerateMedicationRecommendationsAsync
