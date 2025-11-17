@@ -525,16 +525,27 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 10.15 Implementar HuggingFaceAIService en Infrastructure
 
 
-  - [ ] 10.16 Implementar flujo de traducción: Español → Inglés → IA → Español
-  - [ ] 10.17 Implementar método AnalyzeClinicalDescriptionAsync con traducción y validación CIE-10
+  - [x] 10.16 Implementar flujo de traducción: Español → Inglés → IA → Español
+
+  - [x] 10.17 Implementar método AnalyzeClinicalDescriptionAsync con traducción y validación CIE-10
+
+
   - [ ] 10.18 Implementar método GenerateMedicationRecommendationsAsync
-  - [ ] 10.19 Implementar método CheckDrugInteractionsAsync
-  - [ ] 10.20 Implementar método ValidateContraindicationsAsync
-  - [ ] 10.21 Integrar CIE10CatalogService con AIAssistantService para validar códigos
+  - [x] 10.19 Implementar método CheckDrugInteractionsAsync
+
+
+  - [x] 10.20 Implementar método ValidateContraindicationsAsync
+
+  - [x] 10.21 Integrar CIE10CatalogService con AIAssistantService para validar códigos
+
+
   - [ ] 10.22 Configurar API key de Hugging Face en appsettings.json (usar User Secrets)
-  - [ ] 10.23 Agregar todas las API keys a .env.example (sin valores reales)
-  - [ ] 10.24 Agregar WHO_API_CLIENT_ID, WHO_API_CLIENT_SECRET, TRANSLATION_API_KEY a .env
-  - [ ] 10.25 Implementar logging de operaciones de IA, traducción y WHO API en AIAnalysisLog
+  - [x] 10.23 Agregar todas las API keys a .env.example (sin valores reales)
+
+  - [x] 10.24 Agregar WHO_API_CLIENT_ID, WHO_API_CLIENT_SECRET, TRANSLATION_API_KEY a .env
+
+  - [x] 10.25 Implementar logging de operaciones de IA, traducción y WHO API en AIAnalysisLog
+
   - [x] 10.26 Crear WHOApiController con endpoints de sincronización manual
 
 
@@ -542,6 +553,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
   - [x] 10.28 Crear AIAssistantController con endpoints REST
+
 
 
   - [ ] 10.29 Implementar manejo de errores y timeouts para todas las APIs externas
