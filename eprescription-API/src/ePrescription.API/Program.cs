@@ -55,11 +55,21 @@ builder.Services.AddScoped<EPrescription.Application.Interfaces.IAuthorizationSe
 // Add Keycloak Sync Service
 builder.Services.AddScoped<EPrescription.Infrastructure.Authorization.KeycloakSyncService>();
 
+// Add Audit Services
+builder.Services.AddScoped<EPrescription.Application.Interfaces.IAuditService,
+    EPrescription.Infrastructure.Services.AuditService>();
+builder.Services.AddScoped<EPrescription.Application.Interfaces.IAuditRetentionService,
+    EPrescription.Infrastructure.Services.AuditRetentionService>();
+builder.Services.AddScoped<EPrescription.Infrastructure.Persistence.Interceptors.AuditInterceptor>();
+builder.Services.AddHttpContextAccessor(); // Required for AuditService to access HTTP context
+
 // Configure Database
-builder.Services.AddDbContext<EPrescription.Infrastructure.Persistence.EPrescriptionDbContext>(options =>
+builder.Services.AddDbContext<EPrescription.Infrastructure.Persistence.EPrescriptionDbContext>((serviceProvider, options) =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseOracle(connectionString);
+    var auditInterceptor = serviceProvider.GetRequiredService<EPrescription.Infrastructure.Persistence.Interceptors.AuditInterceptor>();
+    options.UseOracle(connectionString)
+           .AddInterceptors(auditInterceptor);
 });
 
 // Configure JWT Authentication

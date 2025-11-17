@@ -1,163 +1,177 @@
-using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
+using EPrescription.Application.Interfaces;
 using EPrescription.Domain.Entities;
-using EPrescription.Domain.Interfaces;
 using EPrescription.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace EPrescription.Infrastructure.Services;
 
 /// <summary>
-/// Audit service implementation for FDA 21 CFR Part 11 compliance
+/// Implementation of audit service for FDA 21 CFR Part 11 compliance
 /// Provides immutable audit trail for all critical operations
 /// </summary>
 public class AuditService : IAuditService
 {
     private readonly EPrescriptionDbContext _context;
+    private readonly ILogger<AuditService> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AuditService(EPrescriptionDbContext context)
+    public AuditService(
+        EPrescriptionDbContext context,
+        ILogger<AuditService> logger,
+        IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
+        _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task LogCreateAsync(
+    public async Task LogOperationAsync(
+        string action,
         string entityType,
         string entityId,
-        object afterValue,
-        Guid? userId = null,
-        string? username = null,
+        string? beforeValue = null,
+        string? afterValue = null,
+        string? additionalInfo = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            var userId = GetCurrentUserId();
+            var username = GetCurrentUsername();
+            var ipAddress = GetClientIpAddress();
+            var sessionId = httpContext?.Session?.Id;
+
+            var auditLog = new AuditLog(
+                actionType: action,
+                entityType: entityType,
+                userId: userId,
+                username: username,
+                ipAddress: ipAddress,
+                entityId: entityId,
+                beforeValue: beforeValue,
+                afterValue: afterValue,
+                metadata: additionalInfo,
+                sessionId: sessionId
+            );
+
+            _context.AuditLogs.Add(auditLog);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Audit log created: Action={Action}, Entity={EntityType}, EntityId={EntityId}, User={Username}",
+                action, entityType, entityId, username);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create audit log for action {Action}", action);
+            // Don't throw - audit failures shouldn't break the application
+        }
+    }
+
+    public async Task LogAuthenticationAsync(
+        string userId,
+        string action,
+        bool success,
         string? ipAddress = null,
-        Dictionary<string, object>? metadata = null,
+        string? additionalInfo = null,
         CancellationToken cancellationToken = default)
     {
-        var auditLog = new AuditLog(
-            actionType: "CREATE",
-            entityType: entityType,
-            entityId: entityId,
-            userId: userId,
-            username: username,
-            ipAddress: ipAddress,
-            beforeValue: null,
-            afterValue: SerializeObject(afterValue),
-            metadata: SerializeMetadata(metadata)
-        );
+        try
+        {
+            var metadata = new Dictionary<string, object>
+            {
+                ["Success"] = success,
+                ["Timestamp"] = DateTime.UtcNow
+            };
 
-        await _context.AuditLogs.AddAsync(auditLog, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+            if (!string.IsNullOrEmpty(additionalInfo))
+            {
+                metadata["AdditionalInfo"] = additionalInfo;
+            }
+
+            var metadataJson = JsonSerializer.Serialize(metadata);
+
+            var auditLog = new AuditLog(
+                actionType: action,
+                entityType: "Authentication",
+                userId: Guid.TryParse(userId, out var guid) ? guid : null,
+                username: userId,
+                ipAddress: ipAddress ?? GetClientIpAddress(),
+                entityId: userId,
+                metadata: metadataJson
+            );
+
+            _context.AuditLogs.Add(auditLog);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Authentication audit log created: User={UserId}, Action={Action}, Success={Success}",
+                userId, action, success);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create authentication audit log for user {UserId}", userId);
+        }
     }
 
-    public async Task LogUpdateAsync(
-        string entityType,
-        string entityId,
-        object beforeValue,
-        object afterValue,
-        Guid? userId = null,
-        string? username = null,
-        string? ipAddress = null,
-        Dictionary<string, object>? metadata = null,
+    public async Task LogAIOperationAsync(
+        string userId,
+        string operation,
+        string inputData,
+        string outputData,
+        string? modelUsed = null,
+        Dictionary<string, object>? metrics = null,
         CancellationToken cancellationToken = default)
     {
-        var auditLog = new AuditLog(
-            actionType: "UPDATE",
-            entityType: entityType,
-            entityId: entityId,
-            userId: userId,
-            username: username,
-            ipAddress: ipAddress,
-            beforeValue: SerializeObject(beforeValue),
-            afterValue: SerializeObject(afterValue),
-            metadata: SerializeMetadata(metadata)
-        );
+        try
+        {
+            var metadata = new Dictionary<string, object>
+            {
+                ["Operation"] = operation,
+                ["ModelUsed"] = modelUsed ?? "Unknown",
+                ["Timestamp"] = DateTime.UtcNow
+            };
 
-        await _context.AuditLogs.AddAsync(auditLog, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+            if (metrics != null)
+            {
+                metadata["Metrics"] = metrics;
+            }
+
+            var metadataJson = JsonSerializer.Serialize(metadata);
+
+            var auditLog = new AuditLog(
+                actionType: "AI_OPERATION",
+                entityType: "AIAnalysis",
+                userId: Guid.TryParse(userId, out var guid) ? guid : null,
+                username: userId,
+                ipAddress: GetClientIpAddress(),
+                beforeValue: inputData,
+                afterValue: outputData,
+                metadata: metadataJson
+            );
+
+            _context.AuditLogs.Add(auditLog);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "AI operation audit log created: User={UserId}, Operation={Operation}",
+                userId, operation);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create AI operation audit log");
+        }
     }
 
-    public async Task LogDeleteAsync(
-        string entityType,
-        string entityId,
-        object beforeValue,
-        Guid? userId = null,
-        string? username = null,
-        string? ipAddress = null,
-        Dictionary<string, object>? metadata = null,
-        CancellationToken cancellationToken = default)
-    {
-        var auditLog = new AuditLog(
-            actionType: "DELETE",
-            entityType: entityType,
-            entityId: entityId,
-            userId: userId,
-            username: username,
-            ipAddress: ipAddress,
-            beforeValue: SerializeObject(beforeValue),
-            afterValue: null,
-            metadata: SerializeMetadata(metadata)
-        );
-
-        await _context.AuditLogs.AddAsync(auditLog, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task LogActionAsync(
-        string actionType,
-        string entityType,
-        string? entityId = null,
-        object? data = null,
-        Guid? userId = null,
-        string? username = null,
-        string? ipAddress = null,
-        Dictionary<string, object>? metadata = null,
-        CancellationToken cancellationToken = default)
-    {
-        var auditLog = new AuditLog(
-            actionType: actionType,
-            entityType: entityType,
-            entityId: entityId,
-            userId: userId,
-            username: username,
-            ipAddress: ipAddress,
-            beforeValue: null,
-            afterValue: data != null ? SerializeObject(data) : null,
-            metadata: SerializeMetadata(metadata)
-        );
-
-        await _context.AuditLogs.AddAsync(auditLog, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task LogAIAnalysisAsync(
-        string analysisType,
-        object inputData,
-        object outputData,
-        string? aiProvider = null,
-        int? processingTimeMs = null,
-        decimal? confidenceScore = null,
-        bool wasAccepted = false,
-        Guid? userId = null,
-        Guid? prescriptionId = null,
-        CancellationToken cancellationToken = default)
-    {
-        var aiLog = new AIAnalysisLog(
-            analysisType: analysisType,
-            inputData: SerializeObject(inputData),
-            outputData: SerializeObject(outputData),
-            aiProvider: aiProvider,
-            processingTimeMs: processingTimeMs,
-            confidenceScore: confidenceScore,
-            wasAccepted: wasAccepted,
-            userId: userId,
-            prescriptionId: prescriptionId
-        );
-
-        await _context.AIAnalysisLogs.AddAsync(aiLog, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<IEnumerable<AuditLog>> GetAuditLogsAsync(
+    public async Task<(IEnumerable<AuditLog> Logs, int TotalCount)> GetAuditLogsAsync(
         DateTime? startDate = null,
         DateTime? endDate = null,
-        Guid? userId = null,
-        string? actionType = null,
+        string? userId = null,
+        string? action = null,
         string? entityType = null,
         int pageNumber = 1,
         int pageSize = 50,
@@ -165,107 +179,186 @@ public class AuditService : IAuditService
     {
         var query = _context.AuditLogs.AsQueryable();
 
+        // Apply filters
         if (startDate.HasValue)
+        {
             query = query.Where(a => a.Timestamp >= startDate.Value);
+        }
 
         if (endDate.HasValue)
+        {
             query = query.Where(a => a.Timestamp <= endDate.Value);
+        }
 
-        if (userId.HasValue)
-            query = query.Where(a => a.UserId == userId.Value);
+        if (!string.IsNullOrEmpty(userId))
+        {
+            if (Guid.TryParse(userId, out var guid))
+            {
+                query = query.Where(a => a.UserId == guid);
+            }
+            else
+            {
+                query = query.Where(a => a.Username == userId);
+            }
+        }
 
-        if (!string.IsNullOrWhiteSpace(actionType))
-            query = query.Where(a => a.ActionType == actionType);
+        if (!string.IsNullOrEmpty(action))
+        {
+            query = query.Where(a => a.ActionType.Contains(action));
+        }
 
-        if (!string.IsNullOrWhiteSpace(entityType))
+        if (!string.IsNullOrEmpty(entityType))
+        {
             query = query.Where(a => a.EntityType == entityType);
+        }
 
-        return await query
+        // Get total count
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        // Apply pagination
+        var logs = await query
             .OrderByDescending(a => a.Timestamp)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
+
+        return (logs, totalCount);
     }
 
-    public async Task<IEnumerable<AuditLog>> GetEntityAuditTrailAsync(
-        string entityType,
-        string entityId,
+    public async Task<AuditLog?> GetAuditLogByIdAsync(
+        Guid id,
         CancellationToken cancellationToken = default)
     {
         return await _context.AuditLogs
-            .Where(a => a.EntityType == entityType && a.EntityId == entityId)
-            .OrderBy(a => a.Timestamp)
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<IEnumerable<AIAnalysisLog>> GetAIAnalysisLogsAsync(
-        DateTime? startDate = null,
-        DateTime? endDate = null,
-        string? analysisType = null,
-        Guid? userId = null,
-        Guid? prescriptionId = null,
-        int pageNumber = 1,
-        int pageSize = 50,
-        CancellationToken cancellationToken = default)
-    {
-        var query = _context.AIAnalysisLogs.AsQueryable();
-
-        if (startDate.HasValue)
-            query = query.Where(a => a.Timestamp >= startDate.Value);
-
-        if (endDate.HasValue)
-            query = query.Where(a => a.Timestamp <= endDate.Value);
-
-        if (!string.IsNullOrWhiteSpace(analysisType))
-            query = query.Where(a => a.AnalysisType == analysisType);
-
-        if (userId.HasValue)
-            query = query.Where(a => a.UserId == userId.Value);
-
-        if (prescriptionId.HasValue)
-            query = query.Where(a => a.PrescriptionId == prescriptionId.Value);
-
-        return await query
-            .OrderByDescending(a => a.Timestamp)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+            .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
     }
 
     public async Task<bool> ValidateAuditIntegrityAsync(
+        Guid auditLogId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var auditLog = await _context.AuditLogs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == auditLogId, cancellationToken);
+
+            if (auditLog == null)
+            {
+                return false;
+            }
+
+            // Verify that the audit log hasn't been modified
+            // In a real implementation, you might use cryptographic hashing
+            // For now, we just verify it exists and has valid data
+            return !string.IsNullOrEmpty(auditLog.ActionType) &&
+                   !string.IsNullOrEmpty(auditLog.EntityType) &&
+                   auditLog.Timestamp != default;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to validate audit integrity for log {AuditLogId}", auditLogId);
+            return false;
+        }
+    }
+
+    public async Task<AuditStatistics> GetAuditStatisticsAsync(
         DateTime startDate,
         DateTime endDate,
         CancellationToken cancellationToken = default)
     {
-        // Verify that audit logs exist and are sequential
         var logs = await _context.AuditLogs
             .Where(a => a.Timestamp >= startDate && a.Timestamp <= endDate)
-            .OrderBy(a => a.Timestamp)
             .ToListAsync(cancellationToken);
 
-        // Basic integrity check: ensure no gaps in timestamps
-        // In a production system, this could include cryptographic verification
-        return logs.Any();
-    }
+        var authLogs = logs.Where(a => a.EntityType == "Authentication").ToList();
 
-    private string SerializeObject(object obj)
-    {
-        return JsonSerializer.Serialize(obj, new JsonSerializerOptions
+        var statistics = new AuditStatistics
         {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+            TotalOperations = logs.Count,
+            AuthenticationAttempts = authLogs.Count,
+            SuccessfulAuthentications = authLogs.Count(a => 
+                a.Metadata != null && a.Metadata.Contains("\"Success\":true")),
+            FailedAuthentications = authLogs.Count(a => 
+                a.Metadata != null && a.Metadata.Contains("\"Success\":false")),
+            AIOperations = logs.Count(a => a.ActionType == "AI_OPERATION"),
+            OperationsByType = logs
+                .GroupBy(a => a.ActionType)
+                .ToDictionary(g => g.Key, g => g.Count()),
+            OperationsByUser = logs
+                .Where(a => !string.IsNullOrEmpty(a.Username))
+                .GroupBy(a => a.Username!)
+                .ToDictionary(g => g.Key, g => g.Count()),
+            MostActiveUsers = logs
+                .Where(a => !string.IsNullOrEmpty(a.Username))
+                .GroupBy(a => a.Username!)
+                .OrderByDescending(g => g.Count())
+                .Take(10)
+                .Select(g => g.Key)
+                .ToList(),
+            MostCommonOperations = logs
+                .GroupBy(a => a.ActionType)
+                .OrderByDescending(g => g.Count())
+                .Take(10)
+                .Select(g => g.Key)
+                .ToList()
+        };
+
+        return statistics;
     }
 
-    private string? SerializeMetadata(Dictionary<string, object>? metadata)
+    #region Private Helper Methods
+
+    private Guid? GetCurrentUserId()
     {
-        if (metadata == null || !metadata.Any())
-            return null;
-
-        return JsonSerializer.Serialize(metadata, new JsonSerializerOptions
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext?.User?.Identity?.IsAuthenticated == true)
         {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+            var userIdClaim = httpContext.User.FindFirst("sub") ?? 
+                             httpContext.User.FindFirst("user_id");
+            
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                return userId;
+            }
+        }
+        return null;
     }
+
+    private string? GetCurrentUsername()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext?.User?.Identity?.IsAuthenticated == true)
+        {
+            return httpContext.User.Identity.Name ?? 
+                   httpContext.User.FindFirst("preferred_username")?.Value ??
+                   httpContext.User.FindFirst("email")?.Value;
+        }
+        return null;
+    }
+
+    private string? GetClientIpAddress()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null) return null;
+
+        // Check for forwarded IP (behind proxy/load balancer)
+        var forwardedFor = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwardedFor))
+        {
+            return forwardedFor.Split(',')[0].Trim();
+        }
+
+        // Check for real IP
+        var realIp = httpContext.Request.Headers["X-Real-IP"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(realIp))
+        {
+            return realIp;
+        }
+
+        // Fallback to remote IP
+        return httpContext.Connection.RemoteIpAddress?.ToString();
+    }
+
+    #endregion
 }
