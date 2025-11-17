@@ -63,6 +63,13 @@ builder.Services.AddScoped<EPrescription.Application.Interfaces.IAuditRetentionS
 builder.Services.AddScoped<EPrescription.Infrastructure.Persistence.Interceptors.AuditInterceptor>();
 builder.Services.AddHttpContextAccessor(); // Required for AuditService to access HTTP context
 
+// Add WHO API Service
+builder.Services.AddHttpClient<EPrescription.Application.Interfaces.IWHOApiService,
+    EPrescription.Infrastructure.Services.WHOApiService>();
+
+// Add WHO Sync Background Service (daily automatic sync at 2:00 AM)
+builder.Services.AddHostedService<EPrescription.Infrastructure.BackgroundServices.WHOSyncBackgroundService>();
+
 // Configure Database
 builder.Services.AddDbContext<EPrescription.Infrastructure.Persistence.EPrescriptionDbContext>((serviceProvider, options) =>
 {
