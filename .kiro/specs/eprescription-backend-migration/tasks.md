@@ -507,7 +507,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
   - [x] 10.10 Implementar TranslationService (Azure Translator o Google Cloud Translation)
 
-  - [ ] 10.11 Configurar Translation API credentials en appsettings.json
+  - [x] 10.11 Configurar Translation API credentials en appsettings.json
+
 
 
   - [ ] 10.12 Crear interfaz ICIE10CatalogService en Application layer
