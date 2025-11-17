@@ -70,6 +70,10 @@ builder.Services.AddHttpClient<EPrescription.Application.Interfaces.IWHOApiServi
 // Add WHO Sync Background Service (daily automatic sync at 2:00 AM)
 builder.Services.AddHostedService<EPrescription.Infrastructure.BackgroundServices.WHOSyncBackgroundService>();
 
+// Add Translation Service (DeepL)
+builder.Services.AddHttpClient<EPrescription.Application.Interfaces.ITranslationService,
+    EPrescription.Infrastructure.Services.DeepLTranslationService>();
+
 // Configure Database
 builder.Services.AddDbContext<EPrescription.Infrastructure.Persistence.EPrescriptionDbContext>((serviceProvider, options) =>
 {

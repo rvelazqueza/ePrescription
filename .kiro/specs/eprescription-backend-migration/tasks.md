@@ -483,17 +483,32 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 - [ ] 10. Migrar asistente de IA con WHO API, CIE-10 y traducción (desde PorMigrar)
-  - [ ] 10.1 Revisar código del asistente de IA en carpeta PorMigrar
-  - [ ] 10.2 Extraer API keys (Hugging Face, WHO API) de código React (NO commitear)
-  - [ ] 10.3 Revisar integración con APIs de catálogos CIE-10 en PorMigrar
-  - [ ] 10.4 Documentar lógica de análisis clínico y generación de diagnósticos
-  - [ ] 10.5 Crear interfaz IWHOApiService en Application layer
-  - [ ] 10.6 Implementar WHOApiService en Infrastructure (OAuth 2.0, sync catalog)
-  - [ ] 10.7 Configurar WHO API credentials en appsettings.json (usar User Secrets)
-  - [ ] 10.8 Implementar sincronización diaria de catálogo CIE-10 desde WHO API
-  - [ ] 10.9 Crear interfaz ITranslationService en Application layer
-  - [ ] 10.10 Implementar TranslationService (Azure Translator o Google Cloud Translation)
-  - [ ] 10.11 Configurar Translation API credentials en appsettings.json
+  - [x] 10.1 Revisar código del asistente de IA en carpeta PorMigrar
+
+  - [x] 10.2 Extraer API keys (Hugging Face, WHO API) de código React (NO commitear)
+
+  - [x] 10.3 Revisar integración con APIs de catálogos CIE-10 en PorMigrar
+
+  - [x] 10.4 Documentar lógica de análisis clínico y generación de diagnósticos
+
+  - [x] 10.5 Crear interfaz IWHOApiService en Application layer
+
+  - [x] 10.6 Implementar WHOApiService en Infrastructure (OAuth 2.0, sync catalog)
+
+  - [x] 10.7 Configurar WHO API credentials en appsettings.json (usar User Secrets)
+
+  - [x] 10.8 Implementar sincronización diaria de catálogo CIE-10 desde WHO API
+
+  - [x] 10.9 Crear interfaz ITranslationService en Application layer
+
+
+
+
+
+  - [x] 10.10 Implementar TranslationService (Azure Translator o Google Cloud Translation)
+
+  - [x] 10.11 Configurar Translation API credentials en appsettings.json
+
   - [ ] 10.12 Crear interfaz ICIE10CatalogService en Application layer
   - [ ] 10.13 Implementar CIE10CatalogService (búsqueda local + WHO API fallback)
   - [ ] 10.14 Crear interfaz IAIAssistantService en Application layer
