@@ -569,7 +569,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 10.32 Crear tests unitarios con mocks para todos los servicios
+  - [x] 10.32 Crear tests unitarios con mocks para todos los servicios
+
   - [x] 10.33 Commit y push de asistente de IA completo (SIN API keys en código)
 
 
