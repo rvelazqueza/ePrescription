@@ -44,6 +44,7 @@ obj/
 *.exe
 *.pdb
 *.log
+appsettings.Local.json
 
 # Temporary test files and tokens
 last-token.json

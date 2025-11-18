@@ -63,6 +63,26 @@ builder.Services.AddScoped<EPrescription.Application.Interfaces.IAuditRetentionS
 builder.Services.AddScoped<EPrescription.Infrastructure.Persistence.Interceptors.AuditInterceptor>();
 builder.Services.AddHttpContextAccessor(); // Required for AuditService to access HTTP context
 
+// Add WHO API Service
+builder.Services.AddHttpClient<EPrescription.Application.Interfaces.IWHOApiService,
+    EPrescription.Infrastructure.Services.WHOApiService>();
+
+// Add WHO Sync Background Service (daily automatic sync at 2:00 AM)
+builder.Services.AddHostedService<EPrescription.Infrastructure.BackgroundServices.WHOSyncBackgroundService>();
+
+// Add Translation Service (DeepL)
+builder.Services.AddHttpClient<EPrescription.Application.Interfaces.ITranslationService,
+    EPrescription.Infrastructure.Services.DeepLTranslationService>();
+
+// Add CIE-10 Catalog Service
+builder.Services.AddScoped<EPrescription.Application.Interfaces.ICIE10CatalogService,
+    EPrescription.Infrastructure.Services.CIE10CatalogService>();
+builder.Services.AddMemoryCache(); // Required for CIE10CatalogService caching
+
+// Add AI Assistant Service (Hugging Face)
+builder.Services.AddHttpClient<EPrescription.Application.Interfaces.IAIAssistantService,
+    EPrescription.Infrastructure.Services.HuggingFaceAIService>();
+
 // Configure Database
 builder.Services.AddDbContext<EPrescription.Infrastructure.Persistence.EPrescriptionDbContext>((serviceProvider, options) =>
 {

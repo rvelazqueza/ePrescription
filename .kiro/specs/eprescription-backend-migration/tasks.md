@@ -483,37 +483,85 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 - [ ] 10. Migrar asistente de IA con WHO API, CIE-10 y traducción (desde PorMigrar)
-  - [ ] 10.1 Revisar código del asistente de IA en carpeta PorMigrar
-  - [ ] 10.2 Extraer API keys (Hugging Face, WHO API) de código React (NO commitear)
-  - [ ] 10.3 Revisar integración con APIs de catálogos CIE-10 en PorMigrar
-  - [ ] 10.4 Documentar lógica de análisis clínico y generación de diagnósticos
-  - [ ] 10.5 Crear interfaz IWHOApiService en Application layer
-  - [ ] 10.6 Implementar WHOApiService en Infrastructure (OAuth 2.0, sync catalog)
-  - [ ] 10.7 Configurar WHO API credentials en appsettings.json (usar User Secrets)
-  - [ ] 10.8 Implementar sincronización diaria de catálogo CIE-10 desde WHO API
-  - [ ] 10.9 Crear interfaz ITranslationService en Application layer
-  - [ ] 10.10 Implementar TranslationService (Azure Translator o Google Cloud Translation)
-  - [ ] 10.11 Configurar Translation API credentials en appsettings.json
-  - [ ] 10.12 Crear interfaz ICIE10CatalogService en Application layer
-  - [ ] 10.13 Implementar CIE10CatalogService (búsqueda local + WHO API fallback)
-  - [ ] 10.14 Crear interfaz IAIAssistantService en Application layer
-  - [ ] 10.15 Implementar HuggingFaceAIService en Infrastructure
-  - [ ] 10.16 Implementar flujo de traducción: Español → Inglés → IA → Español
-  - [ ] 10.17 Implementar método AnalyzeClinicalDescriptionAsync con traducción y validación CIE-10
+  - [x] 10.1 Revisar código del asistente de IA en carpeta PorMigrar
+
+  - [x] 10.2 Extraer API keys (Hugging Face, WHO API) de código React (NO commitear)
+
+  - [x] 10.3 Revisar integración con APIs de catálogos CIE-10 en PorMigrar
+
+  - [x] 10.4 Documentar lógica de análisis clínico y generación de diagnósticos
+
+  - [x] 10.5 Crear interfaz IWHOApiService en Application layer
+
+  - [x] 10.6 Implementar WHOApiService en Infrastructure (OAuth 2.0, sync catalog)
+
+  - [x] 10.7 Configurar WHO API credentials en appsettings.json (usar User Secrets)
+
+  - [x] 10.8 Implementar sincronización diaria de catálogo CIE-10 desde WHO API
+
+  - [x] 10.9 Crear interfaz ITranslationService en Application layer
+
+
+
+
+
+  - [x] 10.10 Implementar TranslationService (Azure Translator o Google Cloud Translation)
+
+  - [x] 10.11 Configurar Translation API credentials en appsettings.json
+
+
+
+
+  - [x] 10.12 Crear interfaz ICIE10CatalogService en Application layer
+
+
+
+  - [x] 10.13 Implementar CIE10CatalogService (búsqueda local + WHO API fallback)
+
+
+  - [x] 10.14 Crear interfaz IAIAssistantService en Application layer
+
+
+  - [x] 10.15 Implementar HuggingFaceAIService en Infrastructure
+
+
+  - [x] 10.16 Implementar flujo de traducción: Español → Inglés → IA → Español
+
+  - [x] 10.17 Implementar método AnalyzeClinicalDescriptionAsync con traducción y validación CIE-10
+
+
   - [ ] 10.18 Implementar método GenerateMedicationRecommendationsAsync
-  - [ ] 10.19 Implementar método CheckDrugInteractionsAsync
-  - [ ] 10.20 Implementar método ValidateContraindicationsAsync
-  - [ ] 10.21 Integrar CIE10CatalogService con AIAssistantService para validar códigos
+  - [x] 10.19 Implementar método CheckDrugInteractionsAsync
+
+
+  - [x] 10.20 Implementar método ValidateContraindicationsAsync
+
+  - [x] 10.21 Integrar CIE10CatalogService con AIAssistantService para validar códigos
+
+
   - [ ] 10.22 Configurar API key de Hugging Face en appsettings.json (usar User Secrets)
-  - [ ] 10.23 Agregar todas las API keys a .env.example (sin valores reales)
-  - [ ] 10.24 Agregar WHO_API_CLIENT_ID, WHO_API_CLIENT_SECRET, TRANSLATION_API_KEY a .env
-  - [ ] 10.25 Implementar logging de operaciones de IA, traducción y WHO API en AIAnalysisLog
-  - [ ] 10.26 Crear WHOApiController con endpoints de sincronización manual
-  - [ ] 10.27 Crear CIE10Controller con endpoints de búsqueda de catálogo
-  - [ ] 10.28 Crear AIAssistantController con endpoints REST
+  - [x] 10.23 Agregar todas las API keys a .env.example (sin valores reales)
+
+  - [x] 10.24 Agregar WHO_API_CLIENT_ID, WHO_API_CLIENT_SECRET, TRANSLATION_API_KEY a .env
+
+  - [x] 10.25 Implementar logging de operaciones de IA, traducción y WHO API en AIAnalysisLog
+
+
+  - [x] 10.26 Crear WHOApiController con endpoints de sincronización manual
+
+
+  - [x] 10.27 Crear CIE10Controller con endpoints de búsqueda de catálogo
+
+
+  - [x] 10.28 Crear AIAssistantController con endpoints REST
+
+
+
   - [ ] 10.29 Implementar manejo de errores y timeouts para todas las APIs externas
   - [ ] 10.30 Implementar retry policy con Polly para WHO API, Translation y Hugging Face
-  - [ ] 10.31 Probar endpoints de IA, CIE-10, WHO API y traducción con Postman
+  - [x] 10.31 Probar endpoints de IA, CIE-10, WHO API y traducción con Postman
+
+
   - [ ] 10.32 Crear tests unitarios con mocks para todos los servicios
   - [ ] 10.33 Commit y push de asistente de IA completo (SIN API keys en código)
   - _Requirements: 3.1-3.16, 13.1-13.20_
