@@ -541,7 +541,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 10.21 Integrar CIE10CatalogService con AIAssistantService para validar códigos
 
 
-  - [ ] 10.22 Configurar API key de Hugging Face en appsettings.json (usar User Secrets)
+  - [x] 10.22 Configurar API key de Hugging Face en appsettings.json (usar User Secrets)
+
   - [x] 10.23 Agregar todas las API keys a .env.example (sin valores reales)
 
   - [x] 10.24 Agregar WHO_API_CLIENT_ID, WHO_API_CLIENT_SECRET, TRANSLATION_API_KEY a .env
@@ -562,12 +563,15 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
   - [x] 10.29 Implementar manejo de errores y timeouts para todas las APIs externas
 
-  - [ ] 10.30 Implementar retry policy con Polly para WHO API, Translation y Hugging Face
+  - [x] 10.30 Implementar retry policy con Polly para WHO API, Translation y Hugging Face
+
   - [x] 10.31 Probar endpoints de IA, CIE-10, WHO API y traducción con Postman
 
 
+
   - [ ] 10.32 Crear tests unitarios con mocks para todos los servicios
-  - [-] 10.33 Commit y push de asistente de IA completo (SIN API keys en código)
+  - [x] 10.33 Commit y push de asistente de IA completo (SIN API keys en código)
+
 
   - _Requirements: 3.1-3.16, 13.1-13.20_
   - _Branch: feature/task-10-ai-who-translation_
