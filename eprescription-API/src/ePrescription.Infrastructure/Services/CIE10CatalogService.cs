@@ -1,5 +1,4 @@
-using ePrescription.Application.Interfaces;
-using ePrescription.Domain.Entities;
+using EPrescription.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -478,12 +477,14 @@ public class CIE10CatalogService : ICIE10CatalogService
         }
     }
 
-    private static ICD10Code MapToICD10Code(Cie10Catalog entity)
+    // Temporary placeholder - will be replaced with actual entity mapping
+    private static ICD10Code MapToICD10Code(object entity)
     {
+        // TODO: Implement proper mapping when Cie10Catalog entity is available
         return new ICD10Code
         {
-            Code = entity.Code,
-            Description = entity.DescriptionEs,
+            Code = "TEMP",
+            Description = "Temporary placeholder",
             Category = entity.Category ?? string.Empty,
             Subcategory = entity.Chapter,
             IsCommon = true, // Could be calculated based on usage

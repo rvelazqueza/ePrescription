@@ -24,7 +24,7 @@ public interface IWHOApiService
     /// <summary>
     /// Get detailed information for a specific ICD-10 code
     /// </summary>
-    Task<ICD10CodeDetail?> GetICD10CodeDetailAsync(string code, string language = "es", CancellationToken cancellationToken = default);
+    Task<ICD10CodeDetails?> GetICD10CodeDetailAsync(string code, string language = "es", CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Validate if an ICD-10 code exists and is active
@@ -55,32 +55,4 @@ public class WHOSyncResult
     public TimeSpan Duration { get; set; }
     public List<string> Errors { get; set; } = new();
     public string? ErrorMessage { get; set; }
-}
-
-/// <summary>
-/// Basic ICD-10 code for searches
-/// </summary>
-public class ICD10Code
-{
-    public string Code { get; set; } = string.Empty;
-    public string Title { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Language { get; set; } = "es";
-    public string Category { get; set; } = string.Empty;
-    public bool IsActive { get; set; } = true;
-}
-
-/// <summary>
-/// Detailed information for an ICD-10 code
-/// </summary>
-public class ICD10CodeDetail : ICD10Code
-{
-    public string? ParentCode { get; set; }
-    public List<string> ChildCodes { get; set; } = new();
-    public List<string> Synonyms { get; set; } = new();
-    public List<string> Exclusions { get; set; } = new();
-    public List<string> Inclusions { get; set; } = new();
-    public string? CodingHint { get; set; }
-    public DateTime LastUpdated { get; set; }
-    public string Source { get; set; } = "WHO";
 }

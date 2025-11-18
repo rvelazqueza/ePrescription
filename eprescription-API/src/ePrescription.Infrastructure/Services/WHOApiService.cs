@@ -224,7 +224,7 @@ public class WHOApiService : IWHOApiService
     /// <summary>
     /// Get detailed information for a specific ICD-10 code
     /// </summary>
-    public async Task<ICD10CodeDetail?> GetICD10CodeDetailAsync(string code, string language = "es", CancellationToken cancellationToken = default)
+    public async Task<ICD10CodeDetails?> GetICD10CodeDetailAsync(string code, string language = "es", CancellationToken cancellationToken = default)
     {
         try
         {
@@ -243,21 +243,18 @@ public class WHOApiService : IWHOApiService
                 
                 if (detail != null)
                 {
-                    return new ICD10CodeDetail
+                    return new ICD10CodeDetails
                     {
                         Code = detail.Code ?? code,
-                        Title = detail.Title ?? "",
-                        Description = detail.Description ?? "",
-                        Language = language,
-                        ParentCode = detail.Parent,
-                        ChildCodes = detail.Children ?? new List<string>(),
+                        Description = detail.Title ?? "",
+                        Category = detail.Description ?? "",
+                        LongDescription = detail.Description,
+                        RelatedCodes = detail.Children ?? new List<string>(),
                         Synonyms = detail.Synonyms ?? new List<string>(),
-                        Exclusions = detail.Exclusions ?? new List<string>(),
-                        Inclusions = detail.Inclusions ?? new List<string>(),
-                        CodingHint = detail.CodingHint,
+                        ClinicalNotes = detail.CodingHint,
                         LastUpdated = DateTime.UtcNow,
-                        Source = "WHO",
-                        IsActive = true
+                        IsCommon = false,
+                        UsageCount = 0
                     };
                 }
             }

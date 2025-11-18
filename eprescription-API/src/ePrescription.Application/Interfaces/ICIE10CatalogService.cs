@@ -1,6 +1,4 @@
-using ePrescription.Domain.Entities;
-
-namespace ePrescription.Application.Interfaces;
+namespace EPrescription.Application.Interfaces;
 
 /// <summary>
 /// Service for managing ICD-10 (CIE-10) catalog operations

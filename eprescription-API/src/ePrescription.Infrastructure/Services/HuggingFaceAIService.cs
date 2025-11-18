@@ -1,5 +1,5 @@
 using ePrescription.Application.Interfaces;
-using ePrescription.Domain.Entities;
+using EPrescription.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -584,11 +584,11 @@ public class HuggingFaceAIService : IAIAssistantService
         };
     }
 
-    private async Task<List<Application.Interfaces.DrugInteraction>> CheckInteractionsWithAIAsync(List<string> medicationNames)
+    private async Task<List<DrugInteraction>> CheckInteractionsWithAIAsync(List<string> medicationNames)
     {
         // Placeholder for AI-based interaction checking
         // In production, this would call Hugging Face API with medication names
-        return new List<Application.Interfaces.DrugInteraction>();
+        return new List<DrugInteraction>();
     }
 
     // Hugging Face API response model
