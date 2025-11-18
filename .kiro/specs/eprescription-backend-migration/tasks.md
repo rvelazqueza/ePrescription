@@ -546,6 +546,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
   - [x] 10.25 Implementar logging de operaciones de IA, traducción y WHO API en AIAnalysisLog
 
+
   - [x] 10.26 Crear WHOApiController con endpoints de sincronización manual
 
 
@@ -558,7 +559,9 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
   - [ ] 10.29 Implementar manejo de errores y timeouts para todas las APIs externas
   - [ ] 10.30 Implementar retry policy con Polly para WHO API, Translation y Hugging Face
-  - [ ] 10.31 Probar endpoints de IA, CIE-10, WHO API y traducción con Postman
+  - [x] 10.31 Probar endpoints de IA, CIE-10, WHO API y traducción con Postman
+
+
   - [ ] 10.32 Crear tests unitarios con mocks para todos los servicios
   - [ ] 10.33 Commit y push de asistente de IA completo (SIN API keys en código)
   - _Requirements: 3.1-3.16, 13.1-13.20_
