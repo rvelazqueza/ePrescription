@@ -595,10 +595,18 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 11.5 Implementar GetPrescriptionQuery con handler
-  - [ ] 11.6 Implementar UpdatePrescriptionCommand con handler
-  - [ ] 11.7 Implementar DeletePrescriptionCommand con handler
-  - [ ] 11.8 Implementar SearchPrescriptionsQuery con filtros y paginación
+  - [x] 11.5 Implementar GetPrescriptionQuery con handler
+
+
+
+  - [x] 11.6 Implementar UpdatePrescriptionCommand con handler
+
+
+  - [x] 11.7 Implementar DeletePrescriptionCommand con handler
+
+
+  - [x] 11.8 Implementar SearchPrescriptionsQuery con filtros y paginación
+
   - [ ] 11.9 Crear PrescriptionsController con endpoints CRUD
   - [ ] 11.10 Integrar auditoría en todas las operaciones de prescripciones
   - [ ] 11.11 Implementar autorización por roles en endpoints
