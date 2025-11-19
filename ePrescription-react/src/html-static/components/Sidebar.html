@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar - ePrescription</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2b6cb0;
+            --primary-dark: #2c5282;
+            --primary-light: #4299e1;
+            --bg-sidebar: #1a202c;
+            --bg-sidebar-hover: #2d3748;
+            --text-light: #e2e8f0;
+            --text-gray: #a0aec0;
+            --border-color: #4a5568;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f7fafc;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Principal */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        /* Logo Section */
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-light);
+        }
+
+        /* Menu Items */
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            padding: 0.875rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-gray);
+            text-decoration: none;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background: var(--bg-sidebar-hover);
+            color: var(--text-light);
+        }
+
+        .menu-item.active {
+            background: var(--bg-sidebar-hover);
+            color: var(--primary-light);
+            border-left-color: var(--primary-light);
+        }
+
+        .menu-item-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .menu-item-label {
+            flex: 1;
+        }
+
+        .menu-item-chevron {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s;
+        }
+
+        .menu-item.expanded .menu-item-chevron {
+            transform: rotate(180deg);
+        }
+
+        /* Submenu */
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .submenu.expanded {
+            max-height: 500px;
+        }
+
+        .submenu-item {
+            padding: 0.75rem 1.5rem 0.75rem 3.5rem;
+            display: block;
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .submenu-item:hover {
+            background: var(--bg-sidebar-hover);
+            color: var(--text-light);
+        }
+
+        .submenu-item.active {
+            color: var(--primary-light);
+        }
+
+        /* Footer */
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 2rem;
+            transition: margin-left 0.3s;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        /* Toggle Button */
+        .sidebar-toggle {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+        }
+
+        /* Demo Content */
+        .demo-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-card h2 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle (Mobile) -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">⚕️ ePrescription</div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <!-- Dashboard -->
+            <a href="#" class="menu-item active" onclick="setActive(this)">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span class="menu-item-label">Inicio</span>
+            </a>
+
+            <!-- Prescripciones -->
+            <div class="menu-item" onclick="toggleSubmenu(this)">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                <span class="menu-item-label">Prescripciones</span>
+                <svg class="menu-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+            <div class="submenu">
+                <a href="#" class="submenu-item">Nueva receta</a>
+                <a href="#" class="submenu-item">Mis borradores</a>
+                <a href="#" class="submenu-item">Recetas emitidas</a>
+                <a href="#" class="submenu-item">Buscar receta</a>
+                <a href="#" class="submenu-item">Duplicar receta</a>
+                <a href="#" class="submenu-item">Centros médicos</a>
+            </div>
+
+            <!-- Dispensación -->
+            <div class="menu-item" onclick="toggleSubmenu(this)">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="6"></circle>
+                    <circle cx="12" cy="12" r="2"></circle>
+                </svg>
+                <span class="menu-item-label">Dispensación</span>
+                <svg class="menu-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+            <div class="submenu">
+                <a href="#" class="submenu-item">Verificar receta (QR/Token)</a>
+                <a href="#" class="submenu-item">Registrar dispensación</a>
+                <a href="#" class="submenu-item">Rechazos y motivos</a>
+            </div>
+
+            <!-- Pacientes -->
+            <div class="menu-item" onclick="toggleSubmenu(this)">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span class="menu-item-label">Pacientes</span>
+                <svg class="menu-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+            <div class="submenu">
+                <a href="#" class="submenu-item">Registrar paciente</a>
+                <a href="#" class="submenu-item">Buscar paciente</a>
+                <a href="#" class="submenu-item">Historial clínico</a>
+            </div>
+
+            <!-- Médicos -->
+            <div class="menu-item" onclick="toggleSubmenu(this)">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                </svg>
+                <span class="menu-item-label">Médicos</span>
+                <svg class="menu-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+            <div class="submenu">
+                <a href="#" class="submenu-item">Registrar médico</a>
+                <a href="#" class="submenu-item">Lista de médicos</a>
+                <a href="#" class="submenu-item">Firmas digitales</a>
+            </div>
+
+            <!-- Inventario -->
+            <div class="menu-item" onclick="toggleSubmenu(this)">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line>
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                <span class="menu-item-label">Inventario</span>
+                <svg class="menu-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+            <div class="submenu">
+                <a href="#" class="submenu-item">Medicamentos disponibles</a>
+                <a href="#" class="submenu-item">Stock bajo</a>
+                <a href="#" class="submenu-item">Órdenes de compra</a>
+                <a href="#" class="submenu-item">Proveedores</a>
+            </div>
+
+            <!-- Alertas -->
+            <a href="#" class="menu-item">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span class="menu-item-label">Alertas Clínicas</span>
+            </a>
+
+            <!-- Seguridad -->
+            <a href="#" class="menu-item">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span class="menu-item-label">Seguridad</span>
+            </a>
+
+            <!-- Reportes -->
+            <a href="#" class="menu-item">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <span class="menu-item-label">Reportes</span>
+            </a>
+
+            <!-- Interoperabilidad -->
+            <a href="#" class="menu-item">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6"></path>
+                    <path d="m4.2 4.2 4.2 4.2m5.6 5.6 4.2 4.2m-14-14 4.2 4.2m5.6 5.6 4.2 4.2"></path>
+                </svg>
+                <span class="menu-item-label">Interoperabilidad</span>
+            </a>
+
+            <!-- Configuración -->
+            <a href="#" class="menu-item">
+                <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m5.2-14.8 4.2 4.2m-14 0 4.2 4.2m5.6 5.6 4.2 4.2m-14 0 4.2 4.2"></path>
+                </svg>
+                <span class="menu-item-label">Configuración</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <p><strong>ePrescription</strong></p>
+            <p>v2.0.0 | © 2025</p>
+            <p style="margin-top: 0.5rem;">Sistema Hospitalario Profesional</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <a href="../../index.html" class="back-link">
+            ← Volver al índice
+        </a>
+
+        <div class="demo-card">
+            <h2>🎯 Sidebar de Navegación Profesional</h2>
+            <p style="color: #718096; margin-bottom: 1rem;">
+                Sistema de navegación completo con 14 módulos principales y más de 60 páginas estructuradas
+            </p>
+
+            <div style="background: #ebf8ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #2b6cb0;">
+                <strong style="color: #2c5282;">✨ Características:</strong>
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem; color: #4a5568;">
+                    <li>Navegación jerárquica con submenús</li>
+                    <li>Diseño responsive (móvil y desktop)</li>
+                    <li>Indicadores de estado activo</li>
+                    <li>Iconos profesionales</li>
+                    <li>Animaciones suaves</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="demo-card">
+            <h2>📱 Prueba la Funcionalidad</h2>
+            <p style="color: #718096;">
+                • Haz clic en los menús para expandir los submenús<br>
+                • Prueba en diferentes tamaños de pantalla<br>
+                • En móvil, usa el botón de menú hamburguesa
+            </p>
+        </div>
+    </main>
+
+    <script>
+        function toggleSubmenu(element) {
+            const submenu = element.nextElementSibling;
+            const isExpanded = element.classList.contains('expanded');
+            
+            // Cerrar todos los submenús
+            document.querySelectorAll('.menu-item.expanded').forEach(item => {
+                item.classList.remove('expanded');
+            });
+            document.querySelectorAll('.submenu.expanded').forEach(sub => {
+                sub.classList.remove('expanded');
+            });
+            
+            // Abrir el seleccionado si no estaba expandido
+            if (!isExpanded) {
+                element.classList.add('expanded');
+                submenu.classList.add('expanded');
+            }
+        }
+
+        function setActive(element) {
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            sidebar.classList.toggle('open');
+            mainContent.classList.toggle('expanded');
+        }
+
+        // Cerrar sidebar en móvil al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const toggle = document.querySelector('.sidebar-toggle');
+                
+                if (!sidebar.contains(event.target) && !toggle.contains(event.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+
+        console.log('Sidebar de ePrescription cargado correctamente');
+    </script>
+</body>
+</html>
