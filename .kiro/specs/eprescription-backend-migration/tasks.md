@@ -616,6 +616,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 11.11 Implementar autorización por roles en endpoints
 
 
+
   - [ ] 11.12 Probar endpoints con Postman (crear, leer, actualizar, eliminar)
   - [ ] 11.13 Crear tests de integración para endpoints de prescripciones
   - [ ] 11.14 Commit y push de endpoints de prescripciones
