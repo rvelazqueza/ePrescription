@@ -2,17 +2,20 @@ using MediatR;
 using EPrescription.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace ePrescription.Application.Commands.Prescriptions;
+namespace EPrescription.Application.Commands.Prescriptions;
 
 public class DeletePrescriptionCommandHandler : IRequestHandler<DeletePrescriptionCommand, bool>
 {
+    private readonly IPrescriptionRepository _prescriptionRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<DeletePrescriptionCommandHandler> _logger;
 
     public DeletePrescriptionCommandHandler(
+        IPrescriptionRepository prescriptionRepository,
         IUnitOfWork unitOfWork,
         ILogger<DeletePrescriptionCommandHandler> logger)
     {
+        _prescriptionRepository = prescriptionRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -23,10 +26,7 @@ public class DeletePrescriptionCommandHandler : IRequestHandler<DeletePrescripti
         {
             _logger.LogInformation("Deleting prescription {PrescriptionId}", request.PrescriptionId);
 
-            // Get existing prescription
-            var prescription = await _unitOfWork.Prescriptions.GetByIdAsync(
-                request.PrescriptionId, 
-                cancellationToken);
+            var prescription = await _prescriptionRepository.GetByIdAsync(request.PrescriptionId, cancellationToken);
 
             if (prescription == null)
             {
@@ -34,34 +34,22 @@ public class DeletePrescriptionCommandHandler : IRequestHandler<DeletePrescripti
                 throw new KeyNotFoundException($"Prescription with ID {request.PrescriptionId} not found");
             }
 
-            // Check if prescription can be deleted (business rule: cannot delete dispensed prescriptions)
             if (prescription.Status == "Dispensed")
             {
                 _logger.LogWarning("Cannot delete dispensed prescription {PrescriptionId}", request.PrescriptionId);
                 throw new InvalidOperationException("Cannot delete a prescription that has already been dispensed");
             }
 
-            // Begin transaction
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
             try
             {
-                // Soft delete: change status to Cancelled instead of hard delete
-                // This maintains audit trail and regulatory compliance
-                prescription.Status = "Cancelled";
-                prescription.UpdatedAt = DateTime.UtcNow;
-                prescription.Notes = $"{prescription.Notes}\n[CANCELLED by user on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC]";
-
-                await _unitOfWork.Prescriptions.UpdateAsync(prescription, cancellationToken);
-
-                // Save changes with audit
-                await _unitOfWork.SaveChangesAsync(request.UserId, "System", cancellationToken);
-
-                // Commit transaction
+                prescription.Cancel($"Cancelled by user on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+                await _prescriptionRepository.UpdateAsync(prescription, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
                 _logger.LogInformation("Prescription {PrescriptionNumber} cancelled successfully", prescription.PrescriptionNumber);
-
                 return true;
             }
             catch (Exception)

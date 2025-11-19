@@ -64,11 +64,12 @@ public class EPrescriptionDbContext : DbContext
         // Set default schema for Oracle
         modelBuilder.HasDefaultSchema("EPRESCRIPTION_USER");
 
-        // Apply all entity configurations from assembly
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(EPrescriptionDbContext).Assembly);
-
-        // Configure Oracle-specific settings
+        // Configure Oracle-specific settings FIRST
         ConfigureOracleConventions(modelBuilder);
+
+        // Apply all entity configurations from assembly AFTER conventions
+        // This allows specific configurations to override conventions
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(EPrescriptionDbContext).Assembly);
     }
 
     /// <summary>
@@ -128,6 +129,7 @@ public class EPrescriptionDbContext : DbContext
 
     /// <summary>
     /// Updates CreatedAt and UpdatedAt timestamps for tracked entities
+    /// Safely handles entities where these properties might be ignored in configuration
     /// </summary>
     private void UpdateTimestamps()
     {
@@ -135,14 +137,28 @@ public class EPrescriptionDbContext : DbContext
 
         foreach (var entry in entries)
         {
+            // Check if properties exist in the model before trying to update them
+            var entityType = entry.Metadata;
+            var hasCreatedAt = entityType.FindProperty(nameof(BaseEntity.CreatedAt)) != null;
+            var hasUpdatedAt = entityType.FindProperty(nameof(BaseEntity.UpdatedAt)) != null;
+
             if (entry.State == EntityState.Added)
             {
-                entry.Property(nameof(BaseEntity.CreatedAt)).CurrentValue = DateTime.UtcNow;
-                entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = DateTime.UtcNow;
+                if (hasCreatedAt)
+                {
+                    entry.Property(nameof(BaseEntity.CreatedAt)).CurrentValue = DateTime.UtcNow;
+                }
+                if (hasUpdatedAt)
+                {
+                    entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = DateTime.UtcNow;
+                }
             }
             else if (entry.State == EntityState.Modified)
             {
-                entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = DateTime.UtcNow;
+                if (hasUpdatedAt)
+                {
+                    entry.Property(nameof(BaseEntity.UpdatedAt)).CurrentValue = DateTime.UtcNow;
+                }
             }
         }
     }

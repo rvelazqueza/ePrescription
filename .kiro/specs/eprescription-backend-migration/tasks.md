@@ -595,6 +595,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
+
+
   - [x] 11.5 Implementar GetPrescriptionQuery con handler
 
 

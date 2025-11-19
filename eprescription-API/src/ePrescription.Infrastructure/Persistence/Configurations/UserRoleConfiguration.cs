@@ -4,29 +4,74 @@ using EPrescription.Domain.Entities;
 
 namespace EPrescription.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// EF Core configuration for UserRole entity
+/// Maps to existing USER_ROLES table in Oracle with legacy schema
+/// </summary>
 public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
 {
     public void Configure(EntityTypeBuilder<UserRole> builder)
     {
         builder.ToTable("USER_ROLES");
-        builder.HasKey(ur => ur.Id);
-        builder.Property(ur => ur.Id).HasColumnName("USER_ROLE_ID");
-        builder.Property(ur => ur.UserId).HasColumnName("USER_ID").IsRequired();
-        builder.Property(ur => ur.RoleId).HasColumnName("ROLE_ID").IsRequired();
-        builder.Property(ur => ur.AssignedAt).HasColumnName("ASSIGNED_AT");
 
-        // Relationships - Many-to-Many between Users and Roles
-        builder.HasOne<User>()
+        // Primary Key - maps to USER_ROLE_ID in Oracle
+        builder.HasKey(ur => ur.Id);
+        builder.Property(ur => ur.Id)
+            .HasColumnName("USER_ROLE_ID")
+            .HasColumnType("RAW(16)")
+            .IsRequired();
+
+        // Foreign Keys
+        builder.Property(ur => ur.UserId)
+            .HasColumnName("USER_ID")
+            .HasColumnType("RAW(16)")
+            .IsRequired();
+
+        builder.Property(ur => ur.RoleId)
+            .HasColumnName("ROLE_ID")
+            .HasColumnType("RAW(16)")
+            .IsRequired();
+
+        builder.Property(ur => ur.AssignedBy)
+            .HasColumnName("ASSIGNED_BY")
+            .HasColumnType("RAW(16)");
+
+        // Timestamps
+        builder.Property(ur => ur.AssignedAt)
+            .HasColumnName("ASSIGNED_AT")
+            .HasColumnType("TIMESTAMP(6)")
+            .IsRequired();
+
+        // IMPORTANT: CreatedAt and UpdatedAt do NOT exist in Oracle table
+        // The table only has ASSIGNED_AT
+        builder.Ignore(ur => ur.CreatedAt);
+        builder.Ignore(ur => ur.UpdatedAt);
+
+        // Indexes
+        builder.HasIndex(ur => new { ur.UserId, ur.RoleId })
+            .IsUnique()
+            .HasDatabaseName("UK_USER_ROLES_USER_ROLE");
+
+        builder.HasIndex(ur => ur.UserId)
+            .HasDatabaseName("IDX_USER_ROLES_USER");
+
+        builder.HasIndex(ur => ur.RoleId)
+            .HasDatabaseName("IDX_USER_ROLES_ROLE");
+
+        // Relationships
+        builder.HasOne(ur => ur.User)
             .WithMany(u => u.UserRoles)
             .HasForeignKey(ur => ur.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne<Role>()
+        builder.HasOne(ur => ur.Role)
             .WithMany(r => r.UserRoles)
             .HasForeignKey(ur => ur.RoleId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Unique constraint: a user can have a role only once
-        builder.HasIndex(ur => new { ur.UserId, ur.RoleId }).IsUnique();
+        builder.HasOne(ur => ur.AssignedByUser)
+            .WithMany()
+            .HasForeignKey(ur => ur.AssignedBy)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

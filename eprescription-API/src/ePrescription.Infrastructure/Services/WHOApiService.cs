@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using EPrescription.Application.Interfaces;
+using EPrescription.Domain.Entities;
 
 namespace EPrescription.Infrastructure.Services;
 
@@ -203,11 +204,11 @@ public class WHOApiService : IWHOApiService
                 return searchResult?.Results?.Select(r => new ICD10Code
                 {
                     Code = r.Code ?? "",
-                    Title = r.Title ?? "",
-                    Description = r.Description ?? "",
-                    Language = language,
+                    Description = r.Description ?? r.Title ?? "",
                     Category = r.Category ?? "",
-                    IsActive = true
+                    Subcategory = null,
+                    IsCommon = false,
+                    LastUpdated = DateTime.UtcNow
                 }).ToList() ?? new List<ICD10Code>();
             }
             

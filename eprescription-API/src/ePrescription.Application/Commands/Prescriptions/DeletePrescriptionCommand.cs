@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace ePrescription.Application.Commands.Prescriptions;
+namespace EPrescription.Application.Commands.Prescriptions;
 
 public class DeletePrescriptionCommand : IRequest<bool>
 {

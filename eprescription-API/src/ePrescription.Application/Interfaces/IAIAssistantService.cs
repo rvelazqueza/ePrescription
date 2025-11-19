@@ -1,4 +1,4 @@
-namespace ePrescription.Application.Interfaces;
+namespace EPrescription.Application.Interfaces;
 
 /// <summary>
 /// Service for AI-powered clinical analysis and medication recommendations

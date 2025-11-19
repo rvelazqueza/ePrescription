@@ -18,8 +18,8 @@ public class PrescriptionMedication : BaseEntity
 
     // Navigation properties
     public virtual Prescription Prescription { get; private set; } = null!;
-    public virtual Medication Medication { get; private set; } = null!;
-    public virtual AdministrationRoute AdministrationRoute { get; private set; } = null!;
+    public virtual Medication? Medication { get; private set; }
+    public virtual AdministrationRoute? AdministrationRoute { get; private set; }
     public virtual ICollection<DispensationItem> DispensationItems { get; private set; } = new List<DispensationItem>();
 
     private PrescriptionMedication() { } // EF Core

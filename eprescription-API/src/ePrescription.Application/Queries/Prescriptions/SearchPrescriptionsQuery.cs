@@ -1,7 +1,7 @@
 using MediatR;
-using ePrescription.Application.DTOs;
+using EPrescription.Application.DTOs;
 
-namespace ePrescription.Application.Queries.Prescriptions;
+namespace EPrescription.Application.Queries.Prescriptions;
 
 public class SearchPrescriptionsQuery : IRequest<PaginatedResult<PrescriptionListDto>>
 {

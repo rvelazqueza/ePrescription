@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "nTDKc0JXeMzCouSNM3dhNnGl4oZ5FVdUO1/ozOG0sg4QFOnUxKQIuDFlx4eJliwpWHX+Pm7VSM/9ggFZCtMyaQ==",
+  "dgSpecHash": "vk22XergHmTHUeTqka6htfjNHzWOfgtbwcmzb8LZRgkFyWH9Vn6oHZHMVPNgbkBODRWnyoIzZelb2Y4NiVniQA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Domain\\EPrescription.Domain.csproj",
+  "projectFilePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.Domain\\EPrescription.Domain.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

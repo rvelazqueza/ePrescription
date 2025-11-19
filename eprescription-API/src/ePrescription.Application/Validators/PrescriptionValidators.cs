@@ -1,7 +1,7 @@
 using FluentValidation;
-using ePrescription.Application.DTOs;
+using EPrescription.Application.DTOs;
 
-namespace ePrescription.Application.Validators;
+namespace EPrescription.Application.Validators;
 
 public class CreatePrescriptionValidator : AbstractValidator<CreatePrescriptionDto>
 {
@@ -15,6 +15,10 @@ public class CreatePrescriptionValidator : AbstractValidator<CreatePrescriptionD
             .NotEmpty()
             .WithMessage("Doctor ID is required");
             
+        RuleFor(x => x.MedicalCenterId)
+            .NotEmpty()
+            .WithMessage("Medical Center ID is required");
+            
         RuleFor(x => x.PrescriptionDate)
             .NotEmpty()
             .WithMessage("Prescription date is required")
@@ -27,19 +31,8 @@ public class CreatePrescriptionValidator : AbstractValidator<CreatePrescriptionD
             .When(x => x.ExpirationDate.HasValue);
             
         RuleFor(x => x.Notes)
-            .MaximumLength(1000)
-            .WithMessage("Notes cannot exceed 1000 characters");
-            
-        RuleFor(x => x.Instructions)
-            .MaximumLength(500)
-            .WithMessage("Instructions cannot exceed 500 characters");
-            
-        RuleFor(x => x.AuthorizationReason)
-            .MaximumLength(200)
-            .WithMessage("Authorization reason cannot exceed 200 characters")
-            .NotEmpty()
-            .WithMessage("Authorization reason is required when authorization is needed")
-            .When(x => x.RequiresAuthorization);
+            .MaximumLength(2000)
+            .WithMessage("Notes cannot exceed 2000 characters");
             
         RuleFor(x => x.Medications)
             .NotEmpty()
@@ -58,22 +51,6 @@ public class CreatePrescriptionValidator : AbstractValidator<CreatePrescriptionD
             
         RuleForEach(x => x.Diagnoses)
             .SetValidator(new CreatePrescriptionDiagnosisValidator());
-            
-        // Business validation: maximum 10 medications per prescription
-        RuleFor(x => x.Medications)
-            .Must(medications => medications == null || medications.Count <= 10)
-            .WithMessage("Maximum 10 medications allowed per prescription");
-            
-        // Business validation: maximum 5 diagnoses per prescription
-        RuleFor(x => x.Diagnoses)
-            .Must(diagnoses => diagnoses == null || diagnoses.Count <= 5)
-            .WithMessage("Maximum 5 diagnoses allowed per prescription");
-            
-        // Business validation: at least one primary diagnosis
-        RuleFor(x => x.Diagnoses)
-            .Must(diagnoses => diagnoses != null && diagnoses.Any(d => d.IsPrimary))
-            .WithMessage("At least one primary diagnosis is required")
-            .When(x => x.Diagnoses != null && x.Diagnoses.Count > 1);
     }
 }
 
@@ -88,33 +65,12 @@ public class UpdatePrescriptionValidator : AbstractValidator<UpdatePrescriptionD
             
         RuleFor(x => x.Status)
             .Must(status => string.IsNullOrEmpty(status) || 
-                          new[] { "Draft", "Active", "Dispensed", "Expired", "Cancelled" }.Contains(status))
-            .WithMessage("Status must be one of: Draft, Active, Dispensed, Expired, Cancelled");
+                          new[] { "active", "dispensed", "expired", "cancelled" }.Contains(status))
+            .WithMessage("Status must be one of: active, dispensed, expired, cancelled");
             
         RuleFor(x => x.Notes)
-            .MaximumLength(1000)
-            .WithMessage("Notes cannot exceed 1000 characters");
-            
-        RuleFor(x => x.Instructions)
-            .MaximumLength(500)
-            .WithMessage("Instructions cannot exceed 500 characters");
-            
-        RuleFor(x => x.AuthorizationReason)
-            .MaximumLength(200)
-            .WithMessage("Authorization reason cannot exceed 200 characters")
-            .NotEmpty()
-            .WithMessage("Authorization reason is required when authorization is needed")
-            .When(x => x.RequiresAuthorization == true);
-            
-        RuleFor(x => x.AuthorizedDate)
-            .LessThanOrEqualTo(DateTime.UtcNow)
-            .WithMessage("Authorization date cannot be in the future")
-            .When(x => x.AuthorizedDate.HasValue);
-            
-        RuleFor(x => x.AuthorizedBy)
-            .NotEmpty()
-            .WithMessage("Authorized by is required when authorization date is provided")
-            .When(x => x.AuthorizedDate.HasValue);
+            .MaximumLength(2000)
+            .WithMessage("Notes cannot exceed 2000 characters");
             
         RuleForEach(x => x.Medications)
             .SetValidator(new CreatePrescriptionMedicationValidator())
@@ -122,18 +78,6 @@ public class UpdatePrescriptionValidator : AbstractValidator<UpdatePrescriptionD
             
         RuleForEach(x => x.Diagnoses)
             .SetValidator(new CreatePrescriptionDiagnosisValidator())
-            .When(x => x.Diagnoses != null);
-            
-        // Business validation: maximum 10 medications per prescription
-        RuleFor(x => x.Medications)
-            .Must(medications => medications == null || medications.Count <= 10)
-            .WithMessage("Maximum 10 medications allowed per prescription")
-            .When(x => x.Medications != null);
-            
-        // Business validation: maximum 5 diagnoses per prescription
-        RuleFor(x => x.Diagnoses)
-            .Must(diagnoses => diagnoses == null || diagnoses.Count <= 5)
-            .WithMessage("Maximum 5 diagnoses allowed per prescription")
             .When(x => x.Diagnoses != null);
     }
 }
@@ -146,43 +90,37 @@ public class CreatePrescriptionMedicationValidator : AbstractValidator<CreatePre
             .NotEmpty()
             .WithMessage("Medication ID is required");
             
-        RuleFor(x => x.MedicationName)
-            .NotEmpty()
-            .WithMessage("Medication name is required")
-            .MaximumLength(100)
-            .WithMessage("Medication name cannot exceed 100 characters");
-            
         RuleFor(x => x.Dosage)
             .NotEmpty()
             .WithMessage("Dosage is required")
-            .MaximumLength(50)
-            .WithMessage("Dosage cannot exceed 50 characters");
+            .MaximumLength(100)
+            .WithMessage("Dosage cannot exceed 100 characters");
             
         RuleFor(x => x.Frequency)
             .NotEmpty()
             .WithMessage("Frequency is required")
-            .MaximumLength(100)
-            .WithMessage("Frequency cannot exceed 100 characters");
+            .MaximumLength(200)
+            .WithMessage("Frequency cannot exceed 200 characters");
             
-        RuleFor(x => x.Duration)
+        RuleFor(x => x.DurationDays)
             .GreaterThan(0)
             .WithMessage("Duration must be greater than 0")
             .LessThanOrEqualTo(365)
             .WithMessage("Duration cannot exceed 365 days");
             
+        RuleFor(x => x.AdministrationRouteId)
+            .NotEmpty()
+            .WithMessage("Administration route is required");
+            
         RuleFor(x => x.Quantity)
             .GreaterThan(0)
             .WithMessage("Quantity must be greater than 0")
-            .LessThanOrEqualTo(1000)
-            .WithMessage("Quantity cannot exceed 1000");
-            
-        RuleFor(x => x.Unit)
-            .MaximumLength(50)
-            .WithMessage("Unit cannot exceed 50 characters");
+            .LessThanOrEqualTo(10000)
+            .WithMessage("Quantity cannot exceed 10000");
             
         RuleFor(x => x.Instructions)
-            .MaximumLength(500)
-            .WithMessage("Instructions cannot exceed 500 characters");
+            .MaximumLength(1000)
+            .WithMessage("Instructions cannot exceed 1000 characters");
     }
 }
 
@@ -190,21 +128,11 @@ public class CreatePrescriptionDiagnosisValidator : AbstractValidator<CreatePres
 {
     public CreatePrescriptionDiagnosisValidator()
     {
-        RuleFor(x => x.DiagnosisCode)
+        RuleFor(x => x.Cie10Code)
             .NotEmpty()
-            .WithMessage("Diagnosis code is required")
+            .WithMessage("CIE-10 code is required")
             .MaximumLength(10)
-            .WithMessage("Diagnosis code cannot exceed 10 characters")
-            .Matches(@"^[A-Z][0-9]{2}(\.[0-9]{1,2})?$")
-            .WithMessage("Diagnosis code must be in valid ICD-10 format (e.g., 'A01', 'B15.9', 'C78.1')");
-            
-        RuleFor(x => x.DiagnosisDescription)
-            .NotEmpty()
-            .WithMessage("Diagnosis description is required")
-            .MaximumLength(500)
-            .WithMessage("Diagnosis description cannot exceed 500 characters")
-            .MinimumLength(5)
-            .WithMessage("Diagnosis description must be at least 5 characters");
+            .WithMessage("CIE-10 code cannot exceed 10 characters");
             
         RuleFor(x => x.Notes)
             .MaximumLength(1000)
@@ -228,8 +156,8 @@ public class SearchPrescriptionsValidator : AbstractValidator<SearchPrescription
             
         RuleFor(x => x.Status)
             .Must(status => string.IsNullOrEmpty(status) || 
-                          new[] { "Draft", "Active", "Dispensed", "Expired", "Cancelled" }.Contains(status))
-            .WithMessage("Status must be one of: Draft, Active, Dispensed, Expired, Cancelled");
+                          new[] { "active", "dispensed", "expired", "cancelled" }.Contains(status))
+            .WithMessage("Status must be one of: active, dispensed, expired, cancelled");
             
         RuleFor(x => x.FromDate)
             .LessThanOrEqualTo(x => x.ToDate)
@@ -243,23 +171,17 @@ public class SearchPrescriptionsValidator : AbstractValidator<SearchPrescription
             
         RuleFor(x => x.SortBy)
             .Must(sortBy => string.IsNullOrEmpty(sortBy) || 
-                           new[] { "PrescriptionDate", "CreatedAt", "Status", "PatientName", "DoctorName", "ExpirationDate" }.Contains(sortBy))
-            .WithMessage("SortBy must be one of: PrescriptionDate, CreatedAt, Status, PatientName, DoctorName, ExpirationDate");
+                           new[] { "PrescriptionDate", "CreatedAt", "Status" }.Contains(sortBy))
+            .WithMessage("SortBy must be one of: PrescriptionDate, CreatedAt, Status");
             
         RuleFor(x => x.SortDirection)
             .Must(sortDirection => string.IsNullOrEmpty(sortDirection) || 
                                   new[] { "asc", "desc" }.Contains(sortDirection.ToLower()))
             .WithMessage("SortDirection must be 'asc' or 'desc'");
             
-        RuleFor(x => x.MedicationName)
-            .MaximumLength(100)
-            .WithMessage("Medication name cannot exceed 100 characters");
-            
-        RuleFor(x => x.DiagnosisCode)
+        RuleFor(x => x.Cie10Code)
             .MaximumLength(10)
-            .WithMessage("Diagnosis code cannot exceed 10 characters")
-            .Matches(@"^[A-Z][0-9]{2}(\.[0-9]{1,2})?$")
-            .WithMessage("Diagnosis code must be in valid ICD-10 format")
-            .When(x => !string.IsNullOrEmpty(x.DiagnosisCode));
+            .WithMessage("CIE-10 code cannot exceed 10 characters")
+            .When(x => !string.IsNullOrEmpty(x.Cie10Code));
     }
 }

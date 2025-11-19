@@ -149,6 +149,39 @@
           "Microsoft.AspNetCore.App"
         ]
       },
+      "Microsoft.AspNetCore.Http.Abstractions/2.2.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.AspNetCore.Http.Features": "2.2.0",
+          "System.Text.Encodings.Web": "4.5.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/Microsoft.AspNetCore.Http.Abstractions.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.AspNetCore.Http.Abstractions.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Http.Features/2.2.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "2.2.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/Microsoft.AspNetCore.Http.Features.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.AspNetCore.Http.Features.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.AspNetCore.OpenApi/8.0.1": {
         "type": "package",
         "dependencies": {
@@ -2898,7 +2931,10 @@
         "dependencies": {
           "EPrescription.Application": "1.0.0",
           "EPrescription.Domain": "1.0.0",
-          "Microsoft.EntityFrameworkCore": "8.0.11",
+          "Microsoft.AspNetCore.Http.Abstractions": "2.2.0",
+          "Microsoft.EntityFrameworkCore": "8.0.3",
+          "Microsoft.EntityFrameworkCore.Relational": "8.0.3",
+          "Microsoft.Extensions.Hosting.Abstractions": "8.0.0",
           "Oracle.EntityFrameworkCore": "8.23.60",
           "Serilog": "4.3.0",
           "Serilog.Sinks.Console": "6.1.1",
@@ -3129,6 +3165,32 @@
         "lib/net8.0/Microsoft.AspNetCore.Authentication.JwtBearer.xml",
         "microsoft.aspnetcore.authentication.jwtbearer.8.0.11.nupkg.sha512",
         "microsoft.aspnetcore.authentication.jwtbearer.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.Http.Abstractions/2.2.0": {
+      "sha512": "Nxs7Z1q3f1STfLYKJSVXCs1iBl+Ya6E8o4Oy1bCxJ/rNI44E/0f6tbsrVqAWfB7jlnJfyaAtIalBVxPKUPQb4Q==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.http.abstractions/2.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.0/Microsoft.AspNetCore.Http.Abstractions.dll",
+        "lib/netstandard2.0/Microsoft.AspNetCore.Http.Abstractions.xml",
+        "microsoft.aspnetcore.http.abstractions.2.2.0.nupkg.sha512",
+        "microsoft.aspnetcore.http.abstractions.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.Http.Features/2.2.0": {
+      "sha512": "ziFz5zH8f33En4dX81LW84I6XrYXKf9jg6aM39cM+LffN9KJahViKZ61dGMSO2gd3e+qe5yBRwsesvyqlZaSMg==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.http.features/2.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.0/Microsoft.AspNetCore.Http.Features.dll",
+        "lib/netstandard2.0/Microsoft.AspNetCore.Http.Features.xml",
+        "microsoft.aspnetcore.http.features.2.2.0.nupkg.sha512",
+        "microsoft.aspnetcore.http.features.nuspec"
       ]
     },
     "Microsoft.AspNetCore.OpenApi/8.0.1": {
@@ -8583,23 +8645,23 @@
     },
     "EPrescription.API/1.0.0": {
       "type": "project",
-      "path": "../../src/EPrescription.API/EPrescription.API.csproj",
-      "msbuildProject": "../../src/EPrescription.API/EPrescription.API.csproj"
+      "path": "../../src/ePrescription.API/EPrescription.API.csproj",
+      "msbuildProject": "../../src/ePrescription.API/EPrescription.API.csproj"
     },
     "EPrescription.Application/1.0.0": {
       "type": "project",
-      "path": "../../src/EPrescription.Application/EPrescription.Application.csproj",
-      "msbuildProject": "../../src/EPrescription.Application/EPrescription.Application.csproj"
+      "path": "../../src/ePrescription.Application/EPrescription.Application.csproj",
+      "msbuildProject": "../../src/ePrescription.Application/EPrescription.Application.csproj"
     },
     "EPrescription.Domain/1.0.0": {
       "type": "project",
-      "path": "../../src/EPrescription.Domain/EPrescription.Domain.csproj",
-      "msbuildProject": "../../src/EPrescription.Domain/EPrescription.Domain.csproj"
+      "path": "../../src/ePrescription.Domain/EPrescription.Domain.csproj",
+      "msbuildProject": "../../src/ePrescription.Domain/EPrescription.Domain.csproj"
     },
     "EPrescription.Infrastructure/1.0.0": {
       "type": "project",
-      "path": "../../src/EPrescription.Infrastructure/EPrescription.Infrastructure.csproj",
-      "msbuildProject": "../../src/EPrescription.Infrastructure/EPrescription.Infrastructure.csproj"
+      "path": "../../src/ePrescription.Infrastructure/EPrescription.Infrastructure.csproj",
+      "msbuildProject": "../../src/ePrescription.Infrastructure/EPrescription.Infrastructure.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -8624,11 +8686,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\tests\\EPrescription.Tests\\EPrescription.Tests.csproj",
+      "projectUniqueName": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\tests\\ePrescription.Tests\\EPrescription.Tests.csproj",
       "projectName": "EPrescription.Tests",
-      "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\tests\\EPrescription.Tests\\EPrescription.Tests.csproj",
+      "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\tests\\ePrescription.Tests\\EPrescription.Tests.csproj",
       "packagesPath": "C:\\Users\\Carlos\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\tests\\EPrescription.Tests\\obj\\",
+      "outputPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\tests\\ePrescription.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -8649,17 +8711,17 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.API\\EPrescription.API.csproj": {
-              "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.API\\EPrescription.API.csproj"
+            "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.API\\EPrescription.API.csproj": {
+              "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.API\\EPrescription.API.csproj"
             },
-            "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Application\\EPrescription.Application.csproj": {
-              "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Application\\EPrescription.Application.csproj"
+            "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.Application\\EPrescription.Application.csproj": {
+              "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.Application\\EPrescription.Application.csproj"
             },
-            "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Domain\\EPrescription.Domain.csproj": {
-              "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Domain\\EPrescription.Domain.csproj"
+            "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.Domain\\EPrescription.Domain.csproj": {
+              "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.Domain\\EPrescription.Domain.csproj"
             },
-            "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Infrastructure\\EPrescription.Infrastructure.csproj": {
-              "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Infrastructure\\EPrescription.Infrastructure.csproj"
+            "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.Infrastructure\\EPrescription.Infrastructure.csproj": {
+              "projectPath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.Infrastructure\\EPrescription.Infrastructure.csproj"
             }
           }
         }

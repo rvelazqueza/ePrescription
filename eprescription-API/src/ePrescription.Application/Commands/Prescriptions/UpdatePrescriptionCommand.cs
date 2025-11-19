@@ -1,7 +1,7 @@
 using MediatR;
-using ePrescription.Application.DTOs;
+using EPrescription.Application.DTOs;
 
-namespace ePrescription.Application.Commands.Prescriptions;
+namespace EPrescription.Application.Commands.Prescriptions;
 
 public class UpdatePrescriptionCommand : IRequest<PrescriptionDto>
 {

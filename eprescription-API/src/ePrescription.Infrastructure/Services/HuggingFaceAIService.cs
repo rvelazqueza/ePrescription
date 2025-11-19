@@ -1,5 +1,6 @@
-using ePrescription.Application.Interfaces;
 using EPrescription.Application.Interfaces;
+using EPrescription.Domain.Entities;
+using EPrescription.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using DrugInteractionDto = EPrescription.Application.Interfaces.DrugInteraction;
 
 namespace EPrescription.Infrastructure.Services;
 
@@ -20,7 +22,7 @@ public class HuggingFaceAIService : IAIAssistantService
     private readonly ITranslationService _translationService;
     private readonly ICIE10CatalogService _cie10Service;
     private readonly IAuditService _auditService;
-    private readonly DbContext _context;
+    private readonly EPrescriptionDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly ILogger<HuggingFaceAIService> _logger;
     private readonly string _apiKey;
@@ -32,7 +34,7 @@ public class HuggingFaceAIService : IAIAssistantService
         ITranslationService translationService,
         ICIE10CatalogService cie10Service,
         IAuditService auditService,
-        DbContext context,
+        EPrescriptionDbContext context,
         IConfiguration configuration,
         ILogger<HuggingFaceAIService> logger)
     {
@@ -95,12 +97,15 @@ public class HuggingFaceAIService : IAIAssistantService
 
             // Step 7: Log analysis in database
             var analysisLog = new AIAnalysisLog(
-                patientId,
-                clinicalDescription,
-                aiResponse,
-                string.Join(", ", validatedSuggestions.Select(d => d.CIE10Code)),
-                result.ConfidenceScore,
-                _model);
+                "diagnosis",  // analysisType
+                clinicalDescription,  // inputData
+                aiResponse,  // outputData
+                patientId,  // userId (using patientId as userId for now)
+                null,  // prescriptionId
+                _model,  // aiProvider
+                null,  // processingTimeMs
+                result.ConfidenceScore,  // confidenceScore
+                false);  // wasAccepted
 
             _context.Set<AIAnalysisLog>().Add(analysisLog);
             await _context.SaveChangesAsync();
@@ -111,7 +116,7 @@ public class HuggingFaceAIService : IAIAssistantService
             await _auditService.LogOperationAsync(
                 "AI_CLINICAL_ANALYSIS",
                 "AIAnalysisLog",
-                analysisLog.Id,
+                analysisLog.Id.ToString(),
                 $"Patient: {patientId}, Diagnoses: {validatedSuggestions.Count}, Confidence: {result.ConfidenceScore:P}",
                 null);
 
@@ -199,13 +204,13 @@ public class HuggingFaceAIService : IAIAssistantService
         }
     }
 
-    public async Task<List<DrugInteraction>> CheckDrugInteractionsAsync(List<Guid> medicationIds)
+    public async Task<List<DrugInteractionDto>> CheckDrugInteractionsAsync(List<Guid> medicationIds)
     {
         try
         {
             _logger.LogInformation("Checking drug interactions for {Count} medications", medicationIds.Count);
 
-            var interactions = new List<DrugInteraction>();
+            var interactions = new List<DrugInteractionDto>();
 
             if (medicationIds.Count < 2)
             {
@@ -225,22 +230,22 @@ public class HuggingFaceAIService : IAIAssistantService
             }
 
             // Check database for known interactions
-            var dbInteractions = await _context.Set<DrugInteraction>()
-                .Where(di => medicationIds.Contains(di.Medication1Id) && medicationIds.Contains(di.Medication2Id))
+            var dbInteractions = await _context.Set<EPrescription.Domain.Entities.DrugInteraction>()
+                .Where(di => medicationIds.Contains(di.MedicationId1) && medicationIds.Contains(di.MedicationId2))
                 .ToListAsync();
 
             // Map database interactions
-            interactions.AddRange(dbInteractions.Select(di => new Application.Interfaces.DrugInteraction
+            interactions.AddRange(dbInteractions.Select(di => new EPrescription.Application.Interfaces.DrugInteraction
             {
-                Medication1Id = di.Medication1Id,
-                Medication1Name = medications.First(m => m.Id == di.Medication1Id).CommercialName,
-                Medication2Id = di.Medication2Id,
-                Medication2Name = medications.First(m => m.Id == di.Medication2Id).CommercialName,
-                InteractionType = di.InteractionType,
-                Severity = di.Severity,
-                Description = di.Description,
-                ClinicalEffect = di.ClinicalEffect,
-                ManagementRecommendation = di.ManagementRecommendation,
+                Medication1Id = di.MedicationId1,
+                Medication1Name = medications.First(m => m.Id == di.MedicationId1).CommercialName,
+                Medication2Id = di.MedicationId2,
+                Medication2Name = medications.First(m => m.Id == di.MedicationId2).CommercialName,
+                InteractionType = "DATABASE",
+                Severity = di.InteractionSeverity,
+                Description = di.InteractionDescription,
+                ClinicalEffect = di.ClinicalEffects,
+                ManagementRecommendation = di.ClinicalEffects,
                 References = new List<string>()
             }));
 
@@ -291,7 +296,7 @@ public class HuggingFaceAIService : IAIAssistantService
 
             // Get patient information
             var patient = await _context.Set<Patient>()
-                .Include(p => p.PatientAllergies)
+                .Include(p => p.Allergies)
                 .FirstOrDefaultAsync(p => p.Id == patientId);
 
             if (patient == null)
@@ -309,7 +314,7 @@ public class HuggingFaceAIService : IAIAssistantService
             // Check allergies
             foreach (var medication in medications)
             {
-                var allergyMatch = patient.PatientAllergies
+                var allergyMatch = patient.Allergies
                     .FirstOrDefault(a => 
                         medication.ActiveIngredient.Contains(a.AllergenName, StringComparison.OrdinalIgnoreCase) ||
                         medication.CommercialName.Contains(a.AllergenName, StringComparison.OrdinalIgnoreCase));
@@ -331,26 +336,23 @@ public class HuggingFaceAIService : IAIAssistantService
             }
 
             // Check age contraindications
-            if (patient.DateOfBirth.HasValue)
+            var age = DateTime.UtcNow.Year - patient.DateOfBirth.Year;
+            
+            // Example: Check if medications are appropriate for age
+            if (age < 18)
             {
-                var age = DateTime.UtcNow.Year - patient.DateOfBirth.Value.Year;
-                
-                // Example: Check if medications are appropriate for age
-                if (age < 18)
-                {
-                    result.Warnings.Add("Patient is a minor. Verify pediatric dosing.");
-                }
-                else if (age > 65)
-                {
-                    result.Warnings.Add("Patient is elderly. Consider dose adjustments.");
-                }
+                result.Warnings.Add("Patient is a minor. Verify pediatric dosing.");
+            }
+            else if (age > 65)
+            {
+                result.Warnings.Add("Patient is elderly. Consider dose adjustments.");
             }
 
             // Audit log
             await _auditService.LogOperationAsync(
                 "AI_CONTRAINDICATION_CHECK",
                 "Patient",
-                patientId,
+                patientId.ToString(),
                 $"Medications: {medicationIds.Count}, Contraindications: {result.Contraindications.Count}",
                 null);
 
@@ -373,20 +375,20 @@ public class HuggingFaceAIService : IAIAssistantService
         try
         {
             var logs = await _context.Set<AIAnalysisLog>()
-                .Where(log => log.PatientId == patientId)
-                .OrderByDescending(log => log.AnalysisDate)
+                .Where(log => log.UserId == patientId)
+                .OrderByDescending(log => log.Timestamp)
                 .Take(limit)
                 .ToListAsync();
 
             return logs.Select(log => new AIAnalysisLogDto
             {
                 Id = log.Id,
-                AnalysisDate = log.AnalysisDate,
-                ClinicalDescription = log.ClinicalDescription,
-                AIResponse = log.AIResponse,
-                SuggestedDiagnoses = log.SuggestedDiagnoses?.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList() ?? new List<string>(),
-                ConfidenceScore = log.ConfidenceScore,
-                AIModel = log.AIModel
+                AnalysisDate = log.Timestamp,
+                ClinicalDescription = log.InputData,
+                AIResponse = log.OutputData,
+                SuggestedDiagnoses = new List<string>(),
+                ConfidenceScore = log.ConfidenceScore ?? 0,
+                AIModel = log.AiProvider ?? "Unknown"
             }).ToList();
         }
         catch (Exception ex)
@@ -584,11 +586,11 @@ public class HuggingFaceAIService : IAIAssistantService
         };
     }
 
-    private async Task<List<DrugInteraction>> CheckInteractionsWithAIAsync(List<string> medicationNames)
+    private async Task<List<DrugInteractionDto>> CheckInteractionsWithAIAsync(List<string> medicationNames)
     {
         // Placeholder for AI-based interaction checking
         // In production, this would call Hugging Face API with medication names
-        return new List<DrugInteraction>();
+        return new List<DrugInteractionDto>();
     }
 
     // Hugging Face API response model

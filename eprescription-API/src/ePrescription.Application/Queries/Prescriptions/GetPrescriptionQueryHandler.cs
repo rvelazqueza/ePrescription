@@ -1,23 +1,23 @@
 using AutoMapper;
 using MediatR;
-using ePrescription.Application.DTOs;
+using EPrescription.Application.DTOs;
 using EPrescription.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace ePrescription.Application.Queries.Prescriptions;
+namespace EPrescription.Application.Queries.Prescriptions;
 
 public class GetPrescriptionQueryHandler : IRequestHandler<GetPrescriptionQuery, PrescriptionDto?>
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IPrescriptionRepository _prescriptionRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<GetPrescriptionQueryHandler> _logger;
 
     public GetPrescriptionQueryHandler(
-        IUnitOfWork unitOfWork,
+        IPrescriptionRepository prescriptionRepository,
         IMapper mapper,
         ILogger<GetPrescriptionQueryHandler> logger)
     {
-        _unitOfWork = unitOfWork;
+        _prescriptionRepository = prescriptionRepository;
         _mapper = mapper;
         _logger = logger;
     }
@@ -28,10 +28,7 @@ public class GetPrescriptionQueryHandler : IRequestHandler<GetPrescriptionQuery,
         {
             _logger.LogInformation("Getting prescription {PrescriptionId}", request.PrescriptionId);
 
-            // Get prescription with all related data
-            var prescription = await _unitOfWork.Prescriptions.GetWithDetailsAsync(
-                request.PrescriptionId, 
-                cancellationToken);
+            var prescription = await _prescriptionRepository.GetByIdAsync(request.PrescriptionId, cancellationToken);
 
             if (prescription == null)
             {
@@ -39,7 +36,6 @@ public class GetPrescriptionQueryHandler : IRequestHandler<GetPrescriptionQuery,
                 return null;
             }
 
-            // Map to DTO
             var result = _mapper.Map<PrescriptionDto>(prescription);
 
             _logger.LogInformation("Successfully retrieved prescription {PrescriptionNumber}", prescription.PrescriptionNumber);

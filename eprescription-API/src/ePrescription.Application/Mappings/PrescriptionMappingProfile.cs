@@ -1,8 +1,8 @@
 using AutoMapper;
-using ePrescription.Application.DTOs;
-using ePrescription.Domain.Entities;
+using EPrescription.Application.DTOs;
+using EPrescription.Domain.Entities;
 
-namespace ePrescription.Application.Mappings;
+namespace EPrescription.Application.Mappings;
 
 public class PrescriptionMappingProfile : Profile
 {
@@ -15,12 +15,8 @@ public class PrescriptionMappingProfile : Profile
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Draft"))
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.Patient, opt => opt.Ignore())
-            .ForMember(dest => dest.Doctor, opt => opt.Ignore())
-            .ForMember(dest => dest.Pharmacy, opt => opt.Ignore())
             .ForMember(dest => dest.Medications, opt => opt.Ignore())
-            .ForMember(dest => dest.Diagnoses, opt => opt.Ignore())
-            .ForMember(dest => dest.Dispensations, opt => opt.Ignore());
+            .ForMember(dest => dest.Diagnoses, opt => opt.Ignore());
             
         CreateMap<UpdatePrescriptionDto, Prescription>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -30,9 +26,6 @@ public class PrescriptionMappingProfile : Profile
             .ForMember(dest => dest.PrescriptionDate, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.Patient, opt => opt.Ignore())
-            .ForMember(dest => dest.Doctor, opt => opt.Ignore())
-            .ForMember(dest => dest.Pharmacy, opt => opt.Ignore())
             .ForMember(dest => dest.Medications, opt => opt.Ignore())
             .ForMember(dest => dest.Diagnoses, opt => opt.Ignore())
             .ForMember(dest => dest.Dispensations, opt => opt.Ignore())
@@ -41,7 +34,7 @@ public class PrescriptionMappingProfile : Profile
         CreateMap<Prescription, PrescriptionDto>()
             .ForMember(dest => dest.Patient, opt => opt.MapFrom(src => src.Patient))
             .ForMember(dest => dest.Doctor, opt => opt.MapFrom(src => src.Doctor))
-            .ForMember(dest => dest.Pharmacy, opt => opt.MapFrom(src => src.Pharmacy))
+            .ForMember(dest => dest.MedicalCenter, opt => opt.MapFrom(src => src.MedicalCenter))
             .ForMember(dest => dest.Medications, opt => opt.MapFrom(src => src.Medications))
             .ForMember(dest => dest.Diagnoses, opt => opt.MapFrom(src => src.Diagnoses))
             .ForMember(dest => dest.Dispensations, opt => opt.MapFrom(src => src.Dispensations));
@@ -49,19 +42,20 @@ public class PrescriptionMappingProfile : Profile
         CreateMap<Prescription, PrescriptionListDto>()
             .ForMember(dest => dest.PatientName, opt => opt.MapFrom(src => $"{src.Patient.FirstName} {src.Patient.LastName}"))
             .ForMember(dest => dest.DoctorName, opt => opt.MapFrom(src => $"{src.Doctor.FirstName} {src.Doctor.LastName}"))
-            .ForMember(dest => dest.PharmacyName, opt => opt.MapFrom(src => src.Pharmacy != null ? src.Pharmacy.Name : null))
-            .ForMember(dest => dest.MedicationCount, opt => opt.MapFrom(src => src.Medications.Count));
+            .ForMember(dest => dest.MedicalCenterName, opt => opt.MapFrom(src => src.MedicalCenter != null ? src.MedicalCenter.CenterName : null))
+            .ForMember(dest => dest.MedicationCount, opt => opt.MapFrom(src => src.Medications.Count))
+            .ForMember(dest => dest.DiagnosisCount, opt => opt.MapFrom(src => src.Diagnoses.Count));
             
         // Prescription Medication mappings
         CreateMap<CreatePrescriptionMedicationDto, PrescriptionMedication>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.PrescriptionId, opt => opt.Ignore())
-            .ForMember(dest => dest.IsControlled, opt => opt.Ignore())
-            .ForMember(dest => dest.ControlledClass, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Prescription, opt => opt.Ignore())
-            .ForMember(dest => dest.Medication, opt => opt.Ignore());
+            .ForMember(dest => dest.Medication, opt => opt.Ignore())
+            .ForMember(dest => dest.AdministrationRoute, opt => opt.Ignore())
+            .ForMember(dest => dest.DispensationItems, opt => opt.Ignore());
             
         CreateMap<PrescriptionMedication, PrescriptionMedicationDto>()
             .ForMember(dest => dest.Medication, opt => opt.MapFrom(src => src.Medication));
@@ -77,21 +71,27 @@ public class PrescriptionMappingProfile : Profile
         CreateMap<PrescriptionDiagnosis, PrescriptionDiagnosisDto>();
         
         // Prescription Dispensation mappings
-        CreateMap<Dispensation, PrescriptionDispensationDto>()
-            .ForMember(dest => dest.Pharmacy, opt => opt.MapFrom(src => src.Pharmacy))
-            .ForMember(dest => dest.PharmacistId, opt => opt.MapFrom(src => src.PharmacistId))
-            .ForMember(dest => dest.Pharmacist, opt => opt.Ignore()); // Will need to map separately if needed
+        CreateMap<Dispensation, DispensationSummaryDto>()
+            .ForMember(dest => dest.PharmacyId, opt => opt.MapFrom(src => src.PharmacyId))
+            .ForMember(dest => dest.PharmacyName, opt => opt.MapFrom(src => src.Pharmacy != null ? src.Pharmacy.PharmacyName : string.Empty))
+            .ForMember(dest => dest.DispensationDate, opt => opt.MapFrom(src => src.DispensationDate))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status));
             
         // Patient mappings
         CreateMap<Patient, PatientSummaryDto>();
         
         // Doctor mappings
-        CreateMap<Doctor, DoctorSummaryDto>();
+        CreateMap<Doctor, DoctorSummaryDto>()
+            .ForMember(dest => dest.SpecialtyName, opt => opt.MapFrom(src => src.Specialty != null ? src.Specialty.SpecialtyName : string.Empty));
         
-        // Pharmacy mappings
-        CreateMap<Pharmacy, PharmacySummaryDto>();
+        // MedicalCenter mappings
+        CreateMap<MedicalCenter, MedicalCenterSummaryDto>();
         
         // Medication mappings
-        CreateMap<Medication, MedicationSummaryDto>();
+        CreateMap<Medication, MedicationSummaryDto>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.CommercialName));
+        
+        // AdministrationRoute mappings
+        CreateMap<AdministrationRoute, AdministrationRouteSummaryDto>();
     }
 }

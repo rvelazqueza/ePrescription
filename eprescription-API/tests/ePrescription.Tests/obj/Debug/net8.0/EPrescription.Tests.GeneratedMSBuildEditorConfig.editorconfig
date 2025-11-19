@@ -8,6 +8,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = EPrescription.Tests
-build_property.ProjectDir = C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\tests\EPrescription.Tests\
+build_property.ProjectDir = C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\tests\ePrescription.Tests\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
