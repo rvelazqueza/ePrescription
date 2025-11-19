@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { QrCode, XCircle, Pill, Package, Plus, Clock, Save, X, FileCheck, AlertTriangle, Scan, Search, CheckCircle2, ShieldCheck, Key, Camera, Hash, FileText, Filter, FilterX, Eye, MessageSquare, ShieldAlert, User, BarChart3, TrendingUp, Calendar, Download, Info, Printer, Copy, FileJson, Sheet } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -29,6 +29,38 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { VerificationResultPanel } from "../components/VerificationResultPanel";
 import { RejectionDetailPanel } from "../components/RejectionDetailPanel";
 import { toast } from "sonner@2.0.3";
+import { EmittedPrescriptionsAPI } from "../utils/emittedPrescriptionsStore";
+
+// Función auxiliar para convertir recetas del API al formato de verificación
+const convertPrescriptionToVerificationFormat = (prescriptionNumber: string, data: any) => {
+  const validUntil = new Date(new Date(data.emittedAt).getTime() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES');
+  
+  return {
+    prescriptionNumber,
+    qrCode: data.prescription.qrCode || "",
+    token: data.prescription.signatureToken || "",
+    patientName: `${data.prescription.patientName} ${data.prescription.patientFirstLastName} ${data.prescription.patientSecondLastName}`,
+    patientId: data.prescription.patientId,
+    emittedDate: data.prescription.issueDate,
+    emittedTime: data.prescription.issueTime,
+    validUntil,
+    medicinesCount: data.medicines.length,
+    age: data.prescription.patientAge,
+    gender: data.prescription.patientGender,
+    doctorName: data.prescription.doctorName,
+    specialty: data.prescription.doctorSpecialty || "Medicina General",
+    medicines: data.medicines.map((m: any) => ({
+      name: m.genericName,
+      dose: m.concentration,
+      frequency: m.frequency,
+      duration: m.duration
+    })),
+    diagnosis: data.prescription.diagnosis,
+    verificationStatus: "valid" as const,
+    dispensationStatus: data.dispensationStatus || "emitted" as const,
+    fullData: data
+  };
+};
 
 // Datos mock de recetas para verificación
 const mockPrescriptionsForVerification = [
@@ -214,12 +246,44 @@ export function VerificarRecetaPage({ onNavigate }: { onNavigate?: (route: strin
       return;
     }
     
-    const patient = mockPatientsWithPrescriptions.find(p => 
-      normalizedIncludes(p.fullName, searchPatientTerm) ||
-      normalizedIncludes(p.idNumber, searchPatientTerm)
+    // CORREGIDO: Buscar en recetas reales del API
+    const allPrescriptions = EmittedPrescriptionsAPI.getAllPrescriptions();
+    const patientPrescriptions = allPrescriptions.filter(({ data }) => 
+      normalizedIncludes(data.prescription.patientName, searchPatientTerm) ||
+      normalizedIncludes(data.prescription.patientFirstLastName, searchPatientTerm) ||
+      normalizedIncludes(data.prescription.patientSecondLastName, searchPatientTerm) ||
+      normalizedIncludes(data.prescription.patientId, searchPatientTerm)
     );
     
-    if (patient) {
+    if (patientPrescriptions.length > 0) {
+      // Crear objeto de paciente con sus recetas
+      const firstPrescription = patientPrescriptions[0].data;
+      const patient = {
+        fullName: `${firstPrescription.prescription.patientName} ${firstPrescription.prescription.patientFirstLastName} ${firstPrescription.prescription.patientSecondLastName}`,
+        idNumber: firstPrescription.prescription.patientId,
+        idType: firstPrescription.prescription.patientIdType || firstPrescription.prescription.patientId.split('-')[0],
+        age: firstPrescription.prescription.patientAge,
+        gender: firstPrescription.prescription.patientGender,
+        activePrescriptions: patientPrescriptions.map(({ prescriptionNumber, data }) => ({
+          prescriptionNumber,
+          qrCode: data.prescription.qrCode || "",
+          token: data.prescription.signatureToken || "",
+          emittedDate: data.prescription.issueDate,
+          emittedTime: data.prescription.issueTime,
+          validUntil: new Date(new Date(data.emittedAt).getTime() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES'),
+          medicinesCount: data.medicines.length,
+          doctorName: data.prescription.doctorName,
+          specialty: data.prescription.doctorSpecialty || 'Medicina General',
+          medicines: data.medicines.map((m: any) => ({
+            name: m.genericName,
+            dose: m.concentration,
+            frequency: m.frequency,
+            duration: m.duration
+          })),
+          diagnosis: data.prescription.diagnosis
+        }))
+      };
+      
       setSelectedPatient(patient);
       toast.success('Paciente encontrado', {
         description: `${patient.fullName} - ${patient.activePrescriptions.length} receta(s) activa(s)`,
@@ -288,12 +352,14 @@ export function VerificarRecetaPage({ onNavigate }: { onNavigate?: (route: strin
       return;
     }
 
-    // Buscar receta por QR
-    const prescription = mockPrescriptionsForVerification.find(
-      p => p.qrCode.toLowerCase() === codeToVerify.toLowerCase()
+    // CORREGIDO: Buscar receta por QR en el API real
+    const allPrescriptions = EmittedPrescriptionsAPI.getAllPrescriptions();
+    const found = allPrescriptions.find(({ data }) => 
+      data.prescription.qrCode?.toLowerCase() === codeToVerify.toLowerCase()
     );
 
-    if (prescription) {
+    if (found) {
+      const prescription = convertPrescriptionToVerificationFormat(found.prescriptionNumber, found.data);
       setVerificationResult(prescription);
       setIsResultOpen(true);
       addToRecentVerifications(prescription);
@@ -335,12 +401,14 @@ export function VerificarRecetaPage({ onNavigate }: { onNavigate?: (route: strin
       return;
     }
 
-    // Buscar receta por token
-    const prescription = mockPrescriptionsForVerification.find(
-      p => p.token.toLowerCase() === tokenInput.toLowerCase()
+    // CORREGIDO: Buscar receta por token en el API real
+    const allPrescriptions = EmittedPrescriptionsAPI.getAllPrescriptions();
+    const found = allPrescriptions.find(({ data }) => 
+      data.prescription.signatureToken?.toLowerCase() === tokenInput.toLowerCase()
     );
 
-    if (prescription) {
+    if (found) {
+      const prescription = convertPrescriptionToVerificationFormat(found.prescriptionNumber, found.data);
       setVerificationResult(prescription);
       setIsResultOpen(true);
       addToRecentVerifications(prescription);
@@ -996,12 +1064,20 @@ const rejectionReasons = [
 ];
 
 export function RegistrarDispensacionPage() {
+  // CORREGIDO: Obtener recetas reales del API
+  const availablePrescriptions = React.useMemo(() => {
+    const allPrescriptions = EmittedPrescriptionsAPI.getAllPrescriptions();
+    return allPrescriptions.map(({ prescriptionNumber, data }) => 
+      convertPrescriptionToVerificationFormat(prescriptionNumber, data)
+    );
+  }, []);
+
   // Estado del flujo de dispensación
   const [currentStep, setCurrentStep] = useState<"select" | "dispense">("select");
   const [selectedPrescription, setSelectedPrescription] = useState<any | null>(null);
   
   // Estados para dispensación
-  const [prescribedMedicines] = useState<PrescribedMedicine[]>(mockPrescribedMedicines);
+  const [prescribedMedicines, setPrescribedMedicines] = useState<PrescribedMedicine[]>([]);
   const [dispensationRecords, setDispensationRecords] = useState<Record<string, DispensationRecord>>({});
   const [selectedMedicine, setSelectedMedicine] = useState<PrescribedMedicine | null>(null);
   const [currentRecord, setCurrentRecord] = useState<DispensationRecord | null>(null);
@@ -1010,6 +1086,23 @@ export function RegistrarDispensacionPage() {
   // Manejar selección de receta
   const handleSelectPrescription = (prescription: any) => {
     setSelectedPrescription(prescription);
+    
+    // CORREGIDO: Cargar medicamentos reales de la receta seleccionada
+    if (prescription.fullData && prescription.fullData.medicines) {
+      const realMedicines: PrescribedMedicine[] = prescription.fullData.medicines.map((med: any) => ({
+        id: med.id,
+        medicine: med.genericName,
+        commercialName: med.commercialName,
+        prescribedQuantity: `${med.quantity} ${med.presentation}`,
+        dose: med.concentration,
+        frequency: med.frequency,
+        administration: med.route,
+        duration: med.duration,
+        observations: med.indications || ""
+      }));
+      setPrescribedMedicines(realMedicines);
+    }
+    
     setCurrentStep("dispense");
     toast.success("Receta seleccionada", {
       description: `${prescription.prescriptionNumber} - ${prescription.patientName}`,
@@ -1269,7 +1362,7 @@ export function RegistrarDispensacionPage() {
       {/* Paso 1: Selector de Recetas */}
       {currentStep === "select" && (
         <PrescriptionSelector
-          prescriptions={mockPrescriptionsForVerification}
+          prescriptions={availablePrescriptions}
           onSelectPrescription={handleSelectPrescription}
         />
       )}

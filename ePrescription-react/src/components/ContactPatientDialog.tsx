@@ -173,10 +173,12 @@ export function ContactPatientDialog({
   };
 
   const handleCallEmergency = () => {
-    toast.success("Llamando a contacto de emergencia", {
-      description: `${patient.emergencyContact.name} (${patient.emergencyContact.relationship}) al ${patient.emergencyContact.phone}`,
-      duration: 3000,
-    });
+    if (patient.emergencyContact) {
+      toast.success("Llamando a contacto de emergencia", {
+        description: `${patient.emergencyContact.name} (${patient.emergencyContact.relationship}) al ${patient.emergencyContact.phone}`,
+        duration: 3000,
+      });
+    }
   };
 
   const handleSubmitContact = async () => {
@@ -397,60 +399,63 @@ export function ContactPatientDialog({
               </CardContent>
             </Card>
 
-            <Card className="border-l-4 border-l-red-500">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-red-900">
-                  <Shield className="w-5 h-5" />
-                  Contacto de Emergencia
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="bg-red-50 p-4 rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-red-900">{patient.emergencyContact.name}</p>
-                      <p className="text-sm text-red-700">{patient.emergencyContact.relationship}</p>
+            {/* Contacto de Emergencia */}
+            {patient.emergencyContact && (
+              <Card className="border-red-300">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-red-900">
+                    <Shield className="w-5 h-5" />
+                    Contacto de Emergencia
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="bg-red-50 p-4 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-red-900">{patient.emergencyContact.name}</p>
+                        <p className="text-sm text-red-700">{patient.emergencyContact.relationship}</p>
+                      </div>
+                      <Badge className="bg-red-100 text-red-800 border-red-300">
+                        Contacto de emergencia
+                      </Badge>
                     </div>
-                    <Badge className="bg-red-100 text-red-800 border-red-300">
-                      Contacto de emergencia
-                    </Badge>
+                    <Separator className="bg-red-200" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-red-700" />
+                        <span className="text-sm font-medium text-red-900">
+                          {patient.emergencyContact.phone}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(patient.emergencyContact.phone);
+                            toast.success("Teléfono de emergencia copiado");
+                          }}
+                          className="border-red-300 text-red-700 hover:bg-red-50"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleCallEmergency}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          <Phone className="w-4 h-4 mr-2" />
+                          Llamar
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <Separator className="bg-red-200" />
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-red-700" />
-                      <span className="text-sm font-medium text-red-900">
-                        {patient.emergencyContact.phone}
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          navigator.clipboard.writeText(patient.emergencyContact.phone);
-                          toast.success("Teléfono de emergencia copiado");
-                        }}
-                        className="border-red-300 text-red-700 hover:bg-red-50"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={handleCallEmergency}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        <Phone className="w-4 h-4 mr-2" />
-                        Llamar
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-600 italic">
-                  ⚠️ Usar solo en caso de emergencia médica o cuando no sea posible contactar al paciente directamente
-                </p>
-              </CardContent>
-            </Card>
+                  <p className="text-xs text-gray-600 italic">
+                    ⚠️ Usar solo en caso de emergencia médica o cuando no sea posible contactar al paciente directamente
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Tab: Contacto Rápido */}

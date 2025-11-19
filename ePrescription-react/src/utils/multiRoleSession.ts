@@ -5,7 +5,7 @@
  * Cumplimiento: HIPAA, FDA 21 CFR Part 11, FHIR, ISO 27001
  */
 
-import { getUserById, subscribeToUserChanges, type UserProfile } from './usersStore';
+import { getUserById, subscribeToUserChanges, getAllUsers, type UserProfile } from './usersStore';
 
 export interface RolePermissions {
   prescriptions: {
@@ -708,7 +708,6 @@ function auditRoleChange(change: RoleChangeRecord): void {
  */
 export function MOCK_MULTI_ROLE_USERS() {
   // Re-exportar desde usersStore para mantener compatibilidad
-  const { getAllUsers } = require('./usersStore');
   return getAllUsers().map((user: UserProfile) => ({
     userId: user.userId,
     username: user.username,

@@ -25,6 +25,16 @@ import {
   DialogTitle,
 } from "../components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -276,15 +286,17 @@ const farmaciasData: Farmacia[] = [
 ];
 
 export function FarmaciasListPage() {
-  const [farmacias] = useState<Farmacia[]>(farmaciasData);
+  const [farmacias, setFarmacias] = useState<Farmacia[]>(farmaciasData);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEstado, setSelectedEstado] = useState<string>("todos");
   const [selectedProvincia, setSelectedProvincia] = useState<string>("todas");
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedFarmacia, setSelectedFarmacia] = useState<Farmacia | null>(null);
   const [showUppercase, setShowUppercase] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Formulario
   const [formData, setFormData] = useState({
@@ -394,11 +406,24 @@ export function FarmaciasListPage() {
   };
 
   const handleDelete = (farmacia: Farmacia) => {
-    if (confirm(`¿Está seguro de eliminar la farmacia ${farmacia.nombre}?`)) {
-      toast.success("Farmacia eliminada", {
-        description: `${farmacia.nombre} ha sido eliminada del sistema`,
-      });
-    }
+    setSelectedFarmacia(farmacia);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setIsDeleting(true);
+    setTimeout(() => {
+      if (selectedFarmacia) {
+        const updatedFarmacias = farmacias.filter(f => f.id !== selectedFarmacia.id);
+        setFarmacias(updatedFarmacias);
+        toast.success("Farmacia eliminada", {
+          description: `${selectedFarmacia.nombre} ha sido eliminada del sistema`,
+        });
+      }
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+      setSelectedFarmacia(null);
+    }, 1000);
   };
 
   const resetForm = () => {
@@ -920,6 +945,91 @@ export function FarmaciasListPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Eliminar Farmacia */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Farmacia</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Está seguro de eliminar la farmacia seleccionada?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {selectedFarmacia && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Código</Label>
+                  <p className="font-mono">{selectedFarmacia.codigo}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Estado</Label>
+                  <div className="mt-1">{getEstadoBadge(selectedFarmacia.estado)}</div>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground">Nombre</Label>
+                  <p>{selectedFarmacia.nombre}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground">Ubicación</Label>
+                  <p>{getFullLocation(selectedFarmacia.provinciaId, selectedFarmacia.cantonId, selectedFarmacia.distritoId)}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground">Dirección Específica</Label>
+                  <p>{selectedFarmacia.direccionEspecifica}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Teléfono</Label>
+                  <p>{selectedFarmacia.telefono}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Email</Label>
+                  <p>{selectedFarmacia.email}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground">Regente Farmacéutico</Label>
+                  <p>{selectedFarmacia.responsable}</p>
+                  <p className="text-sm text-muted-foreground">Cédula: {selectedFarmacia.cedulaResponsable}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-muted-foreground">Horario</Label>
+                  <p>{selectedFarmacia.horario}</p>
+                </div>
+                {selectedFarmacia.observaciones && (
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Observaciones</Label>
+                    <p>{selectedFarmacia.observaciones}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-500 hover:bg-red-600 text-white"
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <div className="flex items-center">
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  Eliminando...
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Eliminar
+                </div>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

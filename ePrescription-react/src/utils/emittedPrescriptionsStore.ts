@@ -1,6 +1,9 @@
 /**
  * Store para Recetas Médicas Emitidas (Finalizadas)
  * Gestiona las prescripciones que han sido completadas y firmadas
+ * 
+ * DATOS 100% CONSISTENTES CON ESTADOS SINCRONIZADOS
+ * Actualizado: 19/11/2025
  */
 
 export interface Medicine {
@@ -16,6 +19,9 @@ export interface Medicine {
   route: string;
   indications: string;
   substitutable: boolean;
+  // NUEVO: Estado de dispensación individual
+  dispensationStatus?: 'pending' | 'partial' | 'dispensed';
+  quantityDispensed?: number; // Cantidad ya dispensada (para estado parcial)
 }
 
 export interface PrescriptionInfo {
@@ -45,36 +51,35 @@ export interface PrescriptionInfo {
 
 // Metadata de IA para prescripciones asistidas
 export interface AIAssistanceMetadata {
-  modelUsed: string; // ej: "BERT Clínico v2.1"
-  confidence: number; // 0-1
+  modelUsed: string;
+  confidence: number;
   suggestedDiagnosisCIE10?: string;
   suggestedDiagnosisDescription?: string;
   clinicalDescriptionProcessed: string;
   interactionsDetected: number;
   contraindicationsDetected: string[];
   nlpProcessingTimestamp: string;
-  suggestionAcceptanceRate: number; // 0-1
+  suggestionAcceptanceRate: number;
   medicationsSuggested: number;
   medicationsAccepted: number;
   medicationsModified: number;
   userFeedback?: 'helpful' | 'neutral' | 'not-helpful';
-  aiAuditLogId?: string; // Referencia al log de auditoría IA
+  aiAuditLogId?: string;
 }
 
 export interface EmittedPrescriptionData {
   prescription: PrescriptionInfo;
   medicines: Medicine[];
-  emittedAt: string; // Timestamp de finalización
-  emittedBy: string; // Usuario que emitió
-  // NUEVO: Campos para unificación
-  origin: 'manual' | 'ai-assisted'; // Origen de la prescripción
-  aiMetadata?: AIAssistanceMetadata; // Metadata opcional de IA
-  // NUEVO: Campos para dispensación
+  emittedAt: string;
+  emittedBy: string;
+  origin: 'manual' | 'ai-assisted';
+  aiMetadata?: AIAssistanceMetadata;
+  // Estado de dispensación general (calculado automáticamente)
   dispensationStatus?: 'emitted' | 'partially_dispensed' | 'fully_dispensed' | 'cancelled';
   dispensationRecords?: DispensationRecord[];
 }
 
-// NUEVO: Registro de dispensación
+// Registro de dispensación
 export interface DispensationRecord {
   timestamp: string;
   pharmacy: string;
@@ -92,157 +97,120 @@ export interface DispensationRecord {
 // Store en memoria para recetas emitidas
 const emittedPrescriptionsStore: Record<string, EmittedPrescriptionData> = {};
 
-// Inicializar con datos de ejemplo
-const initializeMockData = () => {
-  // Receta ejemplo 1 - MANUAL
-  emittedPrescriptionsStore["RX-2025-001234"] = {
-    prescription: {
-      prescriptionNumber: "RX-2025-001234",
-      patientName: "Carlos",
-      patientFirstLastName: "Rodríguez",
-      patientSecondLastName: "Sánchez",
-      patientId: "1-0856-0432",
-      patientIdType: "Cédula Nacional",
-      patientAge: 45,
-      patientGender: "M",
-      patientBloodType: "O+",
-      patientAllergies: ["Penicilina"],
-      patientChronicConditions: ["Hipertensión"],
-      issueDate: "05/10/2025",
-      issueTime: "09:30",
-      medicalCenter: "Hospital San Juan de Dios",
-      diagnosis: "Hipertensión arterial leve",
-      clinicalNotes: "Control mensual de presión arterial",
-      doctorName: "Dra. María Fernández López",
-      doctorLicense: "MED-8542",
-      doctorSpecialty: "Medicina Interna",
-      status: "emitted",
-      signatureToken: "SIG-2025-8432947",
-      qrCode: "QR-RX-2025-001234"
-    },
-    medicines: [
-      {
-        id: "1",
-        genericName: "Losartán",
-        commercialName: "Cozaar",
-        presentation: "Tabletas",
-        concentration: "50 mg",
-        quantity: 30,
-        dose: "50 mg",
-        frequency: "Cada 24 horas",
-        duration: "30 días",
-        route: "Oral",
-        indications: "Tomar en ayunas con abundante agua",
-        substitutable: true
-      }
-    ],
-    emittedAt: new Date("2025-10-05T09:30:00").toISOString(),
-    emittedBy: "Dra. María Fernández López",
-    origin: 'manual' // Prescripción manual sin IA
-  };
+// ============================================================================
+// REGLAS DE CONSISTENCIA - OPCIÓN 1: ESTADOS SEPARADOS SINCRONIZADOS
+// ============================================================================
+// 
+// NIVEL 1: ESTADO GENERAL DE LA RECETA
+// - "emitted" → TODOS los medicamentos están en estado "pending"
+// - "partially_dispensed" → ALGUNOS medicamentos en "partial" o "dispensed"
+// - "fully_dispensed" → TODOS los medicamentos en estado "dispensed"
+// 
+// NIVEL 2: ESTADO DE CADA MEDICAMENTO
+// - "pending" → 0% dispensado (quantityDispensed = 0)
+// - "partial" → 1-99% dispensado (0 < quantityDispensed < quantity)
+// - "dispensed" → 100% dispensado (quantityDispensed = quantity)
+// 
+// SINCRONIZACIÓN:
+// El estado general se calcula automáticamente según los estados individuales
+// ============================================================================
 
-  // Receta ejemplo 2 - ASISTIDA POR IA
-  emittedPrescriptionsStore["RX-2025-001235"] = {
+const initializeMockData = () => {
+  
+  // ========== RECETAS EN ESTADO: EMITIDA ==========
+  // Todos los medicamentos en estado "pending"
+  
+  // RX-2025-009850 - EMITIDA - Infección urinaria
+  emittedPrescriptionsStore["RX-2025-009850"] = {
     prescription: {
-      prescriptionNumber: "RX-2025-001235",
-      patientName: "Ana",
-      patientFirstLastName: "García",
-      patientSecondLastName: "Mora",
-      patientId: "2-0654-0821",
-      patientIdType: "Cédula Nacional",
-      patientAge: 32,
+      prescriptionNumber: "RX-2025-009850",
+      patientName: "Laura Patricia",
+      patientFirstLastName: "Morales",
+      patientSecondLastName: "García",
+      patientId: "35.789.456",
+      patientIdType: "Cédula de Ciudadanía",
+      patientAge: 29,
       patientGender: "F",
       patientBloodType: "A+",
       patientAllergies: [],
       patientChronicConditions: [],
-      issueDate: "05/10/2025",
-      issueTime: "10:15",
+      issueDate: "15/11/2025",
+      issueTime: "09:15 a.m.",
       medicalCenter: "Clínica Santa María",
-      diagnosis: "Infección respiratoria aguda (J06.9)",
-      clinicalNotes: "Reposo relativo, abundantes líquidos. Sugerido por IA.",
-      doctorName: "Dr. José Ramírez Castro",
-      doctorLicense: "MED-7621",
+      diagnosis: "Infección urinaria aguda",
+      clinicalNotes: "Abundantes líquidos. Control en 7 días si persisten síntomas.",
+      doctorName: "Dra. María Elena Rodríguez Silva",
+      doctorLicense: "MED-7654",
       doctorSpecialty: "Medicina General",
       status: "emitted",
-      signatureToken: "SIG-2025-8432948",
-      qrCode: "QR-RX-2025-001235"
+      signatureToken: "SIG-2025-9850",
+      qrCode: "QR-RX-2025-009850"
     },
     medicines: [
       {
         id: "1",
-        genericName: "Amoxicilina",
-        commercialName: "Amoxil",
+        genericName: "Nitrofurantoína",
+        commercialName: "Macrodantina",
         presentation: "Cápsulas",
-        concentration: "500 mg",
+        concentration: "100 mg",
         quantity: 21,
-        dose: "500 mg",
+        dose: "100 mg",
         frequency: "Cada 8 horas",
         duration: "7 días",
         route: "Oral",
-        indications: "Tomar después de alimentos",
-        substitutable: true
+        indications: "Tomar con alimentos y abundante agua",
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
       },
       {
         id: "2",
-        genericName: "Paracetamol",
-        commercialName: "Tylenol",
+        genericName: "Fenazopiridina",
+        commercialName: "Pyridium",
         presentation: "Tabletas",
-        concentration: "500 mg",
-        quantity: 12,
-        dose: "500 mg",
-        frequency: "Cada 6 horas según necesidad",
-        duration: "4 días",
+        concentration: "100 mg",
+        quantity: 9,
+        dose: "100 mg",
+        frequency: "Cada 8 horas",
+        duration: "3 días",
         route: "Oral",
-        indications: "Para fiebre o dolor",
-        substitutable: true
+        indications: "Puede colorear la orina de naranja. Tomar después de alimentos.",
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
       }
     ],
-    emittedAt: new Date("2025-10-05T10:15:00").toISOString(),
-    emittedBy: "Dr. José Ramírez Castro",
-    origin: 'ai-assisted', // Prescripción asistida por IA
-    aiMetadata: {
-      modelUsed: "BERT Clínico v2.1",
-      confidence: 0.94,
-      suggestedDiagnosisCIE10: "J06.9",
-      suggestedDiagnosisDescription: "Infección aguda de las vías respiratorias superiores, no especificada",
-      clinicalDescriptionProcessed: "Paciente de 32 años con fiebre, dolor de garganta y malestar general desde hace 2 días",
-      interactionsDetected: 0,
-      contraindicationsDetected: [],
-      nlpProcessingTimestamp: new Date("2025-10-05T10:10:00").toISOString(),
-      suggestionAcceptanceRate: 1.0,
-      medicationsSuggested: 2,
-      medicationsAccepted: 2,
-      medicationsModified: 0,
-      userFeedback: 'helpful',
-      aiAuditLogId: 'AI-LOG-001'
-    }
+    emittedAt: new Date("2025-11-15T09:15:00").toISOString(),
+    emittedBy: "Dra. María Elena Rodríguez Silva",
+    origin: 'manual',
+    dispensationStatus: 'emitted' // ✅ Consistente: TODOS los medicamentos están "pending"
   };
 
-  // Receta ejemplo 3 - RX-2025-009842
-  emittedPrescriptionsStore["RX-2025-009842"] = {
+  // RX-2025-009851 - EMITIDA - Diabetes
+  emittedPrescriptionsStore["RX-2025-009851"] = {
     prescription: {
-      prescriptionNumber: "RX-2025-009842",
-      patientName: "Carlos Andrés",
-      patientFirstLastName: "Pérez",
-      patientSecondLastName: "Gutiérrez",
-      patientId: "41.523.789",
+      prescriptionNumber: "RX-2025-009851",
+      patientName: "Miguel Ángel",
+      patientFirstLastName: "Santos",
+      patientSecondLastName: "Jiménez",
+      patientId: "42.963.147",
       patientIdType: "Cédula de Ciudadanía",
-      patientAge: 52,
+      patientAge: 55,
       patientGender: "M",
-      patientBloodType: "O+",
-      patientAllergies: ["Sulfas"],
+      patientBloodType: "B+",
+      patientAllergies: ["Penicilina"],
       patientChronicConditions: ["Diabetes tipo 2"],
-      issueDate: "01/10/2025",
-      issueTime: "09:45",
+      issueDate: "16/11/2025",
+      issueTime: "02:30 p.m.",
       medicalCenter: "Hospital San Rafael",
       diagnosis: "Diabetes mellitus tipo 2, control metabólico",
-      clinicalNotes: "Paciente con buen control glicémico. Continuar con dieta y ejercicio.",
+      clinicalNotes: "Paciente con buen control glicémico. Continuar con dieta y ejercicio. Control en 30 días.",
       doctorName: "Dr. Carlos Andrés Martínez López",
       doctorLicense: "MED-9876",
       doctorSpecialty: "Endocrinología",
       status: "emitted",
-      signatureToken: "SIG-2025-9842",
-      qrCode: "QR-RX-2025-009842"
+      signatureToken: "SIG-2025-9851",
+      qrCode: "QR-RX-2025-009851"
     },
     medicines: [
       {
@@ -257,10 +225,28 @@ const initializeMockData = () => {
         duration: "30 días",
         route: "Oral",
         indications: "Tomar con las comidas principales",
-        substitutable: true
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
       },
       {
         id: "2",
+        genericName: "Glibenclamida",
+        commercialName: "Daonil",
+        presentation: "Tabletas",
+        concentration: "5 mg",
+        quantity: 30,
+        dose: "5 mg",
+        frequency: "Cada 24 horas",
+        duration: "30 días",
+        route: "Oral",
+        indications: "Tomar 30 minutos antes del desayuno",
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
+      },
+      {
+        id: "3",
         genericName: "Atorvastatina",
         commercialName: "Lipitor",
         presentation: "Tabletas",
@@ -271,10 +257,242 @@ const initializeMockData = () => {
         duration: "30 días",
         route: "Oral",
         indications: "Tomar en la noche",
-        substitutable: true
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
+      }
+    ],
+    emittedAt: new Date("2025-11-16T14:30:00").toISOString(),
+    emittedBy: "Dr. Carlos Andrés Martínez López",
+    origin: 'manual',
+    dispensationStatus: 'emitted' // ✅ Consistente: TODOS los medicamentos están "pending"
+  };
+
+  // RX-2025-009852 - EMITIDA CON IA - Amigdalitis
+  emittedPrescriptionsStore["RX-2025-009852"] = {
+    prescription: {
+      prescriptionNumber: "RX-2025-009852",
+      patientName: "Carolina",
+      patientFirstLastName: "Vásquez",
+      patientSecondLastName: "Pérez",
+      patientId: "38.147.258",
+      patientIdType: "Cédula de Ciudadanía",
+      patientAge: 34,
+      patientGender: "F",
+      patientBloodType: "O+",
+      patientAllergies: [],
+      patientChronicConditions: [],
+      issueDate: "17/11/2025",
+      issueTime: "10:45 a.m.",
+      medicalCenter: "Clínica Central",
+      diagnosis: "Amigdalitis bacteriana aguda (J03.9)",
+      clinicalNotes: "Reposo relativo. Abundantes líquidos. Evitar irritantes. Sugerido por IA.",
+      doctorName: "Dr. Jorge Enrique Salazar Ramírez",
+      doctorLicense: "MED-5432",
+      doctorSpecialty: "Medicina General",
+      status: "emitted",
+      signatureToken: "SIG-2025-9852",
+      qrCode: "QR-RX-2025-009852"
+    },
+    medicines: [
+      {
+        id: "1",
+        genericName: "Azitromicina",
+        commercialName: "Zitromax",
+        presentation: "Tabletas",
+        concentration: "500 mg",
+        quantity: 3,
+        dose: "500 mg",
+        frequency: "Cada 24 horas",
+        duration: "3 días",
+        route: "Oral",
+        indications: "Tomar 1 hora antes o 2 horas después de alimentos",
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
+      },
+      {
+        id: "2",
+        genericName: "Ibuprofeno",
+        commercialName: "Advil",
+        presentation: "Tabletas",
+        concentration: "400 mg",
+        quantity: 15,
+        dose: "400 mg",
+        frequency: "Cada 8 horas según necesidad",
+        duration: "5 días",
+        route: "Oral",
+        indications: "Tomar con alimentos para evitar molestias gástricas",
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
       },
       {
         id: "3",
+        genericName: "Paracetamol",
+        commercialName: "Tylenol",
+        presentation: "Tabletas",
+        concentration: "500 mg",
+        quantity: 15,
+        dose: "500 mg",
+        frequency: "Cada 6 horas según necesidad",
+        duration: "5 días",
+        route: "Oral",
+        indications: "Para fiebre o dolor",
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
+      }
+    ],
+    emittedAt: new Date("2025-11-17T10:45:00").toISOString(),
+    emittedBy: "Dr. Jorge Enrique Salazar Ramírez",
+    origin: 'ai-assisted',
+    aiMetadata: {
+      modelUsed: "BERT Clínico v2.1",
+      confidence: 0.92,
+      suggestedDiagnosisCIE10: "J03.9",
+      suggestedDiagnosisDescription: "Amigdalitis aguda, no especificada",
+      clinicalDescriptionProcessed: "Paciente de 34 años con dolor de garganta intenso, fiebre de 38.5°C, dificultad para tragar, adenopatías cervicales palpables",
+      interactionsDetected: 0,
+      contraindicationsDetected: [],
+      nlpProcessingTimestamp: new Date("2025-11-17T10:40:00").toISOString(),
+      suggestionAcceptanceRate: 1.0,
+      medicationsSuggested: 3,
+      medicationsAccepted: 3,
+      medicationsModified: 0,
+      userFeedback: 'helpful',
+      aiAuditLogId: 'AI-LOG-003'
+    },
+    dispensationStatus: 'emitted' // ✅ Consistente: TODOS los medicamentos están "pending"
+  };
+
+  // RX-2025-009853 - EMITIDA - Cefalea
+  emittedPrescriptionsStore["RX-2025-009853"] = {
+    prescription: {
+      prescriptionNumber: "RX-2025-009853",
+      patientName: "Andrés Felipe",
+      patientFirstLastName: "Gómez",
+      patientSecondLastName: "Castro",
+      patientId: "29.852.741",
+      patientIdType: "Cédula de Ciudadanía",
+      patientAge: 22,
+      patientGender: "M",
+      patientBloodType: "AB+",
+      patientAllergies: [],
+      patientChronicConditions: [],
+      issueDate: "18/11/2025",
+      issueTime: "04:20 p.m.",
+      medicalCenter: "Clínica Santa María",
+      diagnosis: "Cefalea tensional",
+      clinicalNotes: "Manejo del estrés. Técnicas de relajación. Evitar pantallas prolongadas.",
+      doctorName: "Dra. María Elena Rodríguez Silva",
+      doctorLicense: "MED-7654",
+      doctorSpecialty: "Neurología",
+      status: "emitted",
+      signatureToken: "SIG-2025-9853",
+      qrCode: "QR-RX-2025-009853"
+    },
+    medicines: [
+      {
+        id: "1",
+        genericName: "Paracetamol",
+        commercialName: "Tylenol",
+        presentation: "Tabletas",
+        concentration: "500 mg",
+        quantity: 20,
+        dose: "500 mg",
+        frequency: "Cada 6 horas según necesidad",
+        duration: "10 días",
+        route: "Oral",
+        indications: "Para dolor de cabeza. No exceder 4 gramos al día.",
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
+      }
+    ],
+    emittedAt: new Date("2025-11-18T16:20:00").toISOString(),
+    emittedBy: "Dra. María Elena Rodríguez Silva",
+    origin: 'manual',
+    dispensationStatus: 'emitted' // ✅ Consistente: TODOS los medicamentos están "pending"
+  };
+
+  // RX-2025-009844 - EMITIDA - Hipertensión
+  emittedPrescriptionsStore["RX-2025-009844"] = {
+    prescription: {
+      prescriptionNumber: "RX-2025-009844",
+      patientName: "María Fernanda",
+      patientFirstLastName: "Castro",
+      patientSecondLastName: "Díaz",
+      patientId: "38.147.852",
+      patientIdType: "Cédula de Ciudadanía",
+      patientAge: 35,
+      patientGender: "F",
+      patientBloodType: "O-",
+      patientAllergies: [],
+      patientChronicConditions: ["Hipertensión arterial"],
+      issueDate: "12/11/2025",
+      issueTime: "09:15 a.m.",
+      medicalCenter: "Hospital San Rafael",
+      diagnosis: "Hipertensión arterial esencial",
+      clinicalNotes: "Control de presión arterial en 15 días. Dieta baja en sodio y ejercicio regular.",
+      doctorName: "Dra. María Elena Rodríguez Silva",
+      doctorLicense: "MED-7654",
+      doctorSpecialty: "Cardiología",
+      status: "emitted",
+      signatureToken: "SIG-2025-9844",
+      qrCode: "QR-RX-2025-009844"
+    },
+    medicines: [
+      {
+        id: "1",
+        genericName: "Enalapril",
+        commercialName: "Renitec",
+        presentation: "Tabletas",
+        concentration: "10 mg",
+        quantity: 30,
+        dose: "10 mg",
+        frequency: "Cada 12 horas",
+        duration: "30 días",
+        route: "Oral",
+        indications: "Tomar a la misma hora todos los días",
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
+      },
+      {
+        id: "2",
+        genericName: "Amlodipino",
+        commercialName: "Norvasc",
+        presentation: "Tabletas",
+        concentration: "5 mg",
+        quantity: 30,
+        dose: "5 mg",
+        frequency: "Cada 24 horas",
+        duration: "30 días",
+        route: "Oral",
+        indications: "Tomar en la mañana",
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
+      },
+      {
+        id: "3",
+        genericName: "Hidroclorotiazida",
+        commercialName: "Diurex",
+        presentation: "Tabletas",
+        concentration: "25 mg",
+        quantity: 30,
+        dose: "25 mg",
+        frequency: "Cada 24 horas",
+        duration: "30 días",
+        route: "Oral",
+        indications: "Tomar en la mañana con alimentos",
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
+      },
+      {
+        id: "4",
         genericName: "Ácido Acetilsalicílico",
         commercialName: "Aspirina",
         presentation: "Tabletas",
@@ -285,92 +503,218 @@ const initializeMockData = () => {
         duration: "30 días",
         route: "Oral",
         indications: "Tomar con alimentos",
-        substitutable: true
+        substitutable: true,
+        dispensationStatus: 'pending',
+        quantityDispensed: 0
       }
     ],
-    emittedAt: new Date("2025-10-01T09:45:00").toISOString(),
-    emittedBy: "Dr. Carlos Andrés Martínez López",
-    origin: 'manual'
+    emittedAt: new Date("2025-11-12T09:15:00").toISOString(),
+    emittedBy: "Dra. María Elena Rodríguez Silva",
+    origin: 'manual',
+    dispensationStatus: 'emitted' // ✅ Consistente: TODOS los medicamentos están "pending"
   };
 
-  // Receta ejemplo 4 - RX-2025-009841
-  emittedPrescriptionsStore["RX-2025-009841"] = {
+  // ========== RECETAS EN ESTADO: PARCIALMENTE DISPENSADA ==========
+  // ALGUNOS medicamentos en estado "partial" o "dispensed"
+  
+  // RX-2025-009838 - PARCIALMENTE DISPENSADA
+  emittedPrescriptionsStore["RX-2025-009838"] = {
     prescription: {
-      prescriptionNumber: "RX-2025-009841",
-      patientName: "Sandra Milena",
-      patientFirstLastName: "Torres",
-      patientSecondLastName: "Vargas",
-      patientId: "52.367.941",
+      prescriptionNumber: "RX-2025-009838",
+      patientName: "Javier Alejandro",
+      patientFirstLastName: "Ruiz",
+      patientSecondLastName: "Moreno",
+      patientId: "50.124.897",
       patientIdType: "Cédula de Ciudadanía",
-      patientAge: 38,
-      patientGender: "F",
-      patientBloodType: "A+",
+      patientAge: 47,
+      patientGender: "M",
+      patientBloodType: "O+",
       patientAllergies: [],
-      patientChronicConditions: [],
-      issueDate: "01/10/2025",
-      issueTime: "08:30",
+      patientChronicConditions: ["Hipertensión arterial"],
+      issueDate: "05/11/2025",
+      issueTime: "11:10 a.m.",
       medicalCenter: "Hospital San Rafael",
-      diagnosis: "Cefalea tensional",
-      clinicalNotes: "Manejo del estrés laboral. Técnicas de relajación recomendadas.",
-      doctorName: "Dra. María Elena Rodríguez Silva",
-      doctorLicense: "MED-7654",
-      doctorSpecialty: "Neurología",
+      diagnosis: "Hipertensión arterial no controlada",
+      clinicalNotes: "Control de presión arterial en 7 días. Dieta baja en sodio.",
+      doctorName: "Dr. Carlos Andrés Martínez López",
+      doctorLicense: "MED-9876",
+      doctorSpecialty: "Cardiología",
       status: "emitted",
-      signatureToken: "SIG-2025-9841",
-      qrCode: "QR-RX-2025-009841"
+      signatureToken: "SIG-2025-9838",
+      qrCode: "QR-RX-2025-009838"
     },
     medicines: [
       {
         id: "1",
-        genericName: "Ibuprofeno",
-        commercialName: "Advil",
+        genericName: "Losartán",
+        commercialName: "Cozaar",
         presentation: "Tabletas",
-        concentration: "400 mg",
-        quantity: 20,
-        dose: "400 mg",
-        frequency: "Cada 8 horas según necesidad",
-        duration: "10 días",
+        concentration: "50 mg",
+        quantity: 30,
+        dose: "50 mg",
+        frequency: "Cada 24 horas",
+        duration: "30 días",
         route: "Oral",
-        indications: "Tomar con alimentos para evitar molestias gástricas",
-        substitutable: true
+        indications: "Tomar en ayunas",
+        substitutable: true,
+        dispensationStatus: 'pending', // ❌ NO dispensado
+        quantityDispensed: 0
       },
       {
         id: "2",
-        genericName: "Paracetamol",
-        commercialName: "Tylenol",
+        genericName: "Amlodipino",
+        commercialName: "Norvasc",
         presentation: "Tabletas",
-        concentration: "500 mg",
-        quantity: 20,
-        dose: "500 mg",
-        frequency: "Cada 6 horas según necesidad",
-        duration: "10 días",
+        concentration: "5 mg",
+        quantity: 30,
+        dose: "5 mg",
+        frequency: "Cada 24 horas",
+        duration: "30 días",
         route: "Oral",
-        indications: "Para dolor de cabeza",
-        substitutable: true
+        indications: "Tomar en la mañana",
+        substitutable: true,
+        dispensationStatus: 'pending', // ❌ NO dispensado
+        quantityDispensed: 0
+      },
+      {
+        id: "3",
+        genericName: "Hidroclorotiazida",
+        commercialName: "Diurex",
+        presentation: "Tabletas",
+        concentration: "25 mg",
+        quantity: 30,
+        dose: "25 mg",
+        frequency: "Cada 24 horas",
+        duration: "30 días",
+        route: "Oral",
+        indications: "Tomar en la mañana con alimentos",
+        substitutable: true,
+        dispensationStatus: 'dispensed', // ✅ 100% dispensado
+        quantityDispensed: 30
+      },
+      {
+        id: "4",
+        genericName: "Ácido Acetilsalicílico",
+        commercialName: "Aspirina",
+        presentation: "Tabletas",
+        concentration: "100 mg",
+        quantity: 30,
+        dose: "100 mg",
+        frequency: "Cada 24 horas",
+        duration: "30 días",
+        route: "Oral",
+        indications: "Tomar con alimentos",
+        substitutable: true,
+        dispensationStatus: 'dispensed', // ✅ 100% dispensado
+        quantityDispensed: 30
       }
     ],
-    emittedAt: new Date("2025-10-01T08:30:00").toISOString(),
-    emittedBy: "Dra. María Elena Rodríguez Silva",
-    origin: 'ai-assisted',
-    aiMetadata: {
-      modelUsed: "BERT Clínico v2.1",
-      confidence: 0.89,
-      suggestedDiagnosisCIE10: "G43.9",
-      suggestedDiagnosisDescription: "Migraña, sin especificar",
-      clinicalDescriptionProcessed: "Dolor de cabeza pulsátil unilateral, náuseas, fotofobia",
-      interactionsDetected: 1,
-      contraindicationsDetected: [],
-      nlpProcessingTimestamp: new Date("2025-10-01T08:25:00").toISOString(),
-      suggestionAcceptanceRate: 0.5,
-      medicationsSuggested: 3,
-      medicationsAccepted: 1,
-      medicationsModified: 1,
-      userFeedback: 'neutral',
-      aiAuditLogId: 'AI-LOG-002'
-    }
+    emittedAt: new Date("2025-11-05T11:10:00").toISOString(),
+    emittedBy: "Dr. Carlos Andrés Martínez López",
+    origin: 'manual',
+    dispensationStatus: 'partially_dispensed', // ✅ Consistente: 2 de 4 medicamentos dispensados
+    dispensationRecords: [
+      {
+        timestamp: new Date("2025-11-06T14:30:00").toISOString(),
+        pharmacy: "Farmacia Hospital San Rafael",
+        pharmacist: "Farm. Pedro Luis González",
+        notes: "Dispensación parcial. Losartán y Amlodipino agotados en inventario.",
+        medicinesDispensed: [
+          { medicineId: "1", quantityDispensed: 0, totalQuantity: 30 },
+          { medicineId: "2", quantityDispensed: 0, totalQuantity: 30 },
+          { medicineId: "3", quantityDispensed: 30, totalQuantity: 30 },
+          { medicineId: "4", quantityDispensed: 30, totalQuantity: 30 }
+        ],
+        statusBefore: 'emitted',
+        statusAfter: 'partially_dispensed'
+      }
+    ]
   };
 
-  // Receta ejemplo 5 - RX-2025-009840
+  // ========== RECETAS EN ESTADO: COMPLETAMENTE DISPENSADA ==========
+  // TODOS los medicamentos en estado "dispensed"
+  
+  // RX-2025-009843 - COMPLETAMENTE DISPENSADA
+  emittedPrescriptionsStore["RX-2025-009843"] = {
+    prescription: {
+      prescriptionNumber: "RX-2025-009843",
+      patientName: "Roberto Luis",
+      patientFirstLastName: "Fernández",
+      patientSecondLastName: "Mora",
+      patientId: "47.258.963",
+      patientIdType: "Cédula de Ciudadanía",
+      patientAge: 41,
+      patientGender: "M",
+      patientBloodType: "A+",
+      patientAllergies: [],
+      patientChronicConditions: ["Gastritis crónica"],
+      issueDate: "10/11/2025",
+      issueTime: "03:30 p.m.",
+      medicalCenter: "Clínica Central",
+      diagnosis: "Gastritis aguda",
+      clinicalNotes: "Control en 15 días",
+      doctorName: "Dr. Carlos Andrés Martínez López",
+      doctorLicense: "MED-9876",
+      doctorSpecialty: "Gastroenterología",
+      status: "emitted",
+      signatureToken: "SIG-2025-9843",
+      qrCode: "QR-RX-2025-009843"
+    },
+    medicines: [
+      {
+        id: "1",
+        genericName: "Omeprazol",
+        commercialName: "Omepral",
+        presentation: "Cápsulas",
+        concentration: "20 mg",
+        quantity: 30,
+        dose: "20 mg",
+        frequency: "Cada 24 horas",
+        duration: "30 días",
+        route: "Oral",
+        indications: "Tomar en ayunas, 30 minutos antes del desayuno",
+        substitutable: true,
+        dispensationStatus: 'dispensed', // ✅ 100% dispensado
+        quantityDispensed: 30
+      },
+      {
+        id: "2",
+        genericName: "Sucralfato",
+        commercialName: "Antepsin",
+        presentation: "Suspensión",
+        concentration: "1 g/5 ml",
+        quantity: 1,
+        dose: "5 ml",
+        frequency: "Cada 8 horas",
+        duration: "14 días",
+        route: "Oral",
+        indications: "Tomar 1 hora antes de las comidas",
+        substitutable: true,
+        dispensationStatus: 'dispensed', // ✅ 100% dispensado
+        quantityDispensed: 1
+      }
+    ],
+    emittedAt: new Date("2025-11-10T15:30:00").toISOString(),
+    emittedBy: "Dr. Carlos Andrés Martínez López",
+    origin: 'manual',
+    dispensationStatus: 'fully_dispensed', // ✅ Consistente: TODOS los medicamentos dispensados
+    dispensationRecords: [
+      {
+        timestamp: new Date("2025-11-12T10:00:00").toISOString(),
+        pharmacy: "Farmacia Central Hospital San José",
+        pharmacist: "Farm. Ana María Castillo",
+        notes: "Dispensación completa realizada",
+        medicinesDispensed: [
+          { medicineId: "1", quantityDispensed: 30, totalQuantity: 30 },
+          { medicineId: "2", quantityDispensed: 1, totalQuantity: 1 }
+        ],
+        statusBefore: 'emitted',
+        statusAfter: 'fully_dispensed'
+      }
+    ]
+  };
+
+  // RX-2025-009840 - COMPLETAMENTE DISPENSADA
   emittedPrescriptionsStore["RX-2025-009840"] = {
     prescription: {
       prescriptionNumber: "RX-2025-009840",
@@ -385,7 +729,7 @@ const initializeMockData = () => {
       patientAllergies: ["Penicilina"],
       patientChronicConditions: ["Hipertensión arterial", "Insuficiencia cardíaca"],
       issueDate: "30/09/2025",
-      issueTime: "16:15",
+      issueTime: "04:15 p.m.",
       medicalCenter: "Hospital San Rafael",
       diagnosis: "Hipertensión arterial esencial, Insuficiencia cardíaca compensada",
       clinicalNotes: "Paciente con buen control de presión arterial. Continuar con tratamiento actual.",
@@ -409,7 +753,9 @@ const initializeMockData = () => {
         duration: "30 días",
         route: "Oral",
         indications: "Tomar a la misma hora todos los días",
-        substitutable: true
+        substitutable: true,
+        dispensationStatus: 'dispensed', // ✅ 100% dispensado
+        quantityDispensed: 60
       },
       {
         id: "2",
@@ -423,7 +769,9 @@ const initializeMockData = () => {
         duration: "30 días",
         route: "Oral",
         indications: "Tomar en la mañana",
-        substitutable: true
+        substitutable: true,
+        dispensationStatus: 'dispensed', // ✅ 100% dispensado
+        quantityDispensed: 30
       },
       {
         id: "3",
@@ -437,7 +785,9 @@ const initializeMockData = () => {
         duration: "30 días",
         route: "Oral",
         indications: "Tomar con alimentos",
-        substitutable: true
+        substitutable: true,
+        dispensationStatus: 'dispensed', // ✅ 100% dispensado
+        quantityDispensed: 60
       },
       {
         id: "4",
@@ -451,7 +801,9 @@ const initializeMockData = () => {
         duration: "30 días",
         route: "Oral",
         indications: "Tomar con alimentos",
-        substitutable: true
+        substitutable: true,
+        dispensationStatus: 'dispensed', // ✅ 100% dispensado
+        quantityDispensed: 30
       },
       {
         id: "5",
@@ -465,12 +817,32 @@ const initializeMockData = () => {
         duration: "30 días",
         route: "Oral",
         indications: "Tomar en la noche",
-        substitutable: true
+        substitutable: true,
+        dispensationStatus: 'dispensed', // ✅ 100% dispensado
+        quantityDispensed: 30
       }
     ],
     emittedAt: new Date("2025-09-30T16:15:00").toISOString(),
     emittedBy: "Dr. Carlos Andrés Martínez López",
-    origin: 'manual'
+    origin: 'manual',
+    dispensationStatus: 'fully_dispensed', // ✅ Consistente: TODOS los medicamentos dispensados
+    dispensationRecords: [
+      {
+        timestamp: new Date("2025-10-02T09:30:00").toISOString(),
+        pharmacy: "Farmacia Hospital San Rafael",
+        pharmacist: "Farm. Ana María Castillo",
+        notes: "Dispensación completa de todos los medicamentos",
+        medicinesDispensed: [
+          { medicineId: "1", quantityDispensed: 60, totalQuantity: 60 },
+          { medicineId: "2", quantityDispensed: 30, totalQuantity: 30 },
+          { medicineId: "3", quantityDispensed: 60, totalQuantity: 60 },
+          { medicineId: "4", quantityDispensed: 30, totalQuantity: 30 },
+          { medicineId: "5", quantityDispensed: 30, totalQuantity: 30 }
+        ],
+        statusBefore: 'emitted',
+        statusAfter: 'fully_dispensed'
+      }
+    ]
   };
 };
 
@@ -478,29 +850,38 @@ const initializeMockData = () => {
 initializeMockData();
 
 /**
+ * Función helper: Calcular estado general de dispensación automáticamente
+ */
+export const calculateDispensationStatus = (
+  medicines: Medicine[]
+): 'emitted' | 'partially_dispensed' | 'fully_dispensed' => {
+  const allPending = medicines.every(m => m.dispensationStatus === 'pending');
+  const allDispensed = medicines.every(m => m.dispensationStatus === 'dispensed');
+  
+  if (allPending) return 'emitted';
+  if (allDispensed) return 'fully_dispensed';
+  return 'partially_dispensed';
+};
+
+/**
  * API para gestionar recetas emitidas
  */
 export const EmittedPrescriptionsAPI = {
-  /**
-   * Guardar una nueva receta emitida
-   */
   savePrescription: (prescriptionNumber: string, data: EmittedPrescriptionData): void => {
+    // Calcular estado automáticamente si no se proporciona
+    const calculatedStatus = calculateDispensationStatus(data.medicines);
+    
     emittedPrescriptionsStore[prescriptionNumber] = {
       ...data,
+      dispensationStatus: data.dispensationStatus || calculatedStatus,
       emittedAt: new Date().toISOString()
     };
   },
 
-  /**
-   * Obtener una receta emitida por número
-   */
   getPrescription: (prescriptionNumber: string): EmittedPrescriptionData | null => {
     return emittedPrescriptionsStore[prescriptionNumber] || null;
   },
 
-  /**
-   * Obtener todas las recetas emitidas con sus números
-   */
   getAllPrescriptions: (): Array<{ prescriptionNumber: string; data: EmittedPrescriptionData }> => {
     return Object.entries(emittedPrescriptionsStore).map(([prescriptionNumber, data]) => ({
       prescriptionNumber,
@@ -508,16 +889,10 @@ export const EmittedPrescriptionsAPI = {
     }));
   },
 
-  /**
-   * Obtener solo los datos de todas las recetas
-   */
   getAllPrescriptionsData: (): EmittedPrescriptionData[] => {
     return Object.values(emittedPrescriptionsStore);
   },
 
-  /**
-   * NUEVO: Obtener última receta de un paciente específico
-   */
   getLastPrescriptionByPatient: (patientId: string): EmittedPrescriptionData | null => {
     const patientPrescriptions = Object.values(emittedPrescriptionsStore)
       .filter(data => data.prescription.patientId === patientId)
@@ -526,26 +901,17 @@ export const EmittedPrescriptionsAPI = {
     return patientPrescriptions.length > 0 ? patientPrescriptions[0] : null;
   },
 
-  /**
-   * NUEVO: Obtener todas las recetas de un paciente específico
-   */
   getPrescriptionsByPatient: (patientId: string): EmittedPrescriptionData[] => {
     return Object.values(emittedPrescriptionsStore)
       .filter(data => data.prescription.patientId === patientId)
       .sort((a, b) => new Date(b.emittedAt).getTime() - new Date(a.emittedAt).getTime());
   },
 
-  /**
-   * NUEVO: Verificar si un paciente tiene recetas previas
-   */
   hasPatientPrescriptions: (patientId: string): boolean => {
     return Object.values(emittedPrescriptionsStore)
       .some(data => data.prescription.patientId === patientId);
   },
 
-  /**
-   * Eliminar una receta emitida
-   */
   deletePrescription: (prescriptionNumber: string): boolean => {
     if (emittedPrescriptionsStore[prescriptionNumber]) {
       delete emittedPrescriptionsStore[prescriptionNumber];
@@ -554,16 +920,10 @@ export const EmittedPrescriptionsAPI = {
     return false;
   },
 
-  /**
-   * Verificar si existe una receta
-   */
   exists: (prescriptionNumber: string): boolean => {
     return !!emittedPrescriptionsStore[prescriptionNumber];
   },
 
-  /**
-   * Actualizar el estado de una receta
-   */
   updateStatus: (prescriptionNumber: string, status: "emitted" | "dispensed" | "cancelled"): boolean => {
     const prescription = emittedPrescriptionsStore[prescriptionNumber];
     if (prescription) {
@@ -573,27 +933,18 @@ export const EmittedPrescriptionsAPI = {
     return false;
   },
 
-  /**
-   * Buscar recetas por paciente
-   */
   searchByPatient: (patientId: string): EmittedPrescriptionData[] => {
     return Object.values(emittedPrescriptionsStore).filter(
       prescription => prescription.prescription.patientId === patientId
     );
   },
 
-  /**
-   * Buscar recetas por médico
-   */
   searchByDoctor: (doctorLicense: string): EmittedPrescriptionData[] => {
     return Object.values(emittedPrescriptionsStore).filter(
       prescription => prescription.prescription.doctorLicense === doctorLicense
     );
   },
 
-  /**
-   * Generar número de receta único
-   */
   generatePrescriptionNumber: (): string => {
     const year = new Date().getFullYear();
     const existingNumbers = Object.keys(emittedPrescriptionsStore)
@@ -608,9 +959,6 @@ export const EmittedPrescriptionsAPI = {
     return `RX-${year}-${newNumber}`;
   },
 
-  /**
-   * Obtener conteo de recetas por estado
-   */
   getCountByStatus: (): Record<string, number> => {
     const counts = { emitted: 0, dispensed: 0, cancelled: 0 };
     Object.values(emittedPrescriptionsStore).forEach(prescription => {
@@ -619,9 +967,6 @@ export const EmittedPrescriptionsAPI = {
     return counts;
   },
 
-  /**
-   * NUEVO: Actualizar estado de dispensación
-   */
   updateDispensationStatus: (
     prescriptionNumber: string, 
     status: 'emitted' | 'partially_dispensed' | 'fully_dispensed' | 'cancelled',
@@ -631,12 +976,10 @@ export const EmittedPrescriptionsAPI = {
     if (prescription) {
       prescription.dispensationStatus = status;
       
-      // Inicializar array si no existe
       if (!prescription.dispensationRecords) {
         prescription.dispensationRecords = [];
       }
       
-      // Agregar registro de dispensación
       prescription.dispensationRecords.push(record);
       
       return true;
@@ -644,17 +987,11 @@ export const EmittedPrescriptionsAPI = {
     return false;
   },
 
-  /**
-   * NUEVO: Obtener historial de dispensación
-   */
   getDispensationHistory: (prescriptionNumber: string): DispensationRecord[] => {
     const prescription = emittedPrescriptionsStore[prescriptionNumber];
     return prescription?.dispensationRecords || [];
   },
 
-  /**
-   * NUEVO: Obtener estado de dispensación actual
-   */
   getDispensationStatus: (prescriptionNumber: string): 'emitted' | 'partially_dispensed' | 'fully_dispensed' | 'cancelled' | null => {
     const prescription = emittedPrescriptionsStore[prescriptionNumber];
     return prescription?.dispensationStatus || null;

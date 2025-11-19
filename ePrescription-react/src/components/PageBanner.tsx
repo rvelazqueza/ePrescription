@@ -1,6 +1,7 @@
 import { LucideIcon } from "lucide-react";
 import { ReactNode } from "react";
 
+// PageBanner component for headers
 interface PageBannerProps {
   icon: LucideIcon;
   title: string;

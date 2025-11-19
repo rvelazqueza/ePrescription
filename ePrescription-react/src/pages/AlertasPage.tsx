@@ -185,6 +185,7 @@ const mockAlerts = [
 const mockInteractionRules = [
   {
     id: "RULE-001",
+    alertTypeId: "TYPE-001", // ← VINCULACIÓN con tipo de alerta
     name: "Warfarina + Antiagregantes plaquetarios",
     medicine1: "Warfarina",
     medicine2: "Ácido acetilsalicílico, Clopidogrel",
@@ -199,6 +200,7 @@ const mockInteractionRules = [
   },
   {
     id: "RULE-002",
+    alertTypeId: "TYPE-001", // ← VINCULACIÓN con tipo de alerta
     name: "IECAs + Espironolactona",
     medicine1: "Enalapril, Lisinopril, Ramipril",
     medicine2: "Espironolactona",
@@ -213,6 +215,7 @@ const mockInteractionRules = [
   },
   {
     id: "RULE-003",
+    alertTypeId: "TYPE-001", // ← VINCULACIÓN con tipo de alerta
     name: "AINEs + IECAs",
     medicine1: "Ibuprofeno, Naproxeno, Diclofenaco",
     medicine2: "Enalapril, Lisinopril, Losartán",
@@ -227,6 +230,7 @@ const mockInteractionRules = [
   },
   {
     id: "RULE-004",
+    alertTypeId: "TYPE-001", // ← VINCULACIÓN con tipo de alerta
     name: "Metformina + Contraste yodado",
     medicine1: "Metformina",
     medicine2: "Contraste yodado (IV)",
@@ -241,6 +245,7 @@ const mockInteractionRules = [
   },
   {
     id: "RULE-005",
+    alertTypeId: "TYPE-001", // ← VINCULACIÓN con tipo de alerta
     name: "Estatinas + Gemfibrozil",
     medicine1: "Atorvastatina, Simvastatina, Rosuvastatina",
     medicine2: "Gemfibrozil",

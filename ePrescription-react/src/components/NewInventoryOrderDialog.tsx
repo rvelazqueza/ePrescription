@@ -62,13 +62,15 @@ interface NewInventoryOrderDialogProps {
   onOpenChange: (open: boolean) => void;
   alert: StockAlert | null;
   onOrderCreated?: (order: any) => void;
+  onStockUpdated?: (medicineId: string, quantity: number) => void;
 }
 
 export function NewInventoryOrderDialog({
   open,
   onOpenChange,
   alert,
-  onOrderCreated
+  onOrderCreated,
+  onStockUpdated
 }: NewInventoryOrderDialogProps) {
   // Estados del formulario
   const [orderQuantity, setOrderQuantity] = useState("");
@@ -253,6 +255,11 @@ export function NewInventoryOrderDialog({
       // Callback para actualizar la lista de órdenes si se proporciona
       if (onOrderCreated) {
         onOrderCreated(newOrder);
+      }
+
+      // Callback para actualizar el stock si se proporciona
+      if (onStockUpdated) {
+        onStockUpdated(alert.medicineId, parseFloat(orderQuantity));
       }
 
       resetForm();
@@ -484,6 +491,7 @@ export function NewInventoryOrderDialog({
                     value={deliveryDate}
                     onChange={(e) => setDeliveryDate(e.target.value)}
                     className="pl-10"
+                    min={new Date().toISOString().split('T')[0]}
                   />
                 </div>
               </div>

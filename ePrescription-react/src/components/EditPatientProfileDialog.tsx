@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -73,7 +73,15 @@ export function EditPatientProfileDialog({
   onSave 
 }: EditPatientProfileDialogProps) {
   const [activeTab, setActiveTab] = useState("personal");
-  const [formData, setFormData] = useState<PatientData>(patient);
+  const [formData, setFormData] = useState<PatientData>({
+    ...patient,
+    weight: patient.weight || "",
+    height: patient.height || "",
+    bmi: patient.bmi || "",
+    occupation: patient.occupation || "",
+    clinicalNotes: patient.clinicalNotes || "",
+    emergencyContact: patient.emergencyContact || { name: "", relationship: "", phone: "" }
+  });
   const [newAllergy, setNewAllergy] = useState("");
   const [newCondition, setNewCondition] = useState("");
   const [newMedication, setNewMedication] = useState("");

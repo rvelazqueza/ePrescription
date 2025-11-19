@@ -707,6 +707,7 @@ export function BorradoresPage({ onEditDraft }: BorradoresPageProps) {
 }
 
 // Datos mock de recetas emitidas
+// Nota: Fecha actual del sistema es 19/11/2025
 const mockEmittedPrescriptions = [
   {
     id: "101",
@@ -715,7 +716,7 @@ const mockEmittedPrescriptions = [
     patientId: "CC-41.523.789",
     emittedDate: "01/10/2025",
     emittedTime: "09:45 a.m.",
-    validUntil: "15/10/2025",
+    validUntil: "15/10/2025", // VENCIDA - debería mostrar estado "Vencida"
     medicinesCount: 3,
     dispensationStatus: "emitted" as const,
     age: 52,
@@ -732,7 +733,7 @@ const mockEmittedPrescriptions = [
     patientId: "CC-52.367.941",
     emittedDate: "01/10/2025",
     emittedTime: "08:30 a.m.",
-    validUntil: "15/10/2025",
+    validUntil: "15/10/2025", // VENCIDA - pero parcialmente dispensada, debería mostrar "Vencida"
     medicinesCount: 2,
     dispensationStatus: "partially_dispensed" as const,
     age: 38,
@@ -749,7 +750,7 @@ const mockEmittedPrescriptions = [
     patientId: "CC-38.941.652",
     emittedDate: "30/09/2025",
     emittedTime: "04:15 p.m.",
-    validUntil: "14/10/2025",
+    validUntil: "14/10/2025", // VENCIDA - pero completamente dispensada, mantiene estado "Completamente dispensada"
     medicinesCount: 5,
     dispensationStatus: "fully_dispensed" as const,
     age: 65,
@@ -766,7 +767,7 @@ const mockEmittedPrescriptions = [
     patientId: "CC-45.789.123",
     emittedDate: "30/09/2025",
     emittedTime: "02:20 p.m.",
-    validUntil: "14/10/2025",
+    validUntil: "14/10/2025", // VENCIDA - debería mostrar estado "Vencida"
     medicinesCount: 1,
     dispensationStatus: "emitted" as const,
     age: 28,
@@ -781,9 +782,9 @@ const mockEmittedPrescriptions = [
     prescriptionNumber: "RX-2025-009838",
     patientName: "Javier Alejandro Ruiz Moreno",
     patientId: "CC-50.124.897",
-    emittedDate: "29/09/2025",
+    emittedDate: "05/11/2025",
     emittedTime: "11:10 a.m.",
-    validUntil: "13/10/2025",
+    validUntil: "19/11/2025", // VIGENTE - último día de validez
     medicinesCount: 4,
     dispensationStatus: "partially_dispensed" as const,
     age: 47,
@@ -800,7 +801,7 @@ const mockEmittedPrescriptions = [
     patientId: "CC-39.654.321",
     emittedDate: "28/09/2025",
     emittedTime: "10:00 a.m.",
-    validUntil: "12/10/2025",
+    validUntil: "12/10/2025", // VENCIDA - pero anulada, mantiene estado "Anulada"
     medicinesCount: 2,
     dispensationStatus: "cancelled" as const,
     age: 33,
@@ -809,6 +810,109 @@ const mockEmittedPrescriptions = [
     doctorId: "DOC-002",
     qrCode: "QR-RX-2025-009837",
     token: "VRF-2025-9837-H3L8"
+  },
+  {
+    id: "107",
+    prescriptionNumber: "RX-2025-009843",
+    patientName: "Roberto Luis Fernández Mora",
+    patientId: "CC-47.258.963",
+    emittedDate: "10/11/2025",
+    emittedTime: "03:30 p.m.",
+    validUntil: "24/11/2025", // VIGENTE
+    medicinesCount: 2,
+    dispensationStatus: "fully_dispensed" as const, // CORREGIDO: Todos los medicamentos están dispensados
+    age: 41,
+    gender: "M" as const,
+    doctorName: "Dr. Carlos Andrés Martínez López",
+    doctorId: "DOC-001",
+    qrCode: "QR-RX-2025-009843",
+    token: "VRF-2025-9843-K7M2"
+  },
+  {
+    id: "108",
+    prescriptionNumber: "RX-2025-009844",
+    patientName: "María Fernanda Castro Díaz",
+    patientId: "CC-38.147.852",
+    emittedDate: "12/11/2025",
+    emittedTime: "09:15 a.m.",
+    validUntil: "26/11/2025", // VIGENTE
+    medicinesCount: 4,
+    dispensationStatus: "emitted" as const,
+    age: 35,
+    gender: "F" as const,
+    doctorName: "Dra. María Elena Rodríguez Silva",
+    doctorId: "DOC-002",
+    qrCode: "QR-RX-2025-009844",
+    token: "VRF-2025-9844-P9L4"
+  },
+  // ========== RECETAS NUEVAS PARA PRUEBAS DE FLUJO COMPLETO ==========
+  {
+    id: "109",
+    prescriptionNumber: "RX-2025-009850",
+    patientName: "Laura Patricia Morales García",
+    patientId: "CC-35.789.456",
+    emittedDate: "15/11/2025",
+    emittedTime: "09:15 a.m.",
+    validUntil: "29/11/2025", // VIGENTE
+    medicinesCount: 2,
+    dispensationStatus: "emitted" as const,
+    age: 29,
+    gender: "F" as const,
+    doctorName: "Dra. María Elena Rodríguez Silva",
+    doctorId: "DOC-002",
+    qrCode: "QR-RX-2025-009850",
+    token: "VRF-2025-9850-A1B2"
+  },
+  {
+    id: "110",
+    prescriptionNumber: "RX-2025-009851",
+    patientName: "Miguel Ángel Santos Jiménez",
+    patientId: "CC-42.963.147",
+    emittedDate: "16/11/2025",
+    emittedTime: "02:30 p.m.",
+    validUntil: "30/11/2025", // VIGENTE
+    medicinesCount: 3,
+    dispensationStatus: "emitted" as const,
+    age: 55,
+    gender: "M" as const,
+    doctorName: "Dr. Carlos Andrés Martínez López",
+    doctorId: "DOC-001",
+    qrCode: "QR-RX-2025-009851",
+    token: "VRF-2025-9851-C3D4"
+  },
+  {
+    id: "111",
+    prescriptionNumber: "RX-2025-009852",
+    patientName: "Carolina Vásquez Pérez",
+    patientId: "CC-38.147.258",
+    emittedDate: "17/11/2025",
+    emittedTime: "10:45 a.m.",
+    validUntil: "01/12/2025", // VIGENTE
+    medicinesCount: 3,
+    dispensationStatus: "emitted" as const,
+    age: 34,
+    gender: "F" as const,
+    doctorName: "Dr. Jorge Enrique Salazar Ramírez",
+    doctorId: "DOC-003",
+    qrCode: "QR-RX-2025-009852",
+    token: "VRF-2025-9852-E5F6"
+  },
+  {
+    id: "112",
+    prescriptionNumber: "RX-2025-009853",
+    patientName: "Andrés Felipe Gómez Castro",
+    patientId: "CC-29.852.741",
+    emittedDate: "18/11/2025",
+    emittedTime: "04:20 p.m.",
+    validUntil: "02/12/2025", // VIGENTE
+    medicinesCount: 1,
+    dispensationStatus: "emitted" as const,
+    age: 22,
+    gender: "M" as const,
+    doctorName: "Dra. María Elena Rodríguez Silva",
+    doctorId: "DOC-002",
+    qrCode: "QR-RX-2025-009853",
+    token: "VRF-2025-9853-G7H8"
   }
 ];
 
@@ -829,9 +933,51 @@ export function EmitidasPage({ doctorId, onClearFilter }: EmitidasPageProps = {}
   const [showDispensationDialog, setShowDispensationDialog] = useState(false);
   const [dispensationPrescription, setDispensationPrescription] = useState<typeof mockEmittedPrescriptions[0] | null>(null);
 
+  // Función auxiliar para parsear fechas en formato DD/MM/YYYY
+  const parseDate = (dateString: string): Date => {
+    const parts = dateString.split('/');
+    // Formato DD/MM/YYYY
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Los meses en JS van de 0-11
+      const year = parseInt(parts[2], 10);
+      return new Date(year, month, day);
+    }
+    return new Date(dateString);
+  };
+
+  // Función para calcular el estado real de la receta considerando vencimiento
+  const calculateRealStatus = (prescription: any): string => {
+    // Convertir validUntil a fecha
+    const validUntilDate = parseDate(prescription.validUntil);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Si la receta está vencida y no está completamente dispensada ni anulada, cambiar a "expired"
+    if (validUntilDate < today && 
+        prescription.dispensationStatus !== 'fully_dispensed' && 
+        prescription.dispensationStatus !== 'cancelled') {
+      return 'expired';
+    }
+    
+    return prescription.dispensationStatus;
+  };
+
   // Cargar recetas desde el API al montar el componente
   useEffect(() => {
     loadPrescriptions();
+    
+    // NUEVO: Escuchar evento de nueva receta emitida
+    const handlePrescriptionEmitted = () => {
+      console.log('Nueva receta emitida, recargando lista...');
+      loadPrescriptions();
+    };
+    
+    window.addEventListener('prescription-emitted', handlePrescriptionEmitted);
+    
+    return () => {
+      window.removeEventListener('prescription-emitted', handlePrescriptionEmitted);
+    };
   }, []);
 
   // Función para cargar recetas desde el API
@@ -853,6 +999,7 @@ export function EmitidasPage({ doctorId, onClearFilter }: EmitidasPageProps = {}
         doctorName: data.prescription.doctorName,
         issueDate: data.prescription.issueDate,
         emittedDate: data.prescription.issueDate,
+        emittedTime: data.prescription.issueTime,
         validUntil: validUntil.toLocaleDateString('es-ES'),
         dispensationStatus: data.dispensationStatus || "emitted" as const,
         medicinesCount: data.medicines.length,
@@ -864,7 +1011,8 @@ export function EmitidasPage({ doctorId, onClearFilter }: EmitidasPageProps = {}
         fullData: data // Guardar datos completos para dispensación
       };
     });
-    setPrescriptions([...formattedPrescriptions, ...mockEmittedPrescriptions]);
+    // CORRECCIÓN: Solo usar recetas del API, sin mezclar con mocks
+    setPrescriptions(formattedPrescriptions);
   };
 
   // Filtrar recetas
@@ -874,7 +1022,9 @@ export function EmitidasPage({ doctorId, onClearFilter }: EmitidasPageProps = {}
       normalizedIncludes(rx.prescriptionNumber, searchTerm) ||
       normalizedIncludes(rx.patientId, searchTerm);
     
-    const matchesStatus = statusFilter === "all" || rx.dispensationStatus === statusFilter;
+    // Calcular el estado real de la receta (considerando vencimiento)
+    const realStatus = calculateRealStatus(rx);
+    const matchesStatus = statusFilter === "all" || realStatus === statusFilter;
     
     const matchesDoctor = !doctorId || rx.doctorId === doctorId;
     
@@ -884,13 +1034,14 @@ export function EmitidasPage({ doctorId, onClearFilter }: EmitidasPageProps = {}
     return matchesSearch && matchesStatus && matchesDoctor && matchesOrigin;
   });
 
-  // Estadísticas
+  // Estadísticas (usando estado real calculado)
   const stats = {
     total: prescriptions.length,
-    emitted: prescriptions.filter(rx => rx.dispensationStatus === 'emitted').length,
-    partiallyDispensed: prescriptions.filter(rx => rx.dispensationStatus === 'partially_dispensed').length,
-    fullyDispensed: prescriptions.filter(rx => rx.dispensationStatus === 'fully_dispensed').length,
-    cancelled: prescriptions.filter(rx => rx.dispensationStatus === 'cancelled').length,
+    emitted: prescriptions.filter(rx => calculateRealStatus(rx) === 'emitted').length,
+    partiallyDispensed: prescriptions.filter(rx => calculateRealStatus(rx) === 'partially_dispensed').length,
+    fullyDispensed: prescriptions.filter(rx => calculateRealStatus(rx) === 'fully_dispensed').length,
+    cancelled: prescriptions.filter(rx => calculateRealStatus(rx) === 'cancelled').length,
+    expired: prescriptions.filter(rx => calculateRealStatus(rx) === 'expired').length,
     totalMedicines: prescriptions.reduce((sum, rx) => sum + rx.medicinesCount, 0),
     // NUEVO: Estadísticas por origen
     manual: prescriptions.filter(rx => (rx as any).origin === 'manual').length,
@@ -1027,14 +1178,15 @@ export function EmitidasPage({ doctorId, onClearFilter }: EmitidasPageProps = {}
     }
   };
 
-  const getStatusBadge = (status: typeof mockEmittedPrescriptions[0]['dispensationStatus']) => {
-    const config = {
+  const getStatusBadge = (status: string) => {
+    const config: Record<string, { label: string; className: string }> = {
       emitted: { label: "Emitida", className: "bg-blue-100 text-blue-700 border-blue-300" },
       partially_dispensed: { label: "Parcialmente dispensada", className: "bg-yellow-100 text-yellow-700 border-yellow-300" },
       fully_dispensed: { label: "Completamente dispensada", className: "bg-green-100 text-green-700 border-green-300" },
-      cancelled: { label: "Anulada", className: "bg-red-100 text-red-700 border-red-300" }
+      cancelled: { label: "Anulada", className: "bg-red-100 text-red-700 border-red-300" },
+      expired: { label: "Vencida", className: "bg-gray-100 text-gray-700 border-gray-300" }
     };
-    return config[status];
+    return config[status] || config.emitted;
   };
 
   // Obtener nombre del médico filtrado
@@ -1130,15 +1282,15 @@ export function EmitidasPage({ doctorId, onClearFilter }: EmitidasPageProps = {}
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500">
+        <Card className="border-l-4 border-l-gray-500">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Medicamentos</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.totalMedicines}</p>
+                <p className="text-sm text-gray-600">Vencidas</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.expired}</p>
               </div>
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <Pill className="w-6 h-6 text-purple-600" />
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <Clock className="w-6 h-6 text-gray-600" />
               </div>
             </div>
           </CardContent>
@@ -1198,6 +1350,7 @@ export function EmitidasPage({ doctorId, onClearFilter }: EmitidasPageProps = {}
                   <SelectItem value="partially_dispensed">Parcialmente dispensadas</SelectItem>
                   <SelectItem value="fully_dispensed">Completamente dispensadas</SelectItem>
                   <SelectItem value="cancelled">Anuladas</SelectItem>
+                  <SelectItem value="expired">Vencidas</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -1310,7 +1463,8 @@ export function EmitidasPage({ doctorId, onClearFilter }: EmitidasPageProps = {}
               </TableHeader>
               <TableBody>
                 {filteredPrescriptions.map((rx) => {
-                  const statusBadge = getStatusBadge(rx.dispensationStatus);
+                  const realStatus = calculateRealStatus(rx);
+                  const statusBadge = getStatusBadge(realStatus);
                   return (
                     <TableRow 
                       key={rx.id} 
@@ -1430,7 +1584,7 @@ export function EmitidasPage({ doctorId, onClearFilter }: EmitidasPageProps = {}
             <div>
               <h4 className="font-medium text-blue-900 mb-1">Información sobre recetas emitidas</h4>
               <p className="text-sm text-blue-800">
-                Las recetas emitidas están firmadas digitalmente y tienen validez legal. Haz doble clic en cualquier fila para ver detalles completos. Puedes reimprimir, exportar a PDF o anular recetas según los permisos configurados. Las recetas tienen una validez de 14 días desde su emisión según normativa vigente.
+                Las recetas emitidas están firmadas digitalmente y tienen validez legal. Haz doble clic en cualquier fila para ver detalles completos. Puedes reimprimir, exportar a PDF o anular recetas según los permisos configurados. Las recetas tienen una validez de 14 días desde su emisión según normativa vigente. <strong>Las recetas que superan su fecha de vencimiento son marcadas automáticamente como "Vencidas"</strong> y no pueden ser dispensadas, excepto aquellas que ya fueron completamente dispensadas o anuladas.
               </p>
             </div>
           </div>

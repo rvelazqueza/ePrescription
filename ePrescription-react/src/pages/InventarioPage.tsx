@@ -11,6 +11,7 @@ import { Textarea } from "../components/ui/textarea";
 import { normalizedIncludes } from "../utils/searchUtils";
 import { toast } from "sonner@2.0.3";
 import { NewInventoryOrderDialog } from "../components/NewInventoryOrderDialog";
+import { getPharmacyById } from "../utils/pharmacyData";
 import {
   Package,
   AlertCircle,
@@ -69,7 +70,9 @@ const mockInventoryItems = [
     averageConsumption: 150,
     daysOfStock: 8.3,
     batches: 3,
-    nearestExpiry: "2025-03-15"
+    nearestExpiry: "2025-03-15",
+    pharmacyId: "FARM-001",
+    pharmacyName: "Farmacia Central Hospital"
   },
   {
     id: "INV-002",
@@ -92,7 +95,9 @@ const mockInventoryItems = [
     averageConsumption: 80,
     daysOfStock: 4,
     batches: 2,
-    nearestExpiry: "2025-06-20"
+    nearestExpiry: "2025-06-20",
+    pharmacyId: "FARM-003",
+    pharmacyName: "Farmacia Hospitalización"
   },
   {
     id: "INV-003",
@@ -115,7 +120,9 @@ const mockInventoryItems = [
     averageConsumption: 60,
     daysOfStock: 0,
     batches: 0,
-    nearestExpiry: "-"
+    nearestExpiry: "-",
+    pharmacyId: "FARM-001",
+    pharmacyName: "Farmacia Central Hospital"
   },
   {
     id: "INV-004",
@@ -138,7 +145,9 @@ const mockInventoryItems = [
     averageConsumption: 120,
     daysOfStock: 23.3,
     batches: 4,
-    nearestExpiry: "2025-08-10"
+    nearestExpiry: "2025-08-10",
+    pharmacyId: "FARM-001",
+    pharmacyName: "Farmacia Central Hospital"
   },
   {
     id: "INV-005",
@@ -161,7 +170,9 @@ const mockInventoryItems = [
     averageConsumption: 90,
     daysOfStock: 6.4,
     batches: 2,
-    nearestExpiry: "2025-04-25"
+    nearestExpiry: "2025-04-25",
+    pharmacyId: "FARM-002",
+    pharmacyName: "Farmacia Emergencias"
   },
   {
     id: "INV-006",
@@ -184,7 +195,9 @@ const mockInventoryItems = [
     averageConsumption: 180,
     daysOfStock: 1.4,
     batches: 1,
-    nearestExpiry: "2024-12-30"
+    nearestExpiry: "2024-12-30",
+    pharmacyId: "FARM-002",
+    pharmacyName: "Farmacia Emergencias"
   },
   {
     id: "INV-007",
@@ -207,7 +220,9 @@ const mockInventoryItems = [
     averageConsumption: 70,
     daysOfStock: 20.7,
     batches: 3,
-    nearestExpiry: "2025-07-18"
+    nearestExpiry: "2025-07-18",
+    pharmacyId: "FARM-004",
+    pharmacyName: "Farmacia Pediatría"
   },
   {
     id: "INV-008",
@@ -230,7 +245,9 @@ const mockInventoryItems = [
     averageConsumption: 50,
     daysOfStock: 64,
     batches: 5,
-    nearestExpiry: "2025-11-05"
+    nearestExpiry: "2025-11-05",
+    pharmacyId: "FARM-005",
+    pharmacyName: "Farmacia Oncología"
   }
 ];
 
@@ -252,7 +269,9 @@ const mockStockAlerts = [
     lastRestockDate: "2024-08-20",
     supplier: "Distribuidora MedPharma",
     location: "A-03-02",
-    category: "Antiulcerosos"
+    category: "Antiulcerosos",
+    pharmacyId: "FARM-001",
+    pharmacyName: "Farmacia Central Hospital"
   },
   {
     id: "ALERT-002",
@@ -270,7 +289,9 @@ const mockStockAlerts = [
     lastRestockDate: "2024-08-15",
     supplier: "Distribuidora MedPharma",
     location: "B-02-01",
-    category: "Antidiabéticos"
+    category: "Antidiabéticos",
+    pharmacyId: "FARM-002",
+    pharmacyName: "Farmacia Emergencias"
   },
   {
     id: "ALERT-003",
@@ -288,7 +309,9 @@ const mockStockAlerts = [
     lastRestockDate: "2024-09-10",
     supplier: "Laboratorios Andinos",
     location: "A-02-01",
-    category: "Antibióticos"
+    category: "Antibióticos",
+    pharmacyId: "FARM-003",
+    pharmacyName: "Farmacia Hospitalización"
   }
 ];
 
@@ -314,7 +337,9 @@ const mockStockAdjustments = [
     batch: "LOT-2024-089",
     expiryDate: "2025-03-15",
     notes: "Entrega completa según orden de compra OC-589",
-    status: "approved"
+    status: "approved",
+    pharmacyId: "FARM-001",
+    pharmacyName: "Farmacia Central Hospital"
   },
   {
     id: "ADJ-002",
@@ -336,7 +361,9 @@ const mockStockAdjustments = [
     batch: "LOT-2023-456",
     expiryDate: "2025-06-20",
     notes: "Stock agotado - generar orden de compra urgente",
-    status: "approved"
+    status: "approved",
+    pharmacyId: "FARM-002",
+    pharmacyName: "Farmacia Emergencias"
   },
   {
     id: "ADJ-003",
@@ -358,7 +385,9 @@ const mockStockAdjustments = [
     batch: "LOT-2022-789",
     expiryDate: "2024-09-25",
     notes: "Producto vencido - destrucción según protocolo sanitario",
-    status: "approved"
+    status: "approved",
+    pharmacyId: "FARM-001",
+    pharmacyName: "Farmacia Central Hospital"
   },
   {
     id: "ADJ-004",
@@ -380,7 +409,9 @@ const mockStockAdjustments = [
     batch: "LOT-2024-112",
     expiryDate: "2025-07-18",
     notes: "Orden urgente por stock bajo",
-    status: "approved"
+    status: "approved",
+    pharmacyId: "FARM-004",
+    pharmacyName: "Farmacia Pediatría"
   },
   {
     id: "ADJ-005",
@@ -402,163 +433,266 @@ const mockStockAdjustments = [
     batch: "LOT-2024-067",
     expiryDate: "2025-06-20",
     notes: "Producto con defecto de fabricación - reembolso gestionado",
-    status: "approved"
+    status: "approved",
+    pharmacyId: "FARM-003",
+    pharmacyName: "Farmacia Hospitalización"
   }
 ];
 
 // Datos mock de lotes
+// Fecha actual de referencia: 2025-11-19
 const mockBatches = [
   {
     id: "BATCH-001",
-    batchNumber: "LOT-2024-089",
+    batchNumber: "LOT-2025-345",
     medicineId: "MED-1001",
     medicineName: "Paracetamol 500mg",
     presentation: "Tabletas",
     supplier: "Farmacéutica Nacional S.A.",
-    manufacturingDate: "2024-03-15",
-    expiryDate: "2025-03-15",
+    manufacturingDate: "2025-05-15",
+    expiryDate: "2027-05-15", // Activo - 543 días restantes
     quantity: 500,
     remainingQuantity: 450,
     location: "A-01-03",
     status: "active",
-    daysToExpiry: 166,
+    daysToExpiry: 543,
     unitCost: 0.15,
     totalValue: 67.5,
-    entryDate: "2024-09-30",
-    documentNumber: "FC-2024-0589"
+    entryDate: "2025-10-20",
+    documentNumber: "FC-2025-0589",
+    pharmacyId: "FARM-001",
+    pharmacyName: "Farmacia Central Hospital"
   },
   {
     id: "BATCH-002",
-    batchNumber: "LOT-2023-456",
+    batchNumber: "LOT-2025-456",
     medicineId: "MED-1002",
     medicineName: "Amoxicilina 500mg",
     presentation: "Cápsulas",
     supplier: "Laboratorios Andinos",
-    manufacturingDate: "2023-12-20",
-    expiryDate: "2025-06-20",
+    manufacturingDate: "2024-12-20",
+    expiryDate: "2026-06-20", // Activo - 213 días restantes
     quantity: 500,
     remainingQuantity: 320,
     location: "A-02-01",
     status: "active",
-    daysToExpiry: 263,
+    daysToExpiry: 213,
     unitCost: 0.45,
     totalValue: 144,
-    entryDate: "2024-09-10",
-    documentNumber: "FC-2024-0512"
+    entryDate: "2025-09-10",
+    documentNumber: "FC-2025-0512",
+    pharmacyId: "FARM-003",
+    pharmacyName: "Farmacia Hospitalización"
   },
   {
     id: "BATCH-003",
-    batchNumber: "LOT-2024-034",
+    batchNumber: "LOT-2025-034",
     medicineId: "MED-1005",
     medicineName: "Losartán 50mg",
     presentation: "Tabletas",
     supplier: "Laboratorios Andinos",
-    manufacturingDate: "2024-01-25",
-    expiryDate: "2025-04-25",
+    manufacturingDate: "2024-10-25",
+    expiryDate: "2026-04-25", // Activo - 157 días restantes
     quantity: 600,
     remainingQuantity: 580,
     location: "B-01-02",
     status: "active",
-    daysToExpiry: 207,
+    daysToExpiry: 157,
     unitCost: 0.32,
     totalValue: 185.6,
-    entryDate: "2024-09-18",
-    documentNumber: "FC-2024-0575"
+    entryDate: "2025-09-18",
+    documentNumber: "FC-2025-0575",
+    pharmacyId: "FARM-002",
+    pharmacyName: "Farmacia Emergencias"
   },
   {
     id: "BATCH-004",
-    batchNumber: "LOT-2022-789",
+    batchNumber: "LOT-2024-789",
     medicineId: "MED-1004",
     medicineName: "Ibuprofeno 400mg",
     presentation: "Tabletas",
     supplier: "Farmacéutica Nacional S.A.",
-    manufacturingDate: "2022-09-25",
-    expiryDate: "2024-09-25",
+    manufacturingDate: "2023-09-25",
+    expiryDate: "2025-09-25", // Vencido - hace 55 días
     quantity: 200,
     remainingQuantity: 0,
     location: "A-01-05",
     status: "expired",
-    daysToExpiry: -6,
+    daysToExpiry: -55,
     unitCost: 0.18,
     totalValue: 0,
-    entryDate: "2023-02-10",
-    documentNumber: "FC-2023-0145"
+    entryDate: "2024-02-10",
+    documentNumber: "FC-2024-0145",
+    pharmacyId: "FARM-001",
+    pharmacyName: "Farmacia Central Hospital"
   },
   {
     id: "BATCH-005",
-    batchNumber: "LOT-2024-156",
+    batchNumber: "LOT-2025-156",
     medicineId: "MED-1006",
     medicineName: "Metformina 850mg",
     presentation: "Tabletas",
     supplier: "Distribuidora MedPharma",
-    manufacturingDate: "2023-12-30",
-    expiryDate: "2024-12-30",
+    manufacturingDate: "2024-12-30",
+    expiryDate: "2026-01-15", // Próximo a vencer - 57 días restantes
     quantity: 500,
     remainingQuantity: 250,
     location: "B-02-01",
     status: "near_expiry",
-    daysToExpiry: 91,
+    daysToExpiry: 57,
     unitCost: 0.22,
     totalValue: 55,
-    entryDate: "2024-08-15",
-    documentNumber: "FC-2024-0456"
+    entryDate: "2025-08-15",
+    documentNumber: "FC-2025-0456",
+    pharmacyId: "FARM-002",
+    pharmacyName: "Farmacia Emergencias"
   },
   {
     id: "BATCH-006",
-    batchNumber: "LOT-2024-112",
+    batchNumber: "LOT-2025-112",
     medicineId: "MED-1007",
     medicineName: "Atorvastatina 20mg",
     presentation: "Tabletas",
     supplier: "Laboratorios Andinos",
-    manufacturingDate: "2024-01-18",
-    expiryDate: "2025-07-18",
+    manufacturingDate: "2025-01-18",
+    expiryDate: "2026-07-18", // Activo - 241 días restantes
     quantity: 1000,
     remainingQuantity: 1000,
     location: "B-01-04",
     status: "active",
-    daysToExpiry: 291,
+    daysToExpiry: 241,
     unitCost: 0.38,
     totalValue: 380,
-    entryDate: "2024-09-27",
-    documentNumber: "FC-2024-0601"
+    entryDate: "2025-09-27",
+    documentNumber: "FC-2025-0601",
+    pharmacyId: "FARM-004",
+    pharmacyName: "Farmacia Pediatría"
   },
   {
     id: "BATCH-007",
-    batchNumber: "LOT-2023-998",
+    batchNumber: "LOT-2024-998",
     medicineId: "MED-1008",
     medicineName: "Levotiroxina 100mcg",
     presentation: "Tabletas",
     supplier: "Farmacéutica Nacional S.A.",
-    manufacturingDate: "2023-11-05",
-    expiryDate: "2025-11-05",
+    manufacturingDate: "2024-06-05",
+    expiryDate: "2026-12-05", // Activo - 381 días restantes
     quantity: 800,
     remainingQuantity: 750,
     location: "C-01-01",
     status: "active",
-    daysToExpiry: 401,
+    daysToExpiry: 381,
     unitCost: 0.28,
     totalValue: 210,
-    entryDate: "2024-09-20",
-    documentNumber: "FC-2024-0580"
+    entryDate: "2025-09-20",
+    documentNumber: "FC-2025-0580",
+    pharmacyId: "FARM-005",
+    pharmacyName: "Farmacia Oncología"
   },
   {
     id: "BATCH-008",
-    batchNumber: "LOT-2024-201",
+    batchNumber: "LOT-2025-201",
     medicineId: "MED-1004",
     medicineName: "Ibuprofeno 400mg",
     presentation: "Tabletas",
     supplier: "Farmacéutica Nacional S.A.",
-    manufacturingDate: "2024-02-10",
-    expiryDate: "2025-08-10",
+    manufacturingDate: "2025-02-10",
+    expiryDate: "2026-08-10", // Activo - 264 días restantes
     quantity: 1000,
     remainingQuantity: 850,
     location: "A-01-05",
     status: "active",
-    daysToExpiry: 314,
+    daysToExpiry: 264,
     unitCost: 0.18,
     totalValue: 153,
-    entryDate: "2024-09-25",
-    documentNumber: "FC-2024-0595"
+    entryDate: "2025-09-25",
+    documentNumber: "FC-2025-0595",
+    pharmacyId: "FARM-001",
+    pharmacyName: "Farmacia Central Hospital"
+  },
+  {
+    id: "BATCH-009",
+    batchNumber: "LOT-2025-678",
+    medicineId: "MED-1009",
+    medicineName: "Omeprazol 20mg",
+    presentation: "Cápsulas",
+    supplier: "Distribuidora MedPharma",
+    manufacturingDate: "2025-08-01",
+    expiryDate: "2025-12-25", // Próximo a vencer - 36 días restantes
+    quantity: 300,
+    remainingQuantity: 180,
+    location: "C-02-03",
+    status: "near_expiry",
+    daysToExpiry: 36,
+    unitCost: 0.42,
+    totalValue: 75.6,
+    entryDate: "2025-10-05",
+    documentNumber: "FC-2025-0687",
+    pharmacyId: "FARM-008",
+    pharmacyName: "Farmacia UCI/Cuidados Intensivos"
+  },
+  {
+    id: "BATCH-010",
+    batchNumber: "LOT-2024-234",
+    medicineId: "MED-1010",
+    medicineName: "Aspirina 100mg",
+    presentation: "Tabletas",
+    supplier: "Farmacéutica Nacional S.A.",
+    manufacturingDate: "2023-11-10",
+    expiryDate: "2025-11-10", // Vencido - hace 9 días
+    quantity: 400,
+    remainingQuantity: 85,
+    location: "A-03-02",
+    status: "expired",
+    daysToExpiry: -9,
+    unitCost: 0.12,
+    totalValue: 10.2,
+    entryDate: "2024-05-15",
+    documentNumber: "FC-2024-0289",
+    pharmacyId: "FARM-001",
+    pharmacyName: "Farmacia Central Hospital"
+  },
+  {
+    id: "BATCH-011",
+    batchNumber: "LOT-2025-890",
+    medicineId: "MED-1011",
+    medicineName: "Diclofenaco 50mg",
+    presentation: "Tabletas",
+    supplier: "Laboratorios Andinos",
+    manufacturingDate: "2025-07-20",
+    expiryDate: "2026-01-28", // Próximo a vencer - 70 días restantes
+    quantity: 750,
+    remainingQuantity: 600,
+    location: "B-03-01",
+    status: "near_expiry",
+    daysToExpiry: 70,
+    unitCost: 0.35,
+    totalValue: 210,
+    entryDate: "2025-10-10",
+    documentNumber: "FC-2025-0712",
+    pharmacyId: "FARM-003",
+    pharmacyName: "Farmacia Hospitalización"
+  },
+  {
+    id: "BATCH-012",
+    batchNumber: "LOT-2025-445",
+    medicineId: "MED-1012",
+    medicineName: "Captopril 25mg",
+    presentation: "Tabletas",
+    supplier: "Distribuidora MedPharma",
+    manufacturingDate: "2025-06-15",
+    expiryDate: "2027-06-15", // Activo - 573 días restantes
+    quantity: 900,
+    remainingQuantity: 820,
+    location: "C-01-04",
+    status: "active",
+    daysToExpiry: 573,
+    unitCost: 0.19,
+    totalValue: 155.8,
+    entryDate: "2025-10-28",
+    documentNumber: "FC-2025-0748",
+    pharmacyId: "FARM-004",
+    pharmacyName: "Farmacia Pediatría"
   }
 ];
 
@@ -629,6 +763,47 @@ export function StockPage() {
       setIsDetailsPanelOpen(false);
       setIsRemoveStockDialogOpen(true);
     }
+  };
+
+  // Función para actualizar el stock después de crear una orden
+  const handleStockUpdate = (medicineId: string, quantity: number) => {
+    setInventory(prevInventory => 
+      prevInventory.map(item => {
+        if (item.medicineId === medicineId) {
+          const newStock = item.currentStock + quantity;
+          const newValue = newStock * item.unitCost;
+          
+          // Determinar nuevo estado basado en el stock actualizado
+          let newStatus = item.status;
+          if (newStock === 0) {
+            newStatus = 'out';
+          } else if (newStock < item.minStock) {
+            newStatus = 'critical';
+          } else if (newStock < item.reorderPoint) {
+            newStatus = 'low';
+          } else if (newStock > item.maxStock) {
+            newStatus = 'overstocked';
+          } else {
+            newStatus = 'adequate';
+          }
+          
+          return {
+            ...item,
+            currentStock: newStock,
+            totalValue: newValue,
+            status: newStatus,
+            lastRestockDate: new Date().toISOString().split('T')[0],
+            lastMovementDate: new Date().toISOString().split('T')[0],
+            daysOfStock: item.averageConsumption > 0 ? newStock / item.averageConsumption : 0
+          };
+        }
+        return item;
+      })
+    );
+    
+    toast.success("Stock actualizado", {
+      description: `Se han agregado ${quantity} unidades al inventario`,
+    });
   };
 
   return (
@@ -825,6 +1000,7 @@ export function StockPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Medicamento</TableHead>
+                    <TableHead>Farmacia</TableHead>
                     <TableHead>Ubicación</TableHead>
                     <TableHead className="text-right">Stock actual</TableHead>
                     <TableHead className="text-right">Min/Max</TableHead>
@@ -853,6 +1029,12 @@ export function StockPage() {
                               <p className="font-medium text-gray-900">{item.medicineName}</p>
                               <p className="text-sm text-gray-600">{item.presentation} • {item.category}</p>
                             </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm text-gray-900">{item.pharmacyName}</span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -958,6 +1140,43 @@ export function StockPage() {
                 <div>
                   <Label className="text-sm text-gray-600">Ubicación</Label>
                   <p className="font-mono mt-1">{selectedItem.location}</p>
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-200" />
+
+              {/* Información de Farmacia */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Farmacia
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-blue-700">Nombre</Label>
+                    <p className="font-medium mt-1 text-blue-900">{selectedItem.pharmacyName}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Código</Label>
+                    <p className="font-mono mt-1 text-blue-900">{getPharmacyById(selectedItem.pharmacyId)?.code || "N/A"}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-sm text-blue-700">Ubicación completa</Label>
+                    <p className="mt-1 text-blue-900">
+                      {getPharmacyById(selectedItem.pharmacyId) && (() => {
+                        const pharmacy = getPharmacyById(selectedItem.pharmacyId)!;
+                        return `${pharmacy.specificAddress}, ${pharmacy.district}, ${pharmacy.canton}, ${pharmacy.province}`;
+                      })()}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Teléfono</Label>
+                    <p className="mt-1 text-blue-900">{getPharmacyById(selectedItem.pharmacyId)?.phone || "N/A"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Responsable</Label>
+                    <p className="mt-1 text-blue-900">{getPharmacyById(selectedItem.pharmacyId)?.manager || "N/A"}</p>
+                  </div>
                 </div>
               </div>
 
@@ -1133,6 +1352,55 @@ export function AlertasStockPage() {
     setIsNewOrderDialogOpen(true);
   };
 
+  // Función para actualizar el stock después de crear una orden
+  const handleStockUpdate = (medicineId: string, quantity: number) => {
+    setAlerts(prevAlerts => {
+      const updatedAlerts = prevAlerts.map(alert => {
+        if (alert.medicineId === medicineId) {
+          const newStock = alert.currentStock + quantity;
+          
+          // Si el stock es ahora adecuado (mayor o igual al mínimo), marcar para eliminación
+          if (newStock >= alert.minStock) {
+            return null; // Marcar para eliminación
+          }
+          
+          // Determinar nuevo estado y prioridad basado en el stock actualizado
+          let newStatus = alert.status;
+          let newPriority = alert.priority;
+          
+          if (newStock === 0) {
+            newStatus = 'out';
+            newPriority = 'critical';
+          } else if (newStock < alert.minStock * 0.5) {
+            // Stock por debajo del 50% del mínimo
+            newStatus = 'critical';
+            newPriority = 'high';
+          } else {
+            // Stock entre 50% y 100% del mínimo
+            newStatus = 'low';
+            newPriority = 'medium';
+          }
+          
+          return {
+            ...alert,
+            currentStock: newStock,
+            status: newStatus,
+            priority: newPriority,
+            daysWithoutStock: newStock > 0 ? 0 : alert.daysWithoutStock,
+            affectedPrescriptions: newStock === 0 ? alert.affectedPrescriptions : 0
+          };
+        }
+        return alert;
+      }).filter(alert => alert !== null); // Eliminar alertas resueltas
+      
+      return updatedAlerts as typeof prevAlerts;
+    });
+    
+    toast.success("Stock actualizado", {
+      description: `Se han agregado ${quantity} unidades al inventario. Las alertas se han actualizado.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header visual */}
@@ -1282,6 +1550,7 @@ export function AlertasStockPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Medicamento</TableHead>
+                    <TableHead>Farmacia</TableHead>
                     <TableHead className="text-center">Prioridad</TableHead>
                     <TableHead className="text-right">Stock actual</TableHead>
                     <TableHead className="text-right">Stock mínimo</TableHead>
@@ -1317,6 +1586,12 @@ export function AlertasStockPage() {
                               <p className="font-medium text-gray-900">{alert.medicineName}</p>
                               <p className="text-sm text-gray-600">{alert.presentation} • {alert.category}</p>
                             </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm text-gray-900">{alert.pharmacyName}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
@@ -1406,6 +1681,7 @@ export function AlertasStockPage() {
           console.log("Orden creada:", order);
           // Aquí se podría actualizar el estado o hacer una petición al backend
         }}
+        onStockUpdated={handleStockUpdate}
       />
 
       {/* Panel de detalles de alerta */}
@@ -1442,6 +1718,43 @@ export function AlertasStockPage() {
                   <div>
                     <Label className="text-sm text-gray-600">Ubicación</Label>
                     <p className="font-mono mt-1">{selectedAlert.location}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-200" />
+
+              {/* Información de Farmacia */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Farmacia
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-blue-700">Nombre</Label>
+                    <p className="font-medium mt-1 text-blue-900">{selectedAlert.pharmacyName}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Código</Label>
+                    <p className="font-mono mt-1 text-blue-900">{getPharmacyById(selectedAlert.pharmacyId)?.code || "N/A"}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-sm text-blue-700">Ubicación completa</Label>
+                    <p className="mt-1 text-blue-900">
+                      {getPharmacyById(selectedAlert.pharmacyId) && (() => {
+                        const pharmacy = getPharmacyById(selectedAlert.pharmacyId)!;
+                        return `${pharmacy.specificAddress}, ${pharmacy.district}, ${pharmacy.canton}, ${pharmacy.province}`;
+                      })()}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Teléfono</Label>
+                    <p className="mt-1 text-blue-900">{getPharmacyById(selectedAlert.pharmacyId)?.phone || "N/A"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Responsable</Label>
+                    <p className="mt-1 text-blue-900">{getPharmacyById(selectedAlert.pharmacyId)?.manager || "N/A"}</p>
                   </div>
                 </div>
               </div>
@@ -1795,6 +2108,7 @@ export function AjustesStockPage() {
                     <TableHead>Fecha y hora</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Medicamento</TableHead>
+                    <TableHead>Farmacia</TableHead>
                     <TableHead className="text-right">Cantidad</TableHead>
                     <TableHead>Motivo</TableHead>
                     <TableHead className="text-right">Stock anterior</TableHead>
@@ -1829,6 +2143,12 @@ export function AjustesStockPage() {
                           <div>
                             <p className="font-medium text-gray-900">{adjustment.medicineName}</p>
                             <p className="text-sm text-gray-600">{adjustment.presentation}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm text-gray-900">{adjustment.pharmacyName}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
@@ -1926,6 +2246,43 @@ export function AjustesStockPage() {
                         {selectedAdjustment.status === 'approved' ? 'Aprobado' : 'Pendiente'}
                       </Badge>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-200" />
+
+              {/* Información de Farmacia */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Farmacia
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-blue-700">Nombre</Label>
+                    <p className="font-medium mt-1 text-blue-900">{selectedAdjustment.pharmacyName}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Código</Label>
+                    <p className="font-mono mt-1 text-blue-900">{getPharmacyById(selectedAdjustment.pharmacyId)?.code || "N/A"}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-sm text-blue-700">Ubicación completa</Label>
+                    <p className="mt-1 text-blue-900">
+                      {getPharmacyById(selectedAdjustment.pharmacyId) && (() => {
+                        const pharmacy = getPharmacyById(selectedAdjustment.pharmacyId)!;
+                        return `${pharmacy.specificAddress}, ${pharmacy.district}, ${pharmacy.canton}, ${pharmacy.province}`;
+                      })()}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Teléfono</Label>
+                    <p className="mt-1 text-blue-900">{getPharmacyById(selectedAdjustment.pharmacyId)?.phone || "N/A"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Responsable</Label>
+                    <p className="mt-1 text-blue-900">{getPharmacyById(selectedAdjustment.pharmacyId)?.manager || "N/A"}</p>
                   </div>
                 </div>
               </div>
@@ -2050,7 +2407,34 @@ export function AjustesStockPage() {
 
 // Componente: Lotes y vencimientos
 export function LotesPage() {
-  const [batches, setBatches] = useState(mockBatches);
+  const [batches, setBatches] = useState(() => {
+    // Calcular dinámicamente los días hasta vencimiento y actualizar el estado
+    return mockBatches.map(batch => {
+      const expiryDate = new Date(batch.expiryDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      expiryDate.setHours(0, 0, 0, 0);
+      
+      const diffTime = expiryDate.getTime() - today.getTime();
+      const daysToExpiry = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // Determinar el estado basado en los días hasta vencimiento
+      let status = batch.status;
+      if (daysToExpiry < 0) {
+        status = 'expired';
+      } else if (daysToExpiry <= 90) {
+        status = 'near_expiry';
+      } else {
+        status = 'active';
+      }
+      
+      return {
+        ...batch,
+        daysToExpiry,
+        status
+      };
+    });
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [expiryFilter, setExpiryFilter] = useState("all");
@@ -2282,6 +2666,7 @@ export function LotesPage() {
                   <TableRow>
                     <TableHead>Lote</TableHead>
                     <TableHead>Medicamento</TableHead>
+                    <TableHead>Farmacia</TableHead>
                     <TableHead className="text-right">Stock</TableHead>
                     <TableHead>Fabricación</TableHead>
                     <TableHead>Vencimiento</TableHead>
@@ -2310,6 +2695,12 @@ export function LotesPage() {
                           <div>
                             <p className="font-medium text-gray-900">{batch.medicineName}</p>
                             <p className="text-sm text-gray-600">{batch.presentation}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm text-gray-900">{batch.pharmacyName}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
@@ -2433,6 +2824,43 @@ export function LotesPage() {
 
               <div className="h-px bg-gray-200" />
 
+              {/* Información de Farmacia */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Farmacia
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-blue-700">Nombre</Label>
+                    <p className="font-medium mt-1 text-blue-900">{selectedBatch.pharmacyName}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Código</Label>
+                    <p className="font-mono mt-1 text-blue-900">{getPharmacyById(selectedBatch.pharmacyId)?.code || "N/A"}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-sm text-blue-700">Ubicación completa</Label>
+                    <p className="mt-1 text-blue-900">
+                      {getPharmacyById(selectedBatch.pharmacyId) && (() => {
+                        const pharmacy = getPharmacyById(selectedBatch.pharmacyId)!;
+                        return `${pharmacy.specificAddress}, ${pharmacy.district}, ${pharmacy.canton}, ${pharmacy.province}`;
+                      })()}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Teléfono</Label>
+                    <p className="mt-1 text-blue-900">{getPharmacyById(selectedBatch.pharmacyId)?.phone || "N/A"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Responsable</Label>
+                    <p className="mt-1 text-blue-900">{getPharmacyById(selectedBatch.pharmacyId)?.manager || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-200" />
+
               {/* Medicamento */}
               <div>
                 <h4 className="font-medium mb-3">Medicamento</h4>
@@ -2474,6 +2902,9 @@ export function LotesPage() {
                       'text-green-600'
                     }`}>
                       {selectedBatch.expiryDate}
+                      {selectedBatch.daysToExpiry < 0 && (
+                        <span className="ml-2 text-xs font-normal">(Vencido)</span>
+                      )}
                     </p>
                   </div>
                   <div>

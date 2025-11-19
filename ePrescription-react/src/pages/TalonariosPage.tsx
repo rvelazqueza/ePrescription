@@ -56,6 +56,7 @@ import { toast } from "sonner";
 import { Separator } from "../components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 // Tipos de datos
 interface Talonario {
@@ -120,8 +121,9 @@ const PRECIOS_TALONARIOS = {
   }
 };
 
-// Datos de ejemplo
-const talonariosData: Talonario[] = [
+// Datos de ejemplo - Mis Talonarios (incluye información del profesional actual)
+// Sincronizado con talonariosGeneralData para el Dr. Juan Pérez González (MED-12345)
+const talonariosData: Array<Talonario & { profesional: { nombre: string; codigo: string; especialidad: string } }> = [
   {
     id: "TAL-001",
     tipo: "receta",
@@ -136,7 +138,12 @@ const talonariosData: Talonario[] = [
     usados: 22,
     precio: 2500,
     numeroFactura: "FACT-2024-0015",
-    metodoPago: "Tarjeta de crédito"
+    metodoPago: "Tarjeta de crédito",
+    profesional: {
+      nombre: "Dr. Juan Pérez González",
+      codigo: "MED-12345",
+      especialidad: "Medicina General"
+    }
   },
   {
     id: "TAL-002",
@@ -152,55 +159,12 @@ const talonariosData: Talonario[] = [
     usados: 15,
     precio: 3500,
     numeroFactura: "FACT-2024-0042",
-    metodoPago: "Transferencia bancaria"
-  },
-  {
-    id: "TAL-003",
-    tipo: "receta",
-    subTipo: "normal",
-    codigoInicio: "REC-2024-001",
-    codigoFin: "REC-2024-100",
-    cantidad: 100,
-    estado: "activo",
-    fechaAdquisicion: "2024-03-05",
-    fechaVencimiento: "2025-03-05",
-    disponibles: 65,
-    usados: 35,
-    precio: 1500,
-    numeroFactura: "FACT-2024-0089",
-    metodoPago: "Tarjeta de débito"
-  },
-  {
-    id: "TAL-004",
-    tipo: "despacho",
-    subTipo: "normal",
-    codigoInicio: "DESP-2024-001",
-    codigoFin: "DESP-2024-150",
-    cantidad: 150,
-    estado: "activo",
-    fechaAdquisicion: "2024-03-20",
-    fechaVencimiento: "2025-03-20",
-    disponibles: 98,
-    usados: 52,
-    precio: 1000,
-    numeroFactura: "FACT-2024-0105",
-    metodoPago: "Tarjeta de crédito"
-  },
-  {
-    id: "TAL-005",
-    tipo: "receta",
-    subTipo: "psicotropico",
-    codigoInicio: "PSI-2023-050",
-    codigoFin: "PSI-2023-090",
-    cantidad: 40,
-    estado: "agotado",
-    fechaAdquisicion: "2023-11-10",
-    fechaVencimiento: "2024-11-10",
-    disponibles: 0,
-    usados: 40,
-    precio: 3000,
-    numeroFactura: "FACT-2023-0845",
-    metodoPago: "Transferencia bancaria"
+    metodoPago: "Transferencia bancaria",
+    profesional: {
+      nombre: "Dr. Juan Pérez González",
+      codigo: "MED-12345",
+      especialidad: "Medicina General"
+    }
   }
 ];
 
@@ -470,6 +434,7 @@ export function ComprarTalonariosPage() {
   const [validatingProfessional, setValidatingProfessional] = useState(false);
   const [professionalValidated, setProfessionalValidated] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [vistaFiltro, setVistaFiltro] = useState<"todos" | "mis">("mis");
 
   // Formulario de compra
   const [formData, setFormData] = useState({
@@ -491,8 +456,16 @@ export function ComprarTalonariosPage() {
 
   const [currentOrder, setCurrentOrder] = useState<CompraHistorial | null>(null);
 
+  // Obtener datos según vista seleccionada
+  const getDataSource = () => {
+    if (vistaFiltro === "mis") {
+      return talonariosData;
+    }
+    return talonariosGeneralData;
+  };
+
   // Filtrado
-  const filteredTalonarios = talonariosData.filter((item) => {
+  const filteredTalonarios = getDataSource().filter((item: any) => {
     const normalizedSearch = normalizeSearchText(searchTerm);
     
     const matchesSearch =
@@ -502,7 +475,8 @@ export function ComprarTalonariosPage() {
       normalizeSearchText(item.codigoFin).includes(normalizedSearch) ||
       normalizeSearchText(item.numeroFactura).includes(normalizedSearch) ||
       normalizeSearchText(item.tipo).includes(normalizedSearch) ||
-      (item.subTipo && normalizeSearchText(item.subTipo).includes(normalizedSearch));
+      (item.subTipo && normalizeSearchText(item.subTipo).includes(normalizedSearch)) ||
+      (item.profesional && normalizeSearchText(item.profesional.nombre).includes(normalizedSearch));
 
     const matchesTipo = selectedTipo === "todos" || item.tipo === selectedTipo;
     const matchesEstado = selectedEstado === "todos" || item.estado === selectedEstado;
@@ -701,9 +675,11 @@ export function ComprarTalonariosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {talonariosData.filter(t => t.estado === "activo").length}
+              {getDataSource().filter((t: any) => t.estado === "activo").length}
             </div>
-            <p className="text-xs text-muted-foreground">En uso actualmente</p>
+            <p className="text-xs text-muted-foreground">
+              {vistaFiltro === "todos" ? "En todo el sistema" : "En uso actualmente"}
+            </p>
           </CardContent>
         </Card>
 
@@ -714,7 +690,7 @@ export function ComprarTalonariosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {talonariosData.reduce((sum, t) => sum + t.disponibles, 0)}
+              {getDataSource().reduce((sum: number, t: any) => sum + t.disponibles, 0)}
             </div>
             <p className="text-xs text-muted-foreground">Talonarios sin usar</p>
           </CardContent>
@@ -727,7 +703,7 @@ export function ComprarTalonariosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {talonariosData.reduce((sum, t) => sum + t.usados, 0)}
+              {getDataSource().reduce((sum: number, t: any) => sum + t.usados, 0)}
             </div>
             <p className="text-xs text-muted-foreground">Total emitidos</p>
           </CardContent>
@@ -735,12 +711,20 @@ export function ComprarTalonariosPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm">Compras este mes</CardTitle>
+            <CardTitle className="text-sm">
+              {vistaFiltro === "todos" ? "Total Profesionales" : "Compras este mes"}
+            </CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{comprasHistorialData.length}</div>
-            <p className="text-xs text-muted-foreground">Octubre 2024</p>
+            <div className="text-2xl font-bold">
+              {vistaFiltro === "todos" 
+                ? new Set(talonariosGeneralData.map(t => t.profesional.codigo)).size
+                : comprasHistorialData.length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {vistaFiltro === "todos" ? "Con talonarios activos" : "Octubre 2024"}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -749,7 +733,9 @@ export function ComprarTalonariosPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Mis Talonarios</CardTitle>
+            <CardTitle>
+              {vistaFiltro === "todos" ? "Todos los Talonarios" : "Mis Talonarios"}
+            </CardTitle>
             <div className="flex gap-2">
               <Button onClick={() => setShowHistorialDialog(true)} variant="outline">
                 <Eye className="w-4 h-4 mr-2" />
@@ -764,12 +750,29 @@ export function ComprarTalonariosPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {/* Tabs de filtrado de vista */}
+            <Tabs value={vistaFiltro} onValueChange={(value) => {
+              setVistaFiltro(value as "todos" | "mis");
+              setSearchTerm("");
+            }}>
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="mis">
+                  <User className="w-4 h-4 mr-2" />
+                  Mis Talonarios
+                </TabsTrigger>
+                <TabsTrigger value="todos">
+                  <Package className="w-4 h-4 mr-2" />
+                  Todos los Talonarios
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
             {/* Búsqueda y filtros */}
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Buscar por ID, código, factura..."
+                  placeholder={vistaFiltro === "todos" ? "Buscar por ID, código, profesional, factura..." : "Buscar por ID, código, factura..."}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -812,11 +815,16 @@ export function ComprarTalonariosPage() {
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">
                 Mostrando {paginatedData.length} de {filteredTalonarios.length} talonario(s)
+                {vistaFiltro === "todos" && (
+                  <span className="ml-2 text-blue-600">
+                    · Vista completa del sistema
+                  </span>
+                )}
               </p>
               <ExportButtons
                 data={filteredTalonarios}
-                filename="talonarios"
-                pdfTitle="Listado de Talonarios"
+                filename={vistaFiltro === "todos" ? "todos-talonarios" : "mis-talonarios"}
+                pdfTitle={vistaFiltro === "todos" ? "Todos los Talonarios - Sistema ePrescription" : "Mis Talonarios"}
               />
             </div>
 
@@ -826,6 +834,7 @@ export function ComprarTalonariosPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>ID</TableHead>
+                    <TableHead>Profesional</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Código Inicio</TableHead>
                     <TableHead>Código Fin</TableHead>
@@ -839,9 +848,16 @@ export function ComprarTalonariosPage() {
                 </TableHeader>
                 <TableBody>
                   {paginatedData.length > 0 ? (
-                    paginatedData.map((item) => (
+                    paginatedData.map((item: any) => (
                       <TableRow key={item.id}>
                         <TableCell>{transformText(item.id)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{item.profesional?.nombre}</span>
+                            <span className="text-xs text-muted-foreground">{item.profesional?.codigo}</span>
+                            <span className="text-xs text-muted-foreground">{item.profesional?.especialidad}</span>
+                          </div>
+                        </TableCell>
                         <TableCell>{renderTipoBadge(item.tipo, item.subTipo)}</TableCell>
                         <TableCell>{transformText(item.codigoInicio)}</TableCell>
                         <TableCell>{transformText(item.codigoFin)}</TableCell>
@@ -859,7 +875,7 @@ export function ComprarTalonariosPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                         <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
                         <p>No se encontraron talonarios</p>
                       </TableCell>
@@ -1515,7 +1531,17 @@ export function ListadoTalonariosPage() {
       normalizeSearchText(item.tipo).includes(normalizedSearch) ||
       (item.subTipo && normalizeSearchText(item.subTipo).includes(normalizedSearch));
 
-    const matchesTipo = selectedTipo === "todos" || item.tipo === selectedTipo;
+    // Filtro de tipo mejorado para incluir subtipos
+    let matchesTipo = true;
+    if (selectedTipo !== "todos") {
+      if (selectedTipo === "receta" || selectedTipo === "despacho") {
+        matchesTipo = item.tipo === selectedTipo;
+      } else if (selectedTipo === "antimicrobiano" || selectedTipo === "estupefaciente" || 
+                 selectedTipo === "psicotropico" || selectedTipo === "normal") {
+        matchesTipo = item.subTipo === selectedTipo;
+      }
+    }
+    
     const matchesEstado = selectedEstado === "todos" || item.estado === selectedEstado;
     const matchesProfesional = selectedProfesional === "todos" || item.profesional.codigo === selectedProfesional;
 
@@ -1682,7 +1708,11 @@ export function ListadoTalonariosPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos los tipos</SelectItem>
-                  <SelectItem value="receta">Receta</SelectItem>
+                  <SelectItem value="receta">Receta (Todos)</SelectItem>
+                  <SelectItem value="normal">Receta Normal</SelectItem>
+                  <SelectItem value="antimicrobiano">Receta Antimicrobiano</SelectItem>
+                  <SelectItem value="estupefaciente">Receta Estupefaciente</SelectItem>
+                  <SelectItem value="psicotropico">Receta Psicotrópico</SelectItem>
                   <SelectItem value="despacho">Despacho</SelectItem>
                 </SelectContent>
               </Select>

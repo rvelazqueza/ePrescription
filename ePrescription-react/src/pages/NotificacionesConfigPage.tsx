@@ -29,8 +29,62 @@ import {
   TestTube2,
   Save,
   X,
-  AlertCircle
+  AlertCircle,
+  Shield
 } from "lucide-react";
+
+// Importar tipos de alertas disponibles
+const mockAlertTypes = [
+  {
+    id: "TYPE-001",
+    code: "INTERACTION_CRITICAL",
+    name: "Interacción medicamentosa crítica",
+    severity: "critical",
+    status: "active"
+  },
+  {
+    id: "TYPE-002",
+    code: "ALLERGY_ABSOLUTE",
+    name: "Alergia registrada",
+    severity: "critical",
+    status: "active"
+  },
+  {
+    id: "TYPE-003",
+    code: "CONTRAINDICATION",
+    name: "Contraindicación por condición médica",
+    severity: "high",
+    status: "active"
+  },
+  {
+    id: "TYPE-004",
+    code: "DUPLICATE_THERAPY",
+    name: "Duplicidad terapéutica",
+    severity: "medium",
+    status: "active"
+  },
+  {
+    id: "TYPE-005",
+    code: "DOSE_MAX_EXCEEDED",
+    name: "Dosis máxima excedida",
+    severity: "high",
+    status: "active"
+  },
+  {
+    id: "TYPE-006",
+    code: "INTERACTION_MODERATE",
+    name: "Interacción medicamentosa moderada",
+    severity: "medium",
+    status: "active"
+  },
+  {
+    id: "TYPE-007",
+    code: "AGE_PEDIATRIC",
+    name: "Alerta pediátrica",
+    severity: "medium",
+    status: "active"
+  }
+];
 
 interface NotificacionesConfigPageProps {
   notificationId?: string;
@@ -47,6 +101,7 @@ export function NotificacionesConfigPage({ notificationId, onBack }: Notificacio
     descripcion: "",
     tipoDestinatario: "interno" as "interno" | "externo" | "ambos",
     categoria: "Prescripciones",
+    tipoAlertaVinculado: "none" as string, // ID del tipo de alerta (opcional, "none" si no está vinculado)
     estado: "activa" as "activa" | "inactiva" | "programada" | "pausada",
     prioridad: "media" as "alta" | "media" | "baja",
     asunto: "",
@@ -68,6 +123,7 @@ export function NotificacionesConfigPage({ notificationId, onBack }: Notificacio
           descripcion: notification.descripcion,
           tipoDestinatario: notification.tipoDestinatario,
           categoria: notification.categoria,
+          tipoAlertaVinculado: "none", // Cargar si existe en el futuro
           estado: notification.estado,
           prioridad: notification.prioridad,
           asunto: notification.asunto || "",
@@ -84,6 +140,7 @@ export function NotificacionesConfigPage({ notificationId, onBack }: Notificacio
         descripcion: "",
         tipoDestinatario: "interno",
         categoria: "Prescripciones",
+        tipoAlertaVinculado: "none",
         estado: "activa",
         prioridad: "media",
         asunto: "",
@@ -187,6 +244,7 @@ export function NotificacionesConfigPage({ notificationId, onBack }: Notificacio
           descripcion: "",
           tipoDestinatario: "interno",
           categoria: "Prescripciones",
+          tipoAlertaVinculado: "none",
           estado: "activa",
           prioridad: "media",
           asunto: "",
@@ -364,6 +422,67 @@ export function NotificacionesConfigPage({ notificationId, onBack }: Notificacio
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Nuevo campo: Vinculación con Tipo de Alerta */}
+            <div className="space-y-2 p-4 border border-blue-200 bg-blue-50/50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="h-5 w-5 text-blue-600" />
+                <Label htmlFor="tipoAlertaVinculado" className="text-blue-900">
+                  Vinculación con Tipo de Alerta (Opcional)
+                </Label>
+              </div>
+              <Select 
+                value={formData.tipoAlertaVinculado} 
+                onValueChange={(value) => handleInputChange('tipoAlertaVinculado', value)}
+              >
+                <SelectTrigger id="tipoAlertaVinculado">
+                  <SelectValue placeholder="Seleccione un tipo de alerta para vincular..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">
+                    <span className="text-muted-foreground">Sin vincular (Notificación general)</span>
+                  </SelectItem>
+                  {mockAlertTypes.filter(t => t.status === "active").map((alertType) => (
+                    <SelectItem key={alertType.id} value={alertType.id}>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            alertType.severity === "critical" 
+                              ? "bg-red-100 text-red-700 border-red-300" 
+                              : alertType.severity === "high"
+                              ? "bg-orange-100 text-orange-700 border-orange-300"
+                              : "bg-yellow-100 text-yellow-700 border-yellow-300"
+                          }
+                        >
+                          {alertType.code}
+                        </Badge>
+                        <span>{alertType.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-blue-700 flex items-start gap-1.5 mt-2">
+                <AlertCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                <span>
+                  Si vincula esta notificación a un tipo de alerta, se disparará automáticamente 
+                  cuando el sistema detecte ese tipo de alerta clínica. Deje sin vincular para 
+                  notificaciones generales del sistema.
+                </span>
+              </p>
+              {formData.tipoAlertaVinculado && formData.tipoAlertaVinculado !== "none" && (
+                <div className="mt-3 p-3 bg-white border border-blue-200 rounded-md">
+                  <p className="text-sm text-blue-900 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium">Vinculado a:</span>
+                  </p>
+                  <p className="text-sm text-blue-800 ml-6 mt-1">
+                    {mockAlertTypes.find(t => t.id === formData.tipoAlertaVinculado)?.name}
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

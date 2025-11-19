@@ -6,7 +6,7 @@ import { Badge } from "../components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { Users, UserCircle, FileText, Search, Filter, FilterX, Eye, Edit, Plus, UserPlus, Phone, Mail, Calendar, Activity, Heart, AlertTriangle, TrendingUp, UserCheck, UserX, User, MapPin, ShieldAlert, Pill, FileCheck, Download, Trash2, Share2, Image as ImageIcon, File, Upload, X } from "lucide-react";
+import { Users, UserCircle, FileText, Search, Filter, FilterX, Eye, Edit, Plus, UserPlus, Phone, Mail, Calendar, Activity, Heart, AlertTriangle, TrendingUp, UserCheck, UserX, User, MapPin, ShieldAlert, Pill, FileCheck, Download, Trash2, Share2, Image as ImageIcon, File, Upload, X, ArrowLeft, ChevronRight } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { PatientDetailPanel } from "../components/PatientDetailPanel";
 import { MedicalTimeline } from "../components/MedicalTimeline";
@@ -14,6 +14,7 @@ import { EditPatientProfileDialog } from "../components/EditPatientProfileDialog
 import { ContactPatientDialog } from "../components/ContactPatientDialog";
 import { ClinicalDocumentsDialog } from "../components/ClinicalDocumentsDialog";
 import { NewPatientDialog } from "../components/NewPatientDialog";
+import { PageBanner } from "../components/PageBanner";
 import { TablePagination } from "../components/TablePagination";
 import { ExportButtons } from "../components/ExportButtons";
 import { usePagination } from "../utils/usePagination";
@@ -898,6 +899,8 @@ interface PerfilPacientePageProps {
 }
 
 export function PerfilPacientePage({ onNewPrescription }: PerfilPacientePageProps = {}) {
+  const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"overview" | "history" | "prescriptions" | "documents">("overview");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
@@ -905,49 +908,51 @@ export function PerfilPacientePage({ onNewPrescription }: PerfilPacientePageProp
   const [documentSearchTerm, setDocumentSearchTerm] = useState("");
   const [documentTypeFilter, setDocumentTypeFilter] = useState<string>("all");
 
-  // Datos del paciente (normalmente vendría de la navegación desde ListaPacientesPage)
-  // Usar useState para poder actualizar los datos cuando se editen
-  const [patient, setPatient] = useState({
-    id: "PAT-001",
-    fullName: "María Elena González Rodríguez",
-    firstName: "María Elena",
-    lastName: "González Rodríguez",
-    idType: "CC",
-    idNumber: "52.841.963",
-    birthDate: "15/03/1980",
-    age: 45,
-    gender: "F" as const,
-    bloodType: "O+",
-    phone: "+57 310 456-7890",
-    email: "maria.gonzalez@email.com",
-    address: "Calle 45 #23-67, Apto 301",
-    city: "Bogotá",
-    country: "Colombia",
-    insuranceProvider: "Sanitas EPS",
-    insuranceNumber: "SAN-2024-789456",
-    allergies: ["Penicilina", "Sulfas", "Mariscos"],
-    chronicConditions: ["Hipertensión arterial", "Diabetes tipo 2", "Hipotiroidismo"],
-    currentMedications: [
-      "Enalapril 10mg - 1 vez al día - Mañana",
-      "Metformina 850mg - 2 veces al día - Desayuno y cena",
-      "Levotiroxina 100mcg - 1 vez al día en ayunas"
-    ],
-    lastVisit: "27/09/2025",
-    totalPrescriptions: 24,
-    activePrescriptions: 2,
-    registrationDate: "10/01/2020",
-    status: "active" as const,
-    emergencyContact: {
-      name: "Carlos González",
-      relationship: "Esposo",
-      phone: "+57 310 123-4567"
-    },
-    clinicalNotes: "Paciente con buena adherencia al tratamiento. Control periódico de glicemia y presión arterial. Última HbA1c: 6.5% (27/08/2025). Requiere seguimiento endocrinológico cada 3 meses.",
-    weight: "68",
-    height: "1.65",
-    bmi: "24.98",
-    occupation: "Docente"
-  });
+  // Función para buscar pacientes
+  const handleSearchPatient = () => {
+    if (!searchTerm.trim()) {
+      toast.error('Ingresa un criterio de búsqueda');
+      return;
+    }
+
+    const patient = mockPatients.find(p =>
+      normalizedIncludes(p.fullName, searchTerm) ||
+      normalizedIncludes(p.idNumber, searchTerm) ||
+      normalizedIncludes(p.id, searchTerm) ||
+      normalizedIncludes(p.email || "", searchTerm)
+    );
+
+    if (patient) {
+      setSelectedPatient(patient);
+      toast.success('Paciente encontrado', {
+        description: `${patient.fullName} - ${patient.idType} ${patient.idNumber}`,
+        duration: 3000,
+      });
+    } else {
+      setSelectedPatient(null);
+      toast.error('Paciente no encontrado', {
+        description: 'No se encontró ningún paciente con ese criterio',
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleSelectPatient = (patient: any) => {
+    setSelectedPatient(patient);
+    toast.success('Paciente seleccionado', {
+      description: `${patient.fullName}`,
+      duration: 2000,
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPatient(null);
+    setSearchTerm("");
+    setActiveTab("overview");
+  };
+
+  // Usar selectedPatient o crear uno temporal para mantener compatibilidad
+  const patient = selectedPatient;
 
   // Timeline de eventos médicos
   const timelineEvents = [
@@ -1160,10 +1165,12 @@ export function PerfilPacientePage({ onNewPrescription }: PerfilPacientePageProp
   ]);
 
   const handleNewPrescription = () => {
+    if (!selectedPatient) return;
+    
     if (onNewPrescription) {
-      onNewPrescription(patient);
+      onNewPrescription(selectedPatient);
       toast.success('Creando receta para el paciente', {
-        description: `Receta para ${patient.fullName}`,
+        description: `Receta para ${selectedPatient.fullName}`,
         duration: 3000,
       });
     } else {
@@ -1178,13 +1185,17 @@ export function PerfilPacientePage({ onNewPrescription }: PerfilPacientePageProp
     setEditDialogOpen(true);
   };
 
-  const handleSaveProfile = (updatedPatient: typeof patient) => {
+  const handleSaveProfile = (updatedPatient: any) => {
     // Actualizar fullName basado en firstName y lastName
     const patientWithFullName = {
       ...updatedPatient,
       fullName: `${updatedPatient.firstName} ${updatedPatient.lastName}`
     };
-    setPatient(patientWithFullName);
+    setSelectedPatient(patientWithFullName);
+    toast.success('Perfil actualizado', {
+      description: 'Los cambios se han guardado correctamente',
+      duration: 3000,
+    });
     // Aquí normalmente se haría una llamada al backend para guardar los cambios
   };
 
@@ -1300,8 +1311,129 @@ export function PerfilPacientePage({ onNewPrescription }: PerfilPacientePageProp
     toast.info('Navegando a historial completo...', { duration: 2000 });
   };
 
+  // Si no hay paciente seleccionado, mostrar selector
+  if (!selectedPatient) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <PageBanner
+          title="Perfil del Paciente"
+          subtitle="Selecciona un paciente para consultar su información médica completa"
+          icon={UserCircle}
+          gradient="from-blue-600 via-indigo-500 to-blue-700"
+        />
+
+        {/* Buscador de pacientes */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="w-5 h-5 text-blue-600" />
+              Buscar Paciente
+            </CardTitle>
+            <p className="text-sm text-gray-600 mt-1">
+              Busca por nombre completo, documento de identidad, código de paciente o correo electrónico
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  placeholder="Ej: María González, 52.841.963, PAT-001, maria@email.com"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearchPatient()}
+                  className="pl-11 h-12"
+                />
+              </div>
+              <Button 
+                onClick={handleSearchPatient}
+                className="bg-blue-600 hover:bg-blue-700 px-8"
+                size="lg"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Buscar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Lista de pacientes disponibles */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              Pacientes Registrados
+            </CardTitle>
+            <p className="text-sm text-gray-600 mt-1">
+              Selecciona un paciente de la lista para ver su perfil completo
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {mockPatients.map((pat) => (
+                <Card 
+                  key={pat.id}
+                  className="border-blue-200 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                  onClick={() => handleSelectPatient(pat)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{pat.fullName}</h3>
+                          <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
+                            <span>{pat.idType} {pat.idNumber}</span>
+                            <span>•</span>
+                            <span>{pat.age} años</span>
+                            <span>•</span>
+                            <Badge variant="outline" className={
+                              pat.status === "active" ? "bg-green-50 text-green-700 border-green-300" : "bg-gray-50 text-gray-700"
+                            }>
+                              {pat.status === "active" ? "Activo" : "Inactivo"}
+                            </Badge>
+                          </div>
+                          {pat.chronicConditions && pat.chronicConditions.length > 0 && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {pat.chronicConditions.slice(0, 2).join(', ')}
+                              {pat.chronicConditions.length > 2 && ` +${pat.chronicConditions.length - 2} más`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                        Ver Perfil
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Botón para volver a la selección */}
+      <div className="flex items-center gap-3">
+        <Button
+          variant="outline"
+          onClick={handleClearSelection}
+          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Cambiar paciente
+        </Button>
+        <div className="flex-1" />
+      </div>
+
       {/* Header del perfil */}
       <Card className="border-l-4 border-l-blue-500">
         <div className="p-6">
@@ -1485,7 +1617,7 @@ export function PerfilPacientePage({ onNewPrescription }: PerfilPacientePageProp
                   </div>
                   <div>
                     <p className="text-xs text-gray-600 mb-1">Ocupación</p>
-                    <p className="text-sm font-medium">{patient.occupation}</p>
+                    <p className="text-sm font-medium">{patient.occupation || 'No registrada'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -1537,15 +1669,15 @@ export function PerfilPacientePage({ onNewPrescription }: PerfilPacientePageProp
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center p-3 bg-blue-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-1">Peso</p>
-                    <p className="text-xl font-semibold text-gray-900">{patient.weight} kg</p>
+                    <p className="text-xl font-semibold text-gray-900">{patient.weight ? `${patient.weight} kg` : 'N/A'}</p>
                   </div>
                   <div className="text-center p-3 bg-green-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-1">Altura</p>
-                    <p className="text-xl font-semibold text-gray-900">{patient.height} m</p>
+                    <p className="text-xl font-semibold text-gray-900">{patient.height ? `${patient.height} m` : 'N/A'}</p>
                   </div>
                   <div className="text-center p-3 bg-purple-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-1">IMC</p>
-                    <p className="text-xl font-semibold text-gray-900">{patient.bmi}</p>
+                    <p className="text-xl font-semibold text-gray-900">{patient.bmi || 'N/A'}</p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-600 mt-3 text-center">
@@ -1567,11 +1699,13 @@ export function PerfilPacientePage({ onNewPrescription }: PerfilPacientePageProp
                   <p className="text-sm font-medium text-gray-900">{patient.insuranceProvider}</p>
                   <p className="text-xs text-gray-600 mt-1">Póliza: {patient.insuranceNumber}</p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Contacto de emergencia</p>
-                  <p className="text-sm font-medium">{patient.emergencyContact.name}</p>
-                  <p className="text-xs text-gray-600">{patient.emergencyContact.relationship} • {patient.emergencyContact.phone}</p>
-                </div>
+                {patient.emergencyContact && (
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Contacto de emergencia</p>
+                    <p className="text-sm font-medium">{patient.emergencyContact.name}</p>
+                    <p className="text-xs text-gray-600">{patient.emergencyContact.relationship} • {patient.emergencyContact.phone}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -1585,17 +1719,24 @@ export function PerfilPacientePage({ onNewPrescription }: PerfilPacientePageProp
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {patient.currentMedications.map((medication, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <Pill className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-blue-900">{medication}</p>
+                  {patient.currentMedications && patient.currentMedications.length > 0 ? (
+                    patient.currentMedications.map((medication, index) => (
+                      <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <Pill className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-blue-900">{medication}</p>
+                        </div>
+                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                          Activo
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                        Activo
-                      </Badge>
+                    ))
+                  ) : (
+                    <div className="text-center py-6 text-gray-500">
+                      <Pill className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No hay medicaciones activas registradas</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1610,7 +1751,9 @@ export function PerfilPacientePage({ onNewPrescription }: PerfilPacientePageProp
               </CardHeader>
               <CardContent>
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{patient.clinicalNotes}</p>
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                    {patient.clinicalNotes || 'No hay notas clínicas registradas para este paciente.'}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -2013,15 +2156,17 @@ interface RecetasPacientePageProps {
 }
 
 export function RecetasPacientePage({ onNewPrescription, patientId }: RecetasPacientePageProps) {
+  const [selectedPatient, setSelectedPatient] = useState<any | null>(
+    patientId ? mockPatients.find(p => p.id === patientId) || null : null
+  );
+  const [patientSearchTerm, setPatientSearchTerm] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
   const [selectedPrescription, setSelectedPrescription] = useState<string | null>(null);
 
-  // Obtener el paciente correcto basado en patientId o usar el primero por defecto
-  const patientData = patientId 
-    ? mockPatients.find(p => p.id === patientId) || mockPatients[0]
-    : mockPatients[0];
+  // Obtener el paciente correcto
+  const patientData = selectedPatient || mockPatients[0];
 
   // Datos del paciente completo para la nueva receta
   const patient = {
@@ -2055,6 +2200,52 @@ export function RecetasPacientePage({ onNewPrescription, patientId }: RecetasPac
       phone: "+57 311 123-4567"
     },
     clinicalNotes: "Paciente con adherencia al tratamiento. Control periódico de HbA1c y presión arterial."
+  };
+
+  // Funciones para búsqueda y selección de paciente
+  const handleSearchPatientForPrescriptions = () => {
+    if (!patientSearchTerm.trim()) {
+      toast.error('Ingresa un criterio de búsqueda');
+      return;
+    }
+
+    const foundPatient = mockPatients.find(p =>
+      normalizedIncludes(p.fullName, patientSearchTerm) ||
+      normalizedIncludes(p.idNumber, patientSearchTerm) ||
+      normalizedIncludes(p.id, patientSearchTerm)
+    );
+
+    if (foundPatient) {
+      setSelectedPatient(foundPatient);
+      toast.success('Paciente encontrado', {
+        description: `${foundPatient.fullName} - ${foundPatient.totalPrescriptions || 0} receta(s) en historial`,
+        duration: 3000,
+      });
+    } else {
+      setSelectedPatient(null);
+      toast.error('Paciente no encontrado', {
+        description: 'No se encontró ningún paciente con ese criterio',
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleSelectPatientForPrescriptions = (patient: any) => {
+    setSelectedPatient(patient);
+    const prescriptionCount = patient.totalPrescriptions || 0;
+    const activeCount = patient.activePrescriptions || 0;
+    toast.success('Paciente seleccionado', {
+      description: `${prescriptionCount} receta(s) en historial, ${activeCount} activa(s)`,
+      duration: 2000,
+    });
+  };
+
+  const handleClearPatientSelection = () => {
+    setSelectedPatient(null);
+    setPatientSearchTerm("");
+    setSearchTerm("");
+    setStatusFilter("all");
+    setDateFilter("all");
   };
 
   // Datos mock de recetas del paciente
@@ -2319,8 +2510,135 @@ export function RecetasPacientePage({ onNewPrescription, patientId }: RecetasPac
 
   const selectedPrescriptionData = prescriptions.find(p => p.id === selectedPrescription);
 
+  // Si no hay paciente seleccionado, mostrar selector
+  if (!selectedPatient) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <PageBanner
+          title="Recetas del Paciente"
+          subtitle="Selecciona un paciente para consultar su historial completo de prescripciones médicas"
+          icon={FileText}
+          gradient="from-indigo-600 via-purple-500 to-indigo-700"
+        />
+
+        {/* Buscador de pacientes */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="w-5 h-5 text-indigo-600" />
+              Buscar Paciente
+            </CardTitle>
+            <p className="text-sm text-gray-600 mt-1">
+              Busca por nombre completo, documento de identidad o código de paciente
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  placeholder="Ej: María González, 52.841.963, PAT-001"
+                  value={patientSearchTerm}
+                  onChange={(e) => setPatientSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearchPatientForPrescriptions()}
+                  className="pl-11 h-12"
+                />
+              </div>
+              <Button 
+                onClick={handleSearchPatientForPrescriptions}
+                className="bg-indigo-600 hover:bg-indigo-700 px-8"
+                size="lg"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Buscar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Lista de pacientes con recetas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-indigo-600" />
+              Pacientes con Recetas Activas
+            </CardTitle>
+            <p className="text-sm text-gray-600 mt-1">
+              Selecciona un paciente de la lista para ver su historial de prescripciones
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {mockPatients.filter(p => (p.totalPrescriptions || 0) > 0).map((pat) => (
+                <Card 
+                  key={pat.id}
+                  className="border-indigo-200 hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer"
+                  onClick={() => handleSelectPatientForPrescriptions(pat)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                          <User className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{pat.fullName}</h3>
+                          <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
+                            <span>{pat.idType} {pat.idNumber}</span>
+                            <span>•</span>
+                            <span>{pat.age} años</span>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1.5">
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                              <FileText className="w-3 h-3 mr-1" />
+                              {pat.totalPrescriptions || 0} receta(s)
+                            </Badge>
+                            {pat.activePrescriptions > 0 && (
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                                {pat.activePrescriptions} activa(s)
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+                        Ver Recetas
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {mockPatients.filter(p => (p.totalPrescriptions || 0) > 0).length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No hay pacientes con recetas en el sistema</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Botón para volver a la selección */}
+      <div className="flex items-center gap-3">
+        <Button
+          variant="outline"
+          onClick={handleClearPatientSelection}
+          className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Cambiar paciente
+        </Button>
+        <div className="flex-1" />
+      </div>
+
       {/* Header con información del paciente */}
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
         <CardContent className="p-6">

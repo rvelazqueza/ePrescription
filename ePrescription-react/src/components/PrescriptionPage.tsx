@@ -31,7 +31,7 @@ import type { CIE10Code, MedicationSuggestion } from "../utils/aiAssistantStore"
 
 // Datos mock para la demostración
 const mockPrescription = {
-  prescriptionNumber: "RX-2025-009847",
+  prescriptionNumber: `DRAFT-FALLBACK-${Date.now()}`,
   patientId: "CC-52.841.963",
   patientName: "María Elena",
   patientFirstLastName: "González",
@@ -316,7 +316,7 @@ export function PrescriptionPage({ draftId, onBack, onNavigateToDrafts, onNaviga
     if (patientData) {
       const nameParts = patientData.fullName.split(' ');
       const newPrescription = {
-        prescriptionNumber: `RX-2025-${Math.floor(Math.random() * 900000 + 100000)}`,
+        prescriptionNumber: `DRAFT-${Date.now()}`,
         patientId: `${patientData.idType}-${patientData.idNumber}`,
         patientName: patientData.firstName,
         patientFirstLastName: nameParts[nameParts.length - 2] || patientData.lastName.split(' ')[0] || '',
@@ -744,8 +744,10 @@ export function PrescriptionPage({ draftId, onBack, onNavigateToDrafts, onNaviga
 
   // Proceso de finalización centralizado
   const finalizePrescriptionProcess = () => {
-    // Generar número de prescripción definitivo
-    const finalPrescriptionNumber = EmittedPrescriptionsAPI.generatePrescriptionNumber();
+    // CORREGIDO: Generar número definitivo al finalizar (no antes)
+    const finalPrescriptionNumber = prescription.prescriptionNumber.startsWith('DRAFT-') 
+      ? EmittedPrescriptionsAPI.generatePrescriptionNumber()
+      : prescription.prescriptionNumber;
     
     // Generar token de firma y QR (simulado)
     const signatureToken = `SIG-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000000)}`;
@@ -791,10 +793,15 @@ export function PrescriptionPage({ draftId, onBack, onNavigateToDrafts, onNaviga
         duration: med.duration,
         route: med.administration,
         indications: med.observations || "",
-        substitutable: true
+        substitutable: true,
+        // NUEVO: Estados de dispensación iniciales
+        dispensationStatus: 'pending' as const,
+        quantityDispensed: 0
       })),
       emittedAt: new Date().toISOString(),
       emittedBy: prescription.doctorName,
+      // NUEVO: Estado de dispensación inicial
+      dispensationStatus: 'emitted' as const,
       // NUEVO: Metadata de origen y trazabilidad
       origin: prescriptionOrigin === 'repeated' ? 'manual' as const : (prescriptionOrigin === 'ai-assisted' ? 'ai-assisted' as const : 'manual' as const),
       ...(prescriptionOrigin === 'repeated' && basedOnPrescription && {
@@ -809,6 +816,11 @@ export function PrescriptionPage({ draftId, onBack, onNavigateToDrafts, onNaviga
 
     // Guardar en el store de recetas emitidas
     EmittedPrescriptionsAPI.savePrescription(finalPrescriptionNumber, emittedPrescriptionData);
+
+    // NUEVO: Disparar evento para notificar que se emitió una receta
+    window.dispatchEvent(new CustomEvent('prescription-emitted', { 
+      detail: { prescriptionNumber: finalPrescriptionNumber } 
+    }));
 
     // Si existe un borrador, eliminarlo
     if (currentDraftId) {
@@ -1478,7 +1490,7 @@ export function PrescriptionPage({ draftId, onBack, onNavigateToDrafts, onNaviga
                 // Limpiar formulario para nueva receta
                 setMedicines([]);
                 setSelectedMedicine(null);
-                setPrescription(mockPrescription);
+                setPrescription({...mockPrescription, prescriptionNumber: `DRAFT-${Date.now()}`});
                 setCurrentDraftId(undefined);
                 setHasUnsavedChanges(false);
                 toast.success('Listo para nueva prescripción');

@@ -123,7 +123,7 @@ const menuStructure: MenuItem[] = [
     visible: true,
     subItems: [
       { id: 'comprar', label: 'Comprar talonarios', route: '/talonarios/comprar', visible: true },
-      { id: 'listado', label: 'Mis talonarios', route: '/talonarios/listado', visible: true }
+      { id: 'listado', label: 'Consulta de talonarios', route: '/talonarios/listado', visible: true }
     ]
   },
   {

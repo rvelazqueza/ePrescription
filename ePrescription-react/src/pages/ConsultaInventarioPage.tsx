@@ -23,6 +23,14 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
+import { Label } from "../components/ui/label";
 import { PageBanner } from "../components/PageBanner";
 import { ExportButtons } from "../components/ExportButtons";
 import { TablePagination } from "../components/TablePagination";
@@ -40,6 +48,7 @@ import {
 import { normalizeSearchText } from "../utils/searchUtils";
 import { usePagination } from "../utils/usePagination";
 import { getFullLocation } from "../utils/costaRicaData";
+import { getPharmacyById, pharmacies } from "../utils/pharmacyData";
 
 interface InventarioFarmacia {
   id: string;
@@ -388,6 +397,14 @@ export function ConsultaInventarioPage() {
   const [selectedProvincia, setSelectedProvincia] = useState<string>("todas");
   const [alertLevel, setAlertLevel] = useState<string>("todos");
   const [showUppercase, setShowUppercase] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<InventarioFarmacia | null>(null);
+  const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
+
+  // Función para abrir detalles
+  const handleDoubleClick = (item: InventarioFarmacia) => {
+    setSelectedItem(item);
+    setIsDetailsPanelOpen(true);
+  };
 
   // Filtrado
   const filteredInventario = inventarioData.filter((item) => {
@@ -548,24 +565,27 @@ export function ConsultaInventarioPage() {
                   <TableHead>Medicamento</TableHead>
                   <TableHead>Presentación</TableHead>
                   <TableHead>Farmacia</TableHead>
-                  <TableHead>Ubicación</TableHead>
-                  <TableHead>Dirección</TableHead>
-                  <TableHead>Teléfono</TableHead>
                   <TableHead className="text-right">Stock</TableHead>
+                  <TableHead>Lote</TableHead>
+                  <TableHead>Vencimiento</TableHead>
                   <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
                       <p>No se encontraron registros de inventario</p>
                     </TableCell>
                   </TableRow>
                 ) : (
                   paginatedData.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow 
+                      key={item.id} 
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onDoubleClick={() => handleDoubleClick(item)}
+                    >
                       <TableCell>
                         <div>
                           <p className="font-medium">{formatText(item.medicamentoNombre)}</p>
@@ -575,28 +595,11 @@ export function ConsultaInventarioPage() {
                       <TableCell className="text-sm">{formatText(item.presentacion)}</TableCell>
                       <TableCell>
                         <div className="flex items-start gap-1.5">
-                          <Building2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                          <Building2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                           <div>
                             <p className="text-sm">{formatText(item.farmaciaNombre)}</p>
                             <p className="text-xs text-muted-foreground font-mono">{item.farmaciaCode}</p>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-start gap-1.5">
-                          <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                          <span className="text-sm">
-                            {formatText(getFullLocation(item.provinciaId, item.cantonId, item.distritoId))}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-xs">
-                        <span className="text-sm line-clamp-2">{formatText(item.direccionEspecifica)}</span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <Phone className="w-3.5 h-3.5 text-muted-foreground" />
-                          <span className="text-sm">{item.telefono}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -606,6 +609,12 @@ export function ConsultaInventarioPage() {
                             Min: {item.stockMinimo.toLocaleString()}
                           </p>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-mono text-sm">{item.lote}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">{item.fechaVencimiento}</span>
                       </TableCell>
                       <TableCell>{getStockBadge(item)}</TableCell>
                     </TableRow>
@@ -683,6 +692,131 @@ export function ConsultaInventarioPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Panel de detalles */}
+      {isDetailsPanelOpen && selectedItem && (
+        <Dialog open={isDetailsPanelOpen} onOpenChange={setIsDetailsPanelOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-purple-600" />
+                Detalles del Inventario
+              </DialogTitle>
+              <DialogDescription>
+                Información completa del medicamento {selectedItem.medicamentoNombre} en {selectedItem.farmaciaNombre}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6 py-4">
+              {/* Información del Medicamento */}
+              <div>
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Package className="w-4 h-4 text-purple-600" />
+                  Información del Medicamento
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-gray-600">Código</Label>
+                    <p className="font-mono text-sm mt-1">{selectedItem.medicamentoCodigo}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-600">Nombre</Label>
+                    <p className="font-medium mt-1">{formatText(selectedItem.medicamentoNombre)}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-sm text-gray-600">Presentación</Label>
+                    <p className="mt-1">{formatText(selectedItem.presentacion)}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-200" />
+
+              {/* Información de Farmacia */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Farmacia
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-blue-700">Nombre</Label>
+                    <p className="font-medium mt-1 text-blue-900">{formatText(selectedItem.farmaciaNombre)}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Código</Label>
+                    <p className="font-mono mt-1 text-blue-900">{selectedItem.farmaciaCode}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-sm text-blue-700">Ubicación geográfica</Label>
+                    <p className="mt-1 text-blue-900 flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      {getFullLocation(selectedItem.provinciaId, selectedItem.cantonId, selectedItem.distritoId)}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-sm text-blue-700">Dirección específica</Label>
+                    <p className="mt-1 text-blue-900">{formatText(selectedItem.direccionEspecifica)}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-blue-700">Teléfono</Label>
+                    <p className="mt-1 text-blue-900 flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      {selectedItem.telefono}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-200" />
+
+              {/* Información de Stock */}
+              <div>
+                <h4 className="font-medium mb-3">Información de Stock</h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm text-gray-600">Stock actual</Label>
+                    <p className="text-2xl font-semibold mt-1 text-purple-600">{selectedItem.stock.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-600">Stock mínimo</Label>
+                    <p className="text-2xl font-semibold mt-1 text-orange-600">{selectedItem.stockMinimo.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-600">Stock máximo</Label>
+                    <p className="text-2xl font-semibold mt-1 text-blue-600">{selectedItem.stockMaximo.toLocaleString()}</p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Label className="text-sm text-gray-600">Estado</Label>
+                  <div className="mt-2">{getStockBadge(selectedItem)}</div>
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-200" />
+
+              {/* Información de Lote */}
+              <div>
+                <h4 className="font-medium mb-3">Información de Lote y Vencimiento</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-gray-600">Número de lote</Label>
+                    <p className="font-mono mt-1">{selectedItem.lote}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-600">Fecha de vencimiento</Label>
+                    <p className="font-medium mt-1">{selectedItem.fechaVencimiento}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-sm text-gray-600">Última actualización</Label>
+                    <p className="text-sm mt-1 text-gray-700">{selectedItem.ultimaActualizacion}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
