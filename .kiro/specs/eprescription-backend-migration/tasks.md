@@ -591,7 +591,10 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 11.3 Crear AutoMapper profiles para mapeo Prescription <-> PrescriptionDto
 
 
-  - [ ] 11.4 Implementar CreatePrescriptionCommand con MediatR handler
+  - [x] 11.4 Implementar CreatePrescriptionCommand con MediatR handler
+
+
+
   - [ ] 11.5 Implementar GetPrescriptionQuery con handler
   - [ ] 11.6 Implementar UpdatePrescriptionCommand con handler
   - [ ] 11.7 Implementar DeletePrescriptionCommand con handler
