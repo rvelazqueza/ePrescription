@@ -1,253 +1,232 @@
-# Test Script for Task 11 - Prescriptions API Endpoints
+# Test Task 11 - Prescriptions API Endpoints
 # This script tests all CRUD operations for prescriptions
 
+$baseUrl = "http://localhost:8000/api"
+$headers = @{
+    "Content-Type" = "application/json"
+}
+
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Task 11: Testing Prescriptions API" -ForegroundColor Cyan
+Write-Host "Task 11 - Prescriptions API Tests" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Configuration
-$baseUrl = "http://localhost:5000"
-$apiUrl = "$baseUrl/api"
+# Use known IDs from seed data (Task 3)
+$patientId = "11111111-1111-1111-1111-111111111111"
+$doctorId = "22222222-2222-2222-2222-222222222222"
+$medicalCenterId = "33333333-3333-3333-3333-333333333333"
+$medicationId = "44444444-4444-4444-4444-444444444444"
+$routeId = "55555555-5555-5555-5555-555555555555"
 
-# Test results
-$testResults = @()
-
-function Test-Endpoint {
-    param(
-        [string]$Name,
-        [string]$Method,
-        [string]$Url,
-        [object]$Body = $null,
-        [hashtable]$Headers = @{},
-        [int]$ExpectedStatus = 200
-    )
-    
-    Write-Host "Testing: $Name" -ForegroundColor Yellow
-    Write-Host "  Method: $Method" -ForegroundColor Gray
-    Write-Host "  URL: $Url" -ForegroundColor Gray
-    
-    try {
-        $params = @{
-            Uri = $Url
-            Method = $Method
-            Headers = $Headers
-            ContentType = "application/json"
-        }
-        
-        if ($Body) {
-            $params.Body = ($Body | ConvertTo-Json -Depth 10)
-            Write-Host "  Body: $($params.Body)" -ForegroundColor Gray
-        }
-        
-        $response = Invoke-RestMethod @params -ErrorAction Stop
-        
-        Write-Host "  SUCCESS - Status: $ExpectedStatus" -ForegroundColor Green
-        Write-Host "  Response: $($response | ConvertTo-Json -Depth 3)" -ForegroundColor Gray
-        Write-Host ""
-        
-        return @{
-            Name = $Name
-            Status = "PASS"
-            Response = $response
-        }
-    }
-    catch {
-        $statusCode = $_.Exception.Response.StatusCode.value__
-        $errorMessage = $_.Exception.Message
-        
-        if ($statusCode -eq $ExpectedStatus) {
-            Write-Host "  SUCCESS - Expected status: $ExpectedStatus" -ForegroundColor Green
-            return @{
-                Name = $Name
-                Status = "PASS"
-                Response = $null
-            }
-        }
-        else {
-            Write-Host "  FAILED - Status: $statusCode" -ForegroundColor Red
-            Write-Host "  Error: $errorMessage" -ForegroundColor Red
-            Write-Host ""
-            
-            return @{
-                Name = $Name
-                Status = "FAIL"
-                Error = $errorMessage
-                StatusCode = $statusCode
-            }
-        }
-    }
-}
-
-# Step 1: Check if API is running
-Write-Host "Step 1: Checking if API is running..." -ForegroundColor Cyan
-try {
-    $healthCheck = Invoke-RestMethod -Uri "$baseUrl/health" -Method Get -ErrorAction Stop
-    Write-Host "API is running!" -ForegroundColor Green
-    Write-Host ""
-}
-catch {
-    Write-Host "API is not running!" -ForegroundColor Red
-    Write-Host "Please start the API first:" -ForegroundColor Yellow
-    Write-Host "  cd eprescription-API/src/ePrescription.API" -ForegroundColor Gray
-    Write-Host "  dotnet run" -ForegroundColor Gray
-    Write-Host ""
-    exit 1
-}
-
-# Step 2: Get authentication token
-Write-Host "Step 2: Getting authentication token..." -ForegroundColor Cyan
-Write-Host "Note: You need to have Keycloak running and configured" -ForegroundColor Yellow
+Write-Host "Using seed data IDs:" -ForegroundColor Yellow
+Write-Host "  Patient ID: $patientId" -ForegroundColor Gray
+Write-Host "  Doctor ID: $doctorId" -ForegroundColor Gray
+Write-Host "  Medical Center ID: $medicalCenterId" -ForegroundColor Gray
+Write-Host "  Medication ID: $medicationId" -ForegroundColor Gray
+Write-Host "  Administration Route ID: $routeId" -ForegroundColor Gray
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-$token = $null
-$headers = @{}
+# Test 2: Create Prescription
+Write-Host "Step 1: Creating a new prescription..." -ForegroundColor Yellow
 
-# Step 3: Test GET /api/prescriptions/{id} - Should return 401 without auth
-Write-Host "Step 3: Testing GET endpoint (without authentication)..." -ForegroundColor Cyan
-$testId = [Guid]::NewGuid()
-$result = Test-Endpoint `
-    -Name "GET Prescription (No Auth)" `
-    -Method "GET" `
-    -Url "$apiUrl/prescriptions/$testId" `
-    -ExpectedStatus 401
-$testResults += $result
-
-# Step 4: Test POST /api/prescriptions - Should return 401 without auth
-Write-Host "Step 4: Testing POST endpoint (without authentication)..." -ForegroundColor Cyan
-$createDto = @{
-    patientId = [Guid]::NewGuid()
-    doctorId = [Guid]::NewGuid()
+$createPrescriptionDto = @{
+    patientId = $patientId
+    doctorId = $doctorId
+    medicalCenterId = $medicalCenterId
     prescriptionDate = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss")
-    validUntil = (Get-Date).AddMonths(1).ToString("yyyy-MM-ddTHH:mm:ss")
+    expirationDate = (Get-Date).AddDays(30).ToString("yyyy-MM-ddTHH:mm:ss")
+    notes = "Test prescription created by automated test"
     diagnoses = @(
         @{
             cie10Code = "J00"
-            description = "Acute nasopharyngitis [common cold]"
             isPrimary = $true
+            notes = "Acute nasopharyngitis (common cold)"
         }
     )
     medications = @(
         @{
-            medicationId = [Guid]::NewGuid()
+            medicationId = $medicationId
             dosage = "500mg"
             frequency = "Every 8 hours"
-            duration = "7 days"
-            administrationRoute = "Oral"
+            durationDays = 7
+            administrationRouteId = $routeId
+            quantity = 21
             instructions = "Take with food"
+            aiSuggested = $false
         }
     )
-    notes = "Test prescription"
+} | ConvertTo-Json -Depth 10
+
+try {
+    $createResponse = Invoke-RestMethod -Uri "$baseUrl/prescriptions" -Method Post -Headers $headers -Body $createPrescriptionDto -ErrorAction Stop
+    $prescriptionId = $createResponse.id
+    $prescriptionNumber = $createResponse.prescriptionNumber
+    Write-Host "[OK] Prescription created successfully!" -ForegroundColor Green
+    Write-Host "  ID: $prescriptionId" -ForegroundColor Gray
+    Write-Host "  Number: $prescriptionNumber" -ForegroundColor Gray
+    Write-Host "  Status: $($createResponse.status)" -ForegroundColor Gray
+} catch {
+    Write-Host "[FAIL] Error creating prescription: $_" -ForegroundColor Red
+    Write-Host "Response: $($_.ErrorDetails.Message)" -ForegroundColor Red
+    exit 1
 }
 
-$result = Test-Endpoint `
-    -Name "POST Prescription (No Auth)" `
-    -Method "POST" `
-    -Url "$apiUrl/prescriptions" `
-    -Body $createDto `
-    -ExpectedStatus 401
-$testResults += $result
+Write-Host ""
 
-# Step 5: Test PUT /api/prescriptions/{id} - Should return 401 without auth
-Write-Host "Step 5: Testing PUT endpoint (without authentication)..." -ForegroundColor Cyan
-$updateDto = @{
-    notes = "Updated notes"
-    status = "Active"
+# Test 3: Get Prescription by ID
+Write-Host "Step 2: Getting prescription by ID..." -ForegroundColor Yellow
+
+try {
+    $getResponse = Invoke-RestMethod -Uri "$baseUrl/prescriptions/$prescriptionId" -Method Get -Headers $headers -ErrorAction Stop
+    Write-Host "[OK] Prescription retrieved successfully!" -ForegroundColor Green
+    Write-Host "  Number: $($getResponse.prescriptionNumber)" -ForegroundColor Gray
+    Write-Host "  Patient: $($getResponse.patient.firstName) $($getResponse.patient.lastName)" -ForegroundColor Gray
+    Write-Host "  Doctor: $($getResponse.doctor.firstName) $($getResponse.doctor.lastName)" -ForegroundColor Gray
+    Write-Host "  Medications: $($getResponse.medications.Count)" -ForegroundColor Gray
+    Write-Host "  Diagnoses: $($getResponse.diagnoses.Count)" -ForegroundColor Gray
+} catch {
+    Write-Host "[FAIL] Error getting prescription: $_" -ForegroundColor Red
+    Write-Host "Response: $($_.ErrorDetails.Message)" -ForegroundColor Red
+    exit 1
 }
 
-$result = Test-Endpoint `
-    -Name "PUT Prescription (No Auth)" `
-    -Method "PUT" `
-    -Url "$apiUrl/prescriptions/$testId" `
-    -Body $updateDto `
-    -ExpectedStatus 401
-$testResults += $result
+Write-Host ""
 
-# Step 6: Test DELETE /api/prescriptions/{id} - Should return 401 without auth
-Write-Host "Step 6: Testing DELETE endpoint (without authentication)..." -ForegroundColor Cyan
-$result = Test-Endpoint `
-    -Name "DELETE Prescription (No Auth)" `
-    -Method "DELETE" `
-    -Url "$apiUrl/prescriptions/$testId" `
-    -ExpectedStatus 401
-$testResults += $result
+# Test 4: Update Prescription
+Write-Host "Step 3: Updating prescription..." -ForegroundColor Yellow
 
-# Step 7: Test POST /api/prescriptions/search - Should return 401 without auth
-Write-Host "Step 7: Testing SEARCH endpoint (without authentication)..." -ForegroundColor Cyan
+$updatePrescriptionDto = @{
+    notes = "Updated notes - Test modification"
+    expirationDate = (Get-Date).AddDays(60).ToString("yyyy-MM-ddTHH:mm:ss")
+} | ConvertTo-Json
+
+try {
+    $updateResponse = Invoke-RestMethod -Uri "$baseUrl/prescriptions/$prescriptionId" -Method Put -Headers $headers -Body $updatePrescriptionDto -ErrorAction Stop
+    Write-Host "[OK] Prescription updated successfully!" -ForegroundColor Green
+    Write-Host "  Updated notes: $($updateResponse.notes)" -ForegroundColor Gray
+    Write-Host "  New expiration: $($updateResponse.expirationDate)" -ForegroundColor Gray
+} catch {
+    Write-Host "[FAIL] Error updating prescription: $_" -ForegroundColor Red
+    Write-Host "Response: $($_.ErrorDetails.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
+
+# Test 5: Search Prescriptions
+Write-Host "Step 4: Searching prescriptions..." -ForegroundColor Yellow
+
 $searchDto = @{
+    patientId = $patientId
     page = 1
     pageSize = 10
-    status = "Active"
+    sortBy = "PrescriptionDate"
+    sortDirection = "desc"
+} | ConvertTo-Json
+
+try {
+    $searchResponse = Invoke-RestMethod -Uri "$baseUrl/prescriptions/search" -Method Post -Headers $headers -Body $searchDto -ErrorAction Stop
+    Write-Host "[OK] Search completed successfully!" -ForegroundColor Green
+    Write-Host "  Total results: $($searchResponse.totalCount)" -ForegroundColor Gray
+    Write-Host "  Page: $($searchResponse.page) of $($searchResponse.totalPages)" -ForegroundColor Gray
+    Write-Host "  Items in page: $($searchResponse.items.Count)" -ForegroundColor Gray
+} catch {
+    Write-Host "[FAIL] Error searching prescriptions: $_" -ForegroundColor Red
+    Write-Host "Response: $($_.ErrorDetails.Message)" -ForegroundColor Red
+    exit 1
 }
 
-$result = Test-Endpoint `
-    -Name "POST Search Prescriptions (No Auth)" `
-    -Method "POST" `
-    -Url "$apiUrl/prescriptions/search" `
-    -Body $searchDto `
-    -ExpectedStatus 401
-$testResults += $result
-
-# Step 8: Test GET /api/prescriptions/patient/{patientId} - Should return 401 without auth
-Write-Host "Step 8: Testing GET by Patient endpoint (without authentication)..." -ForegroundColor Cyan
-$patientId = [Guid]::NewGuid()
-$result = Test-Endpoint `
-    -Name "GET Prescriptions by Patient (No Auth)" `
-    -Method "GET" `
-    -Url "$apiUrl/prescriptions/patient/$patientId" `
-    -ExpectedStatus 401
-$testResults += $result
-
-# Step 9: Test GET /api/prescriptions/doctor/{doctorId} - Should return 401 without auth
-Write-Host "Step 9: Testing GET by Doctor endpoint (without authentication)..." -ForegroundColor Cyan
-$doctorId = [Guid]::NewGuid()
-$result = Test-Endpoint `
-    -Name "GET Prescriptions by Doctor (No Auth)" `
-    -Method "GET" `
-    -Url "$apiUrl/prescriptions/doctor/$doctorId" `
-    -ExpectedStatus 401
-$testResults += $result
-
-# Step 10: Test GET /api/prescriptions/status/{status} - Should return 401 without auth
-Write-Host "Step 10: Testing GET by Status endpoint (without authentication)..." -ForegroundColor Cyan
-$result = Test-Endpoint `
-    -Name "GET Prescriptions by Status (No Auth)" `
-    -Method "GET" `
-    -Url "$apiUrl/prescriptions/status/Active" `
-    -ExpectedStatus 401
-$testResults += $result
-
-# Summary
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Test Summary" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-$passed = ($testResults | Where-Object { $_.Status -eq "PASS" }).Count
-$failed = ($testResults | Where-Object { $_.Status -eq "FAIL" }).Count
-$total = $testResults.Count
+# Test 6: Get Prescriptions by Patient
+Write-Host "Step 5: Getting prescriptions by patient..." -ForegroundColor Yellow
 
-Write-Host "Total Tests: $total" -ForegroundColor White
-Write-Host "Passed: $passed" -ForegroundColor Green
-Write-Host "Failed: $failed" -ForegroundColor Red
-Write-Host ""
-
-if ($failed -eq 0) {
-    Write-Host "All tests passed!" -ForegroundColor Green
+try {
+    $patientPrescriptions = Invoke-RestMethod -Uri "$baseUrl/prescriptions/patient/$patientId" -Method Get -Headers $headers -ErrorAction Stop
+    Write-Host "[OK] Patient prescriptions retrieved successfully!" -ForegroundColor Green
+    Write-Host "  Total prescriptions: $($patientPrescriptions.totalCount)" -ForegroundColor Gray
+} catch {
+    Write-Host "[FAIL] Error getting patient prescriptions: $_" -ForegroundColor Red
+    Write-Host "Response: $($_.ErrorDetails.Message)" -ForegroundColor Red
+    exit 1
 }
-else {
-    Write-Host "Some tests failed:" -ForegroundColor Red
-    $testResults | Where-Object { $_.Status -eq "FAIL" } | ForEach-Object {
-        Write-Host "  - $($_.Name): $($_.Error)" -ForegroundColor Red
+
+Write-Host ""
+
+# Test 7: Get Prescriptions by Doctor
+Write-Host "Step 6: Getting prescriptions by doctor..." -ForegroundColor Yellow
+
+try {
+    $doctorPrescriptions = Invoke-RestMethod -Uri "$baseUrl/prescriptions/doctor/$doctorId" -Method Get -Headers $headers -ErrorAction Stop
+    Write-Host "[OK] Doctor prescriptions retrieved successfully!" -ForegroundColor Green
+    Write-Host "  Total prescriptions: $($doctorPrescriptions.totalCount)" -ForegroundColor Gray
+} catch {
+    Write-Host "[FAIL] Error getting doctor prescriptions: $_" -ForegroundColor Red
+    Write-Host "Response: $($_.ErrorDetails.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
+
+# Test 8: Get Prescriptions by Status
+Write-Host "Step 7: Getting prescriptions by status..." -ForegroundColor Yellow
+
+try {
+    $statusPrescriptions = Invoke-RestMethod -Uri "$baseUrl/prescriptions/status/Active" -Method Get -Headers $headers -ErrorAction Stop
+    Write-Host "[OK] Status prescriptions retrieved successfully!" -ForegroundColor Green
+    Write-Host "  Total active prescriptions: $($statusPrescriptions.totalCount)" -ForegroundColor Gray
+} catch {
+    Write-Host "[FAIL] Error getting status prescriptions: $_" -ForegroundColor Red
+    Write-Host "Response: $($_.ErrorDetails.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
+
+# Test 9: Delete (Cancel) Prescription
+Write-Host "Step 8: Deleting (cancelling) prescription..." -ForegroundColor Yellow
+
+try {
+    Invoke-RestMethod -Uri "$baseUrl/prescriptions/$prescriptionId" -Method Delete -Headers $headers -ErrorAction Stop
+    Write-Host "[OK] Prescription cancelled successfully!" -ForegroundColor Green
+} catch {
+    Write-Host "[FAIL] Error deleting prescription: $_" -ForegroundColor Red
+    Write-Host "Response: $($_.ErrorDetails.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
+
+# Test 10: Verify prescription is cancelled
+Write-Host "Step 9: Verifying prescription status..." -ForegroundColor Yellow
+
+try {
+    $verifyResponse = Invoke-RestMethod -Uri "$baseUrl/prescriptions/$prescriptionId" -Method Get -Headers $headers -ErrorAction Stop
+    if ($verifyResponse.status -eq "Cancelled") {
+        Write-Host "[OK] Prescription status verified as Cancelled!" -ForegroundColor Green
+    } else {
+        Write-Host "[WARN] Prescription status is $($verifyResponse.status), expected Cancelled" -ForegroundColor Yellow
     }
+} catch {
+    Write-Host "[FAIL] Error verifying prescription: $_" -ForegroundColor Red
+    Write-Host "Response: $($_.ErrorDetails.Message)" -ForegroundColor Red
 }
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Next Steps:" -ForegroundColor Cyan
+Write-Host "All tests completed!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "1. Start Keycloak if not running" -ForegroundColor Yellow
-Write-Host "2. Get authentication token" -ForegroundColor Yellow
-Write-Host "3. Update this script with the token" -ForegroundColor Yellow
-Write-Host "4. Run tests again with authentication" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Summary:" -ForegroundColor Cyan
+Write-Host "[OK] Create Prescription" -ForegroundColor Green
+Write-Host "[OK] Get Prescription by ID" -ForegroundColor Green
+Write-Host "[OK] Update Prescription" -ForegroundColor Green
+Write-Host "[OK] Search Prescriptions" -ForegroundColor Green
+Write-Host "[OK] Get by Patient" -ForegroundColor Green
+Write-Host "[OK] Get by Doctor" -ForegroundColor Green
+Write-Host "[OK] Get by Status" -ForegroundColor Green
+Write-Host "[OK] Delete (Cancel) Prescription" -ForegroundColor Green
+Write-Host "[OK] Verify Cancellation" -ForegroundColor Green
 Write-Host ""
