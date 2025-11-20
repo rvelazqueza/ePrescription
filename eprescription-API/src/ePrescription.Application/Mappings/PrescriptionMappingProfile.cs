@@ -32,17 +32,17 @@ public class PrescriptionMappingProfile : Profile
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             
         CreateMap<Prescription, PrescriptionDto>()
-            .ForMember(dest => dest.Patient, opt => opt.MapFrom(src => src.Patient))
-            .ForMember(dest => dest.Doctor, opt => opt.MapFrom(src => src.Doctor))
-            .ForMember(dest => dest.MedicalCenter, opt => opt.MapFrom(src => src.MedicalCenter))
+            .ForMember(dest => dest.Patient, opt => opt.Ignore()) // Will be loaded separately if needed
+            .ForMember(dest => dest.Doctor, opt => opt.Ignore()) // Will be loaded separately if needed
+            .ForMember(dest => dest.MedicalCenter, opt => opt.Ignore()) // Will be loaded separately if needed
             .ForMember(dest => dest.Medications, opt => opt.MapFrom(src => src.Medications))
             .ForMember(dest => dest.Diagnoses, opt => opt.MapFrom(src => src.Diagnoses))
             .ForMember(dest => dest.Dispensations, opt => opt.MapFrom(src => src.Dispensations));
             
         CreateMap<Prescription, PrescriptionListDto>()
-            .ForMember(dest => dest.PatientName, opt => opt.MapFrom(src => $"{src.Patient.FirstName} {src.Patient.LastName}"))
-            .ForMember(dest => dest.DoctorName, opt => opt.MapFrom(src => $"{src.Doctor.FirstName} {src.Doctor.LastName}"))
-            .ForMember(dest => dest.MedicalCenterName, opt => opt.MapFrom(src => src.MedicalCenter != null ? src.MedicalCenter.CenterName : null))
+            .ForMember(dest => dest.PatientName, opt => opt.Ignore()) // Will be loaded separately
+            .ForMember(dest => dest.DoctorName, opt => opt.Ignore()) // Will be loaded separately
+            .ForMember(dest => dest.MedicalCenterName, opt => opt.Ignore()) // Will be loaded separately
             .ForMember(dest => dest.MedicationCount, opt => opt.MapFrom(src => src.Medications.Count))
             .ForMember(dest => dest.DiagnosisCount, opt => opt.MapFrom(src => src.Diagnoses.Count));
             
@@ -80,18 +80,8 @@ public class PrescriptionMappingProfile : Profile
         // Patient mappings
         CreateMap<Patient, PatientSummaryDto>();
         
-        // Doctor mappings
-        CreateMap<Doctor, DoctorSummaryDto>()
-            .ForMember(dest => dest.SpecialtyName, opt => opt.MapFrom(src => src.Specialty != null ? src.Specialty.SpecialtyName : string.Empty));
-        
-        // MedicalCenter mappings
-        CreateMap<MedicalCenter, MedicalCenterSummaryDto>();
-        
         // Medication mappings
         CreateMap<Medication, MedicationSummaryDto>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.CommercialName));
-        
-        // AdministrationRoute mappings
-        CreateMap<AdministrationRoute, AdministrationRouteSummaryDto>();
     }
 }

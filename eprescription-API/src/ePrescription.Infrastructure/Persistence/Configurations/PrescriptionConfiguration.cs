@@ -85,13 +85,8 @@ public class PrescriptionConfiguration : IEntityTypeConfiguration<Prescription>
         builder.HasIndex(p => p.PrescriptionDate)
             .HasDatabaseName("IDX_PRESCRIPTIONS_DATE");
 
-        // Ignore navigation properties that don't have FK columns
-        builder.Ignore(p => p.Patient);
-        builder.Ignore(p => p.Doctor);
-        builder.Ignore(p => p.MedicalCenter);
-        builder.Ignore(p => p.Dispensations);
-        
-        // Relationships - same pattern as PatientConfiguration
+        // Relationships - using same pattern as PatientConfiguration
+        // Use WithOne() without navigation property to avoid shadow properties
         builder.HasMany(p => p.Medications)
             .WithOne(pm => pm.Prescription)
             .HasForeignKey(pm => pm.PrescriptionId)
@@ -101,5 +96,10 @@ public class PrescriptionConfiguration : IEntityTypeConfiguration<Prescription>
             .WithOne(pd => pd.Prescription)
             .HasForeignKey(pd => pd.PrescriptionId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(p => p.Dispensations)
+            .WithOne()
+            .HasForeignKey("PRESCRIPTION_ID")
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

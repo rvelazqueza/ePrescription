@@ -16,9 +16,6 @@ public class Prescription : BaseEntity
     public string? Notes { get; private set; }
 
     // Navigation properties
-    public virtual Patient? Patient { get; private set; }
-    public virtual Doctor? Doctor { get; private set; }
-    public virtual MedicalCenter? MedicalCenter { get; private set; }
     public virtual ICollection<PrescriptionDiagnosis> Diagnoses { get; private set; } = new List<PrescriptionDiagnosis>();
     public virtual ICollection<PrescriptionMedication> Medications { get; private set; } = new List<PrescriptionMedication>();
     public virtual ICollection<Dispensation> Dispensations { get; private set; } = new List<Dispensation>();
