@@ -54,5 +54,10 @@ public class PrescriptionDiagnosisConfiguration : IEntityTypeConfiguration<Presc
 
         // Relationships - already configured from PrescriptionConfiguration
         // Note: Cie10Code is a string FK to CIE10_CATALOG.CODE, not a navigation property
+        // We need to explicitly tell EF Core that there's NO navigation to Cie10Catalog
+        // to prevent it from creating shadow properties
+        
+        // This is a string-based FK, not an entity relationship
+        // The FK constraint exists at DB level but not in EF Core model
     }
 }
