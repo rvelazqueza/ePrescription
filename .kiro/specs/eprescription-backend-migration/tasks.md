@@ -644,7 +644,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 12.4 Probar endpoints de pacientes con Postman
+  - [x] 12.4 Probar endpoints de pacientes con Postman
 
 
   - [x] 12.5 Crear DTOs, validadores y mappers para médicos
@@ -675,10 +675,16 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 12.12 Probar endpoints de farmacias con Postman
 
 
-  - [ ] 12.13 Implementar búsqueda avanzada con múltiples filtros
-  - [ ] 12.14 Implementar paginación en todos los listados
-  - [ ] 12.15 Crear tests de integración para todos los endpoints
-  - [ ] 12.16 Commit y push de endpoints de pacientes, médicos y farmacias
+  - [x] 12.13 Implementar búsqueda avanzada con múltiples filtros
+
+
+  - [x] 12.14 Implementar paginación en todos los listados
+
+  - [x] 12.15 Crear tests de integración para todos los endpoints
+
+
+  - [-] 12.16 Commit y push de endpoints de pacientes, médicos y farmacias
+
   - _Requirements: 2.2_
   - _Branch: feature/task-12-patients-doctors-pharmacies-api_
   - _Commit strategy: Push después de pacientes (12.4), después de médicos (12.8), y después de farmacias (12.12)_
