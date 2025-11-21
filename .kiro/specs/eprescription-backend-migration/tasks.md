@@ -683,7 +683,9 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 12.15 Crear tests de integración para todos los endpoints
 
 
-  - [-] 12.16 Commit y push de endpoints de pacientes, médicos y farmacias
+  - [x] 12.16 Commit y push de endpoints de pacientes, médicos y farmacias
+
+
 
   - _Requirements: 2.2_
   - _Branch: feature/task-12-patients-doctors-pharmacies-api_
