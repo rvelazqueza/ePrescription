@@ -693,7 +693,10 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 16-18 hours_
 
 - [ ] 13. Implementar endpoints REST para dispensación e inventario
-  - [ ] 13.1 Crear DTOs, validadores y mappers para dispensación
+  - [x] 13.1 Crear DTOs, validadores y mappers para dispensación
+
+
+
   - [ ] 13.2 Crear RegisterDispensationCommand con handler
   - [ ] 13.3 Crear VerifyDispensationCommand con handler
   - [ ] 13.4 Crear GetDispensationQuery con handler
