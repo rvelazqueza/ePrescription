@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9O8l0zwNLBtzJ8JVo3XQMurLdGX9EM1vUj9aWSwEWPcw6C741HIt8JBwuGwESPPh4nA6elCncNuTXEpu9b7l9Q==",
+  "dgSpecHash": "81UD6gQa1JpH7zTxi8bNCwo1sre0EhPFbucj3FIbFciNTawbILvUl8+y47Ewd6wmM4yrrxWVcaTQPwbqjTQueg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\EPrescription.Application\\EPrescription.Application.csproj",
+  "projectFilePath": "C:\\Users\\Carlos\\Desktop\\Solutech\\Proyecto-01 Eprescription\\ePrescription\\eprescription-API\\src\\ePrescription.Application\\EPrescription.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Carlos\\.nuget\\packages\\automapper\\15.1.0\\automapper.15.1.0.nupkg.sha512",
     "C:\\Users\\Carlos\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",

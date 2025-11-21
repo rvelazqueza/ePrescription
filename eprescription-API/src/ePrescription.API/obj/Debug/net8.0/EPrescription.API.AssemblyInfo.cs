@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EPrescription.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a58b2052c4f9fffc34d524534fd01a47b5901867")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7b76f7bb93715b07ca517092d589b4fd4ad175d6")]
 [assembly: System.Reflection.AssemblyProductAttribute("EPrescription.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EPrescription.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

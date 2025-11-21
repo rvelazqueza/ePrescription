@@ -69,18 +69,17 @@ services:
       - keycloak-data:/opt/keycloak/data
 
   # Backend API (.NET 8)
-  backend-api:
+  eprescription-api:
     build:
       context: ./eprescription-API
       dockerfile: Dockerfile
-    container_name: eprescription-backend-api
+    container_name: eprescription-api
     ports:
-      - "5000:5000"
-      - "5001:5001"
+      - "8000:8080"
     environment:
       # ASP.NET Core
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_URLS=http://+:8080
       
       # Database connection
       - ConnectionStrings__DefaultConnection=User Id=eprescription_user;Password=EprescriptionPass123!;Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=oracle-db)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)))
@@ -103,11 +102,11 @@ services:
       keycloak:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/swagger/index.html || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     networks:
       - eprescription-network
 

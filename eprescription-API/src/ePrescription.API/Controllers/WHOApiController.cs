@@ -1,4 +1,4 @@
-using ePrescription.Application.Interfaces;
+using EPrescription.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,23 +39,20 @@ public class WHOApiController : ControllerBase
 
             var result = await _whoApiService.SyncICD10CatalogAsync();
 
-            return Ok(new SyncResult
-            {
-                Success = true,
-                Message = "Synchronization completed successfully",
-                CodesProcessed = result,
-                SyncDate = DateTime.UtcNow
-            });
+            return Ok(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during manual ICD-10 synchronization");
-            return StatusCode(500, new SyncResult
+            return StatusCode(500, new WHOSyncResult
             {
                 Success = false,
-                Message = $"Synchronization failed: {ex.Message}",
-                CodesProcessed = 0,
-                SyncDate = DateTime.UtcNow
+                ErrorMessage = $"Synchronization failed: {ex.Message}",
+                CodesAdded = 0,
+                CodesUpdated = 0,
+                CodesRemoved = 0,
+                SyncDate = DateTime.UtcNow,
+                Duration = TimeSpan.Zero
             });
         }
     }
@@ -75,7 +72,7 @@ public class WHOApiController : ControllerBase
         {
             _logger.LogInformation("Fetching ICD-10 code {Code} from WHO API", code);
 
-            var result = await _whoApiService.GetICD10CodeDetailsAsync(code);
+            var result = await _whoApiService.GetICD10CodeDetailAsync(code);
 
             if (result == null)
             {
@@ -85,9 +82,9 @@ public class WHOApiController : ControllerBase
             return Ok(new ICD10CodeDto
             {
                 Code = result.Code,
-                Title = result.Title,
-                Definition = result.Definition,
-                Chapter = result.Chapter,
+                Title = result.Description,
+                Definition = result.LongDescription ?? result.Description,
+                Chapter = result.Category,
                 IsValid = true
             });
         }
@@ -120,14 +117,20 @@ public class WHOApiController : ControllerBase
 
             _logger.LogInformation("Searching ICD-10 codes in WHO API with query: {Query}", query);
 
-            var results = await _whoApiService.SearchICD10CodesAsync(query, limit);
+            var results = await _whoApiService.SearchICD10CodesAsync(query, "es");
+            
+            // Limit results if needed
+            if (limit > 0 && results.Count > limit)
+            {
+                results = results.Take(limit).ToList();
+            }
 
             var dtos = results.Select(r => new ICD10CodeDto
             {
                 Code = r.Code,
-                Title = r.Title,
-                Definition = r.Definition,
-                Chapter = r.Chapter,
+                Title = r.Description,
+                Definition = r.Description,
+                Chapter = r.Category,
                 IsValid = true
             }).ToList();
 
@@ -182,7 +185,7 @@ public class WHOApiController : ControllerBase
     {
         try
         {
-            var isHealthy = await _whoApiService.CheckHealthAsync();
+            var isHealthy = await _whoApiService.CheckAPIHealthAsync();
 
             return Ok(new HealthStatus
             {

@@ -16,7 +16,8 @@ public class Patient : BaseEntity
     // Navigation properties
     public virtual ICollection<PatientContact> Contacts { get; private set; } = new List<PatientContact>();
     public virtual ICollection<PatientAllergy> Allergies { get; private set; } = new List<PatientAllergy>();
-    public virtual ICollection<Prescription> Prescriptions { get; private set; } = new List<Prescription>();
+    // Note: Prescriptions navigation removed to avoid EF Core shadow properties
+    // Use repository queries to get prescriptions by PatientId instead
 
     private Patient() { } // EF Core
 

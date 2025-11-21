@@ -1,5 +1,6 @@
 using Serilog;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,7 +87,7 @@ builder.Services.AddHttpClient<EPrescription.Application.Interfaces.IAIAssistant
 // Configure Database
 builder.Services.AddDbContext<EPrescription.Infrastructure.Persistence.EPrescriptionDbContext>((serviceProvider, options) =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    var connectionString = builder.Configuration.GetConnectionString("OracleConnection");
     var auditInterceptor = serviceProvider.GetRequiredService<EPrescription.Infrastructure.Persistence.Interceptors.AuditInterceptor>();
     options.UseOracle(connectionString)
            .AddInterceptors(auditInterceptor);
@@ -144,12 +145,31 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("doctor", "pharmacist", "admin"));
 });
 
-// TODO: Add Application layer services (MediatR, AutoMapper, FluentValidation)
-// TODO: Add Infrastructure layer services (DbContext, Repositories, External Services)
+// Add MediatR for CQRS pattern
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(
+    typeof(EPrescription.Application.Commands.Prescriptions.CreatePrescriptionCommand).Assembly));
+
+// Add AutoMapper for object mapping
+builder.Services.AddAutoMapper(
+    typeof(EPrescription.Application.Mappings.PrescriptionMappingProfile).Assembly);
+
+// Add FluentValidation for request validation
+builder.Services.AddValidatorsFromAssemblyContaining<EPrescription.Application.Validators.CreatePrescriptionValidator>();
+
+// Add Unit of Work and Repositories
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IUnitOfWork,
+    EPrescription.Infrastructure.Persistence.UnitOfWork>();
+builder.Services.AddScoped(typeof(EPrescription.Domain.Interfaces.IRepository<>),
+    typeof(EPrescription.Infrastructure.Persistence.Repositories.Repository<>));
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPrescriptionRepository,
+    EPrescription.Infrastructure.Persistence.Repositories.PrescriptionRepository>();
 
 var app = builder.Build();
 
-// Initialize roles and permissions on startup
+// Initialize roles and permissions on startup - DISABLED TEMPORARILY
+// TODO: Fix schema mapping for Role, Permission, UserRole, RolePermission entities before enabling
+// The Oracle tables don't have UpdatedAt columns, causing initialization to fail
+/*
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -160,9 +180,10 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Log.Error(ex, "Error initializing roles and permissions");
+        Log.Error(ex, "Error initializing roles and permissions - API will continue without initialization");
     }
 }
+*/
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

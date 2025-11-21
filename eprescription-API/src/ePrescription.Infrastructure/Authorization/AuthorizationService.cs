@@ -335,8 +335,6 @@ public class AuthorizationService : IAuthorizationService
         }
 
         var prescription = await _context.Prescriptions
-            .Include(p => p.Doctor)
-            .Include(p => p.Patient)
             .FirstOrDefaultAsync(p => p.Id.ToString() == prescriptionId);
 
         if (prescription == null)

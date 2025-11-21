@@ -16,9 +16,6 @@ public class Prescription : BaseEntity
     public string? Notes { get; private set; }
 
     // Navigation properties
-    public virtual Patient Patient { get; private set; } = null!;
-    public virtual Doctor Doctor { get; private set; } = null!;
-    public virtual MedicalCenter MedicalCenter { get; private set; } = null!;
     public virtual ICollection<PrescriptionDiagnosis> Diagnoses { get; private set; } = new List<PrescriptionDiagnosis>();
     public virtual ICollection<PrescriptionMedication> Medications { get; private set; } = new List<PrescriptionMedication>();
     public virtual ICollection<Dispensation> Dispensations { get; private set; } = new List<Dispensation>();
@@ -66,6 +63,42 @@ public class Prescription : BaseEntity
     public void MarkAsDispensed()
     {
         Status = "dispensed";
+        UpdateTimestamp();
+    }
+
+    public void GeneratePrescriptionNumber()
+    {
+        PrescriptionNumber = $"RX-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+        UpdateTimestamp();
+    }
+
+    public void UpdateStatus(string status)
+    {
+        Status = status;
+        UpdateTimestamp();
+    }
+
+    public void UpdateExpirationDate(DateTime expirationDate)
+    {
+        ExpirationDate = expirationDate;
+        UpdateTimestamp();
+    }
+
+    public void UpdateNotes(string notes)
+    {
+        Notes = notes;
+        UpdateTimestamp();
+    }
+
+    public void ClearMedications()
+    {
+        Medications.Clear();
+        UpdateTimestamp();
+    }
+
+    public void ClearDiagnoses()
+    {
+        Diagnoses.Clear();
         UpdateTimestamp();
     }
 }

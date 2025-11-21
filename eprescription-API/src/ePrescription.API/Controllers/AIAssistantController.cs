@@ -1,4 +1,4 @@
-using ePrescription.Application.Interfaces;
+using EPrescription.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

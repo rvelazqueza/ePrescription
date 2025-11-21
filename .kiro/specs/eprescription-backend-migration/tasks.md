@@ -569,7 +569,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 10.32 Crear tests unitarios con mocks para todos los servicios
+  - [x] 10.32 Crear tests unitarios con mocks para todos los servicios
+
   - [x] 10.33 Commit y push de asistente de IA completo (SIN API keys en código)
 
 
@@ -579,18 +580,45 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 24-28 hours_ (aumentado por WHO API y Translation Service)
   - _IMPORTANTE: Verificar que NO se incluyan API keys en commits_
 
-- [ ] 11. Implementar endpoints REST para gestión de prescripciones
-  - [ ] 11.1 Crear DTOs para prescripciones (CreatePrescriptionDto, PrescriptionDto, UpdatePrescriptionDto)
-  - [ ] 11.2 Crear validadores FluentValidation para DTOs de prescripciones
-  - [ ] 11.3 Crear AutoMapper profiles para mapeo Prescription <-> PrescriptionDto
-  - [ ] 11.4 Implementar CreatePrescriptionCommand con MediatR handler
-  - [ ] 11.5 Implementar GetPrescriptionQuery con handler
-  - [ ] 11.6 Implementar UpdatePrescriptionCommand con handler
-  - [ ] 11.7 Implementar DeletePrescriptionCommand con handler
-  - [ ] 11.8 Implementar SearchPrescriptionsQuery con filtros y paginación
-  - [ ] 11.9 Crear PrescriptionsController con endpoints CRUD
-  - [ ] 11.10 Integrar auditoría en todas las operaciones de prescripciones
-  - [ ] 11.11 Implementar autorización por roles en endpoints
+- [-] 11. Implementar endpoints REST para gestión de prescripciones
+
+  - [x] 11.1 Crear DTOs para prescripciones (CreatePrescriptionDto, PrescriptionDto, UpdatePrescriptionDto)
+
+
+  - [x] 11.2 Crear validadores FluentValidation para DTOs de prescripciones
+
+
+  - [x] 11.3 Crear AutoMapper profiles para mapeo Prescription <-> PrescriptionDto
+
+
+  - [x] 11.4 Implementar CreatePrescriptionCommand con MediatR handler
+
+
+
+
+
+  - [x] 11.5 Implementar GetPrescriptionQuery con handler
+
+
+
+  - [x] 11.6 Implementar UpdatePrescriptionCommand con handler
+
+
+  - [x] 11.7 Implementar DeletePrescriptionCommand con handler
+
+
+  - [x] 11.8 Implementar SearchPrescriptionsQuery con filtros y paginación
+
+
+  - [x] 11.9 Crear PrescriptionsController con endpoints CRUD
+
+
+  - [x] 11.10 Integrar auditoría en todas las operaciones de prescripciones
+
+  - [x] 11.11 Implementar autorización por roles en endpoints
+
+
+
   - [ ] 11.12 Probar endpoints con Postman (crear, leer, actualizar, eliminar)
   - [ ] 11.13 Crear tests de integración para endpoints de prescripciones
   - [ ] 11.14 Commit y push de endpoints de prescripciones

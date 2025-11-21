@@ -1,4 +1,7 @@
 using EPrescription.Application.Interfaces;
+using EPrescription.Application.DTOs;
+using EPrescription.Domain.Entities;
+using EPrescription.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -11,7 +14,7 @@ namespace EPrescription.Infrastructure.Services;
 /// </summary>
 public class CIE10CatalogService : ICIE10CatalogService
 {
-    private readonly DbContext _context;
+    private readonly EPrescriptionDbContext _context;
     private readonly IWHOApiService _whoApiService;
     private readonly IAuditService _auditService;
     private readonly IMemoryCache _cache;
@@ -20,7 +23,7 @@ public class CIE10CatalogService : ICIE10CatalogService
     private static readonly TimeSpan CacheExpiration = TimeSpan.FromHours(24);
 
     public CIE10CatalogService(
-        DbContext context,
+        EPrescriptionDbContext context,
         IWHOApiService whoApiService,
         IAuditService auditService,
         IMemoryCache cache,
@@ -63,7 +66,7 @@ public class CIE10CatalogService : ICIE10CatalogService
                 await _auditService.LogOperationAsync(
                     "CIE10_SEARCH",
                     "Cie10Catalog",
-                    entity.Id,
+                    entity.Id.ToString(),
                     $"Code: {code}",
                     null);
 
@@ -72,17 +75,17 @@ public class CIE10CatalogService : ICIE10CatalogService
 
             // Fallback to WHO API
             _logger.LogInformation("CIE-10 code {Code} not found locally, trying WHO API", code);
-            var whoCode = await _whoApiService.GetICD10CodeDetailsAsync(code);
+            var whoCode = await _whoApiService.GetICD10CodeDetailAsync(code);
             
             if (whoCode != null)
             {
                 // Save to local database for future use
                 var newEntity = new Cie10Catalog(
                     whoCode.Code,
-                    whoCode.Title,
-                    whoCode.Definition,
-                    whoCode.Chapter,
-                    whoCode.Chapter,
+                    whoCode.Description,
+                    whoCode.LongDescription ?? whoCode.Description,
+                    whoCode.Category ?? "Unknown",
+                    whoCode.Category ?? "Unknown",
                     "WHO_API");
 
                 _context.Set<Cie10Catalog>().Add(newEntity);
@@ -94,7 +97,7 @@ public class CIE10CatalogService : ICIE10CatalogService
                 await _auditService.LogOperationAsync(
                     "CIE10_ADDED_FROM_WHO",
                     "Cie10Catalog",
-                    newEntity.Id,
+                    newEntity.Id.ToString(),
                     $"Code: {code} added from WHO API",
                     null);
 
@@ -262,17 +265,17 @@ public class CIE10CatalogService : ICIE10CatalogService
             if (entity == null)
             {
                 // Try WHO API
-                var whoCode = await _whoApiService.GetICD10CodeDetailsAsync(code);
+                var whoCode = await _whoApiService.GetICD10CodeDetailAsync(code);
                 if (whoCode == null)
                     return null;
 
                 // Save to database
                 entity = new Cie10Catalog(
                     whoCode.Code,
-                    whoCode.Title,
-                    whoCode.Definition,
-                    whoCode.Chapter,
-                    whoCode.Chapter,
+                    whoCode.Description,
+                    whoCode.LongDescription ?? whoCode.Description,
+                    whoCode.Category ?? "Unknown",
+                    whoCode.Category ?? "Unknown",
                     "WHO_API");
 
                 _context.Set<Cie10Catalog>().Add(entity);
@@ -281,7 +284,7 @@ public class CIE10CatalogService : ICIE10CatalogService
 
             // Get usage count
             var usageCount = await _context.Set<PrescriptionDiagnosis>()
-                .CountAsync(pd => pd.Cie10CatalogId == entity.Id);
+                .CountAsync(pd => pd.DiagnosisCode == entity.Code);
 
             // Get related codes (same category)
             var relatedCodes = await _context.Set<Cie10Catalog>()
@@ -313,7 +316,7 @@ public class CIE10CatalogService : ICIE10CatalogService
             await _auditService.LogOperationAsync(
                 "CIE10_GET_DETAILS",
                 "Cie10Catalog",
-                entity.Id,
+                entity.Id.ToString(),
                 $"Code: {code}",
                 null);
 
@@ -339,15 +342,15 @@ public class CIE10CatalogService : ICIE10CatalogService
             }
 
             // Get most used codes from prescriptions
-            var mostUsedIds = await _context.Set<PrescriptionDiagnosis>()
-                .GroupBy(pd => pd.Cie10CatalogId)
+            var mostUsedCodes = await _context.Set<PrescriptionDiagnosis>()
+                .GroupBy(pd => pd.DiagnosisCode)
                 .OrderByDescending(g => g.Count())
                 .Take(count)
                 .Select(g => g.Key)
                 .ToListAsync();
 
             var entities = await _context.Set<Cie10Catalog>()
-                .Where(c => mostUsedIds.Contains(c.Id) && c.IsActive)
+                .Where(c => mostUsedCodes.Contains(c.Code) && c.IsActive)
                 .ToListAsync();
 
             var results = entities.Select(MapToICD10Code).ToList();
@@ -382,14 +385,14 @@ public class CIE10CatalogService : ICIE10CatalogService
             {
                 try
                 {
-                    var whoCode = await _whoApiService.GetICD10CodeDetailsAsync(localCode.Code);
+                    var whoCode = await _whoApiService.GetICD10CodeDetailAsync(localCode.Code);
                     if (whoCode != null)
                     {
                         localCode.UpdateFromWHO(
-                            whoCode.Title,
-                            whoCode.Definition,
-                            whoCode.Chapter,
-                            whoCode.Chapter);
+                            whoCode.Description,
+                            whoCode.LongDescription ?? whoCode.Description,
+                            whoCode.Category ?? "Unknown",
+                            whoCode.Category ?? "Unknown");
                         updatedCount++;
                     }
                 }
@@ -442,7 +445,7 @@ public class CIE10CatalogService : ICIE10CatalogService
                 .CountAsync(c => c.IsActive);
 
             var commonCodes = await _context.Set<PrescriptionDiagnosis>()
-                .Select(pd => pd.Cie10CatalogId)
+                .Select(pd => pd.DiagnosisCode)
                 .Distinct()
                 .CountAsync();
 
@@ -477,15 +480,13 @@ public class CIE10CatalogService : ICIE10CatalogService
         }
     }
 
-    // Temporary placeholder - will be replaced with actual entity mapping
-    private static ICD10Code MapToICD10Code(object entity)
+    private static ICD10Code MapToICD10Code(Cie10Catalog entity)
     {
-        // TODO: Implement proper mapping when Cie10Catalog entity is available
         return new ICD10Code
         {
-            Code = "TEMP",
-            Description = "Temporary placeholder",
-            Category = entity.Category ?? string.Empty,
+            Code = entity.Code,
+            Description = entity.DescriptionEs,
+            Category = entity.Category,
             Subcategory = entity.Chapter,
             IsCommon = true, // Could be calculated based on usage
             LastUpdated = entity.LastUpdated

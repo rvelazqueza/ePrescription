@@ -15,8 +15,9 @@ public class Cie10Catalog : BaseEntity
     public string Source { get; private set; } = "MANUAL"; // MANUAL or WHO_API
     public DateTime LastUpdated { get; private set; }
 
-    // Navigation properties
-    public virtual ICollection<PrescriptionDiagnosis> PrescriptionDiagnoses { get; private set; } = new List<PrescriptionDiagnosis>();
+    // Note: No navigation to PrescriptionDiagnoses to avoid EF Core shadow properties
+    // PrescriptionDiagnosis references Cie10Catalog via string Code, not entity relationship
+    // Use repository queries to get diagnoses by Cie10Code instead
 
     private Cie10Catalog() { } // EF Core
 

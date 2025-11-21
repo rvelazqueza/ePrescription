@@ -57,9 +57,8 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
             .HasForeignKey("PATIENT_ID")
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(p => p.Prescriptions)
-            .WithOne()
-            .HasForeignKey("PATIENT_ID")
-            .OnDelete(DeleteBehavior.Restrict);
+        // Note: Prescription relationship removed to avoid EF Core shadow properties
+        // Prescription has PatientId FK but Patient doesn't have Prescriptions navigation
+        // Use repository queries to get prescriptions by PatientId instead
     }
 }
