@@ -632,7 +632,9 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 - [x] 12. Implementar endpoints REST para pacientes, médicos y farmacias
 
 
-  - [ ] 12.1 Crear DTOs, validadores y mappers para pacientes
+  - [x] 12.1 Crear DTOs, validadores y mappers para pacientes
+
+
   - [ ] 12.2 Crear commands/queries y handlers para pacientes (CRUD + búsqueda)
   - [ ] 12.3 Crear PatientsController con endpoints
   - [ ] 12.4 Probar endpoints de pacientes con Postman
