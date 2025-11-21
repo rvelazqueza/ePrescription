@@ -10,8 +10,16 @@ public class SpecialtyConfiguration : IEntityTypeConfiguration<Specialty>
     {
         builder.ToTable("SPECIALTIES");
 
+        // Configure primary key with explicit Oracle RAW(16) handling
         builder.HasKey(s => s.Id);
-        builder.Property(s => s.Id).HasColumnName("SPECIALTY_ID");
+        builder.Property(s => s.Id)
+            .HasColumnName("SPECIALTY_ID")
+            .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes)
+            )
+            .IsRequired();
 
         builder.Property(s => s.SpecialtyCode)
             .HasColumnName("SPECIALTY_CODE")
@@ -27,8 +35,9 @@ public class SpecialtyConfiguration : IEntityTypeConfiguration<Specialty>
             .HasColumnName("DESCRIPTION")
             .HasMaxLength(500);
 
+        // Shadow properties for audit fields (if they exist in DB)
         builder.Property(s => s.CreatedAt).HasColumnName("CREATED_AT");
-        builder.Property(s => s.UpdatedAt).HasColumnName("UPDATED_AT");
+        builder.Ignore(s => s.UpdatedAt); // UPDATED_AT column doesn't exist in SPECIALTIES table
 
         builder.HasIndex(s => s.SpecialtyCode).IsUnique();
 

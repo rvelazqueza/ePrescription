@@ -643,15 +643,38 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 12.3 Crear PatientsController con endpoints
 
 
+
   - [ ] 12.4 Probar endpoints de pacientes con Postman
-  - [ ] 12.5 Crear DTOs, validadores y mappers para médicos
-  - [ ] 12.6 Crear commands/queries y handlers para médicos (CRUD + búsqueda por especialidad)
-  - [ ] 12.7 Crear DoctorsController con endpoints
-  - [ ] 12.8 Probar endpoints de médicos con Postman
-  - [ ] 12.9 Crear DTOs, validadores y mappers para farmacias
-  - [ ] 12.10 Crear commands/queries y handlers para farmacias (CRUD + búsqueda)
-  - [ ] 12.11 Crear PharmaciesController con endpoints
-  - [ ] 12.12 Probar endpoints de farmacias con Postman
+
+
+  - [x] 12.5 Crear DTOs, validadores y mappers para médicos
+
+
+
+  - [x] 12.6 Crear commands/queries y handlers para médicos (CRUD + búsqueda por especialidad)
+
+
+  - [x] 12.7 Crear DoctorsController con endpoints
+
+
+
+  - [x] 12.8 Probar endpoints de médicos con Postman
+
+
+  - [x] 12.9 Crear DTOs, validadores y mappers para farmacias
+
+
+  - [x] 12.10 Crear commands/queries y handlers para farmacias (CRUD + búsqueda)
+
+
+
+
+  - [x] 12.11 Crear PharmaciesController con endpoints
+
+
+  - [x] 12.12 Probar endpoints de farmacias con Postman
+
+
   - [ ] 12.13 Implementar búsqueda avanzada con múltiples filtros
   - [ ] 12.14 Implementar paginación en todos los listados
   - [ ] 12.15 Crear tests de integración para todos los endpoints

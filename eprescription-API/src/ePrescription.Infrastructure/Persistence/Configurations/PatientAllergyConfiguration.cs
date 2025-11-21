@@ -10,13 +10,20 @@ public class PatientAllergyConfiguration : IEntityTypeConfiguration<PatientAller
     {
         builder.ToTable("PATIENT_ALLERGIES");
 
+        // Primary Key
         builder.HasKey(pa => pa.Id);
-        builder.Property(pa => pa.Id).HasColumnName("ALLERGY_ID");
-
-        builder.Property(pa => pa.PatientId)
-            .HasColumnName("PATIENT_ID")
+        builder.Property(pa => pa.Id)
+            .HasColumnName("ALLERGY_ID")
+            .HasColumnType("RAW(16)")
             .IsRequired();
 
+        // Foreign Key
+        builder.Property(pa => pa.PatientId)
+            .HasColumnName("PATIENT_ID")
+            .HasColumnType("RAW(16)")
+            .IsRequired();
+
+        // Properties
         builder.Property(pa => pa.AllergenType)
             .HasColumnName("ALLERGEN_TYPE")
             .HasMaxLength(50)
@@ -36,16 +43,20 @@ public class PatientAllergyConfiguration : IEntityTypeConfiguration<PatientAller
             .HasColumnName("NOTES")
             .HasColumnType("CLOB");
 
-        builder.Property(pa => pa.CreatedAt).HasColumnName("CREATED_AT");
-        builder.Property(pa => pa.UpdatedAt).HasColumnName("UPDATED_AT");
+        // Timestamps
+        builder.Property(pa => pa.CreatedAt)
+            .HasColumnName("CREATED_AT")
+            .HasColumnType("TIMESTAMP(6)")
+            .ValueGeneratedOnAdd();
 
-        builder.HasIndex(pa => pa.PatientId);
-        builder.HasIndex(pa => pa.AllergenType);
+        // IMPORTANT: UpdatedAt does NOT exist in Oracle table
+        builder.Ignore(pa => pa.UpdatedAt);
 
-        // Relationships
-        builder.HasOne(pa => pa.Patient)
-            .WithMany(p => p.Allergies)
-            .HasForeignKey(pa => pa.PatientId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Indexes
+        builder.HasIndex(pa => pa.PatientId)
+            .HasDatabaseName("IDX_ALLERGY_PATIENT");
+
+        builder.HasIndex(pa => pa.AllergenType)
+            .HasDatabaseName("IDX_ALLERGY_TYPE");
     }
 }

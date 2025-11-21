@@ -17,8 +17,14 @@ public class DispensationConfiguration : IEntityTypeConfiguration<Dispensation>
         builder.Property(d => d.DispensationDate).HasColumnName("DISPENSATION_DATE").IsRequired();
         builder.Property(d => d.Status).HasColumnName("STATUS").HasMaxLength(20).IsRequired();
         builder.Property(d => d.Notes).HasColumnName("NOTES").HasColumnType("CLOB");
-        builder.Property(d => d.CreatedAt).HasColumnName("CREATED_AT");
-        builder.Property(d => d.UpdatedAt).HasColumnName("UPDATED_AT");
+        
+        builder.Property(d => d.CreatedAt)
+            .HasColumnName("CREATED_AT")
+            .ValueGeneratedOnAdd();
+            
+        builder.Property(d => d.UpdatedAt)
+            .HasColumnName("UPDATED_AT")
+            .ValueGeneratedOnAddOrUpdate();
 
         // Relationships
         builder.HasOne<Prescription>()

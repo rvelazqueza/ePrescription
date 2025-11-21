@@ -163,6 +163,15 @@ builder.Services.AddScoped(typeof(EPrescription.Domain.Interfaces.IRepository<>)
     typeof(EPrescription.Infrastructure.Persistence.Repositories.Repository<>));
 builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPrescriptionRepository,
     EPrescription.Infrastructure.Persistence.Repositories.PrescriptionRepository>();
+// Register PatientRepository to override generic repository for Patient entity
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IRepository<EPrescription.Domain.Entities.Patient>,
+    EPrescription.Infrastructure.Persistence.Repositories.PatientRepository>();
+// Register DoctorRepository to override generic repository for Doctor entity
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IRepository<EPrescription.Domain.Entities.Doctor>,
+    EPrescription.Infrastructure.Persistence.Repositories.DoctorRepository>();
+// Register PharmacyRepository
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPharmacyRepository,
+    EPrescription.Infrastructure.Persistence.Repositories.PharmacyRepository>();
 
 var app = builder.Build();
 

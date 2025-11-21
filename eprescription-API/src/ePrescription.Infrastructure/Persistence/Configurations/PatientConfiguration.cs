@@ -41,20 +41,28 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
             .HasColumnName("BLOOD_TYPE")
             .HasMaxLength(5);
 
-        builder.Property(p => p.CreatedAt).HasColumnName("CREATED_AT");
-        builder.Property(p => p.UpdatedAt).HasColumnName("UPDATED_AT");
+        builder.Property(p => p.CreatedAt)
+            .HasColumnName("CREATED_AT")
+            .HasColumnType("TIMESTAMP(6)")
+            .ValueGeneratedOnAdd();
+
+        builder.Property(p => p.UpdatedAt)
+            .HasColumnName("UPDATED_AT")
+            .HasColumnType("TIMESTAMP(6)")
+            .ValueGeneratedNever(); // Managed by Oracle trigger
 
         builder.HasIndex(p => p.IdentificationNumber).IsUnique();
 
         // Relationships
+        // Configure relationships explicitly to avoid EF Core shadow properties
         builder.HasMany(p => p.Contacts)
-            .WithOne()
-            .HasForeignKey("PATIENT_ID")
+            .WithOne(c => c.Patient)
+            .HasForeignKey(c => c.PatientId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(p => p.Allergies)
-            .WithOne()
-            .HasForeignKey("PATIENT_ID")
+            .WithOne(a => a.Patient)
+            .HasForeignKey(a => a.PatientId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Note: Prescription relationship removed to avoid EF Core shadow properties

@@ -11,7 +11,9 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
         builder.ToTable("DOCTORS");
 
         builder.HasKey(d => d.Id);
-        builder.Property(d => d.Id).HasColumnName("DOCTOR_ID");
+        builder.Property(d => d.Id)
+            .HasColumnName("DOCTOR_ID")
+            .HasColumnType("RAW(16)");
 
         builder.Property(d => d.IdentificationNumber)
             .HasColumnName("IDENTIFICATION_NUMBER")
@@ -36,6 +38,7 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
 
         builder.Property(d => d.SpecialtyId)
             .HasColumnName("SPECIALTY_ID")
+            .HasColumnType("RAW(16)")
             .IsRequired();
 
         builder.Property(d => d.Email)
@@ -50,10 +53,17 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
 
         builder.Property(d => d.IsActive)
             .HasColumnName("IS_ACTIVE")
+            .HasColumnType("NUMBER(1)")
+            .HasConversion<int>()  // Convert bool to int for Oracle NUMBER(1)
             .IsRequired();
 
-        builder.Property(d => d.CreatedAt).HasColumnName("CREATED_AT");
-        builder.Property(d => d.UpdatedAt).HasColumnName("UPDATED_AT");
+        builder.Property(d => d.CreatedAt)
+            .HasColumnName("CREATED_AT")
+            .ValueGeneratedOnAdd();
+            
+        builder.Property(d => d.UpdatedAt)
+            .HasColumnName("UPDATED_AT")
+            .ValueGeneratedOnAddOrUpdate();
 
         builder.HasIndex(d => d.IdentificationNumber).IsUnique();
         builder.HasIndex(d => d.MedicalLicenseNumber).IsUnique();

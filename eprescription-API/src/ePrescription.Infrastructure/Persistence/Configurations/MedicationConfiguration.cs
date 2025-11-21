@@ -20,8 +20,14 @@ public class MedicationConfiguration : IEntityTypeConfiguration<Medication>
         builder.Property(m => m.RequiresPrescription).HasColumnName("REQUIRES_PRESCRIPTION").HasDefaultValue(true);
         builder.Property(m => m.IsActive).HasColumnName("IS_ACTIVE").HasDefaultValue(true);
         builder.Property(m => m.AdministrationRouteId).HasColumnName("ROUTE_ID");
-        builder.Property(m => m.CreatedAt).HasColumnName("CREATED_AT");
-        builder.Property(m => m.UpdatedAt).HasColumnName("UPDATED_AT");
+        
+        builder.Property(m => m.CreatedAt)
+            .HasColumnName("CREATED_AT")
+            .ValueGeneratedOnAdd();
+            
+        builder.Property(m => m.UpdatedAt)
+            .HasColumnName("UPDATED_AT")
+            .ValueGeneratedOnAddOrUpdate();
         builder.HasIndex(m => m.MedicationCode).IsUnique();
     }
 }

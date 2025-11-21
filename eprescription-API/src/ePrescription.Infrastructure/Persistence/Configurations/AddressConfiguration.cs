@@ -18,7 +18,13 @@ public class AddressConfiguration : IEntityTypeConfiguration<Address>
         builder.Property(a => a.Country).HasColumnName("COUNTRY").HasMaxLength(100).IsRequired().HasDefaultValue("Costa Rica");
         builder.Property(a => a.Latitude).HasColumnName("LATITUDE").HasPrecision(10, 7);
         builder.Property(a => a.Longitude).HasColumnName("LONGITUDE").HasPrecision(10, 7);
-        builder.Property(a => a.CreatedAt).HasColumnName("CREATED_AT");
-        builder.Property(a => a.UpdatedAt).HasColumnName("UPDATED_AT");
+        
+        builder.Property(a => a.CreatedAt)
+            .HasColumnName("CREATED_AT")
+            .ValueGeneratedOnAdd();
+            
+        builder.Property(a => a.UpdatedAt)
+            .HasColumnName("UPDATED_AT")
+            .ValueGeneratedOnAddOrUpdate();
     }
 }

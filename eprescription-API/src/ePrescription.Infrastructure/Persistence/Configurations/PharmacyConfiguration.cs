@@ -34,15 +34,25 @@ public class PharmacyConfiguration : IEntityTypeConfiguration<Pharmacy>
             .HasColumnName("EMAIL")
             .HasMaxLength(200);
 
-        // IMPORTANT: City field does NOT exist in database - ignore it
-        builder.Ignore(p => p.City);
+        builder.Property(p => p.City)
+            .HasColumnName("CITY")
+            .HasMaxLength(100);
 
         builder.Property(p => p.IsActive)
             .HasColumnName("IS_ACTIVE")
+            .HasColumnType("NUMBER(1)")
+            .HasConversion<int>()
             .IsRequired();
 
-        builder.Property(p => p.CreatedAt).HasColumnName("CREATED_AT");
-        builder.Property(p => p.UpdatedAt).HasColumnName("UPDATED_AT");
+        builder.Property(p => p.CreatedAt)
+            .HasColumnName("CREATED_AT")
+            .HasColumnType("TIMESTAMP(6)")
+            .IsRequired();
+            
+        builder.Property(p => p.UpdatedAt)
+            .HasColumnName("UPDATED_AT")
+            .HasColumnType("TIMESTAMP(6)")
+            .IsRequired();
 
         builder.HasIndex(p => p.LicenseNumber).IsUnique();
         builder.HasIndex(p => p.AddressId);

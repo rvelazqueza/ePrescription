@@ -10,13 +10,20 @@ public class PatientContactConfiguration : IEntityTypeConfiguration<PatientConta
     {
         builder.ToTable("PATIENT_CONTACTS");
 
+        // Primary Key
         builder.HasKey(pc => pc.Id);
-        builder.Property(pc => pc.Id).HasColumnName("CONTACT_ID");
-
-        builder.Property(pc => pc.PatientId)
-            .HasColumnName("PATIENT_ID")
+        builder.Property(pc => pc.Id)
+            .HasColumnName("CONTACT_ID")
+            .HasColumnType("RAW(16)")
             .IsRequired();
 
+        // Foreign Key
+        builder.Property(pc => pc.PatientId)
+            .HasColumnName("PATIENT_ID")
+            .HasColumnType("RAW(16)")
+            .IsRequired();
+
+        // Properties
         builder.Property(pc => pc.ContactType)
             .HasColumnName("CONTACT_TYPE")
             .HasMaxLength(20)
@@ -29,18 +36,26 @@ public class PatientContactConfiguration : IEntityTypeConfiguration<PatientConta
 
         builder.Property(pc => pc.IsPrimary)
             .HasColumnName("IS_PRIMARY")
-            .IsRequired();
+            .HasConversion<int>()
+            .HasDefaultValue(0);
 
-        builder.Property(pc => pc.CreatedAt).HasColumnName("CREATED_AT");
-        builder.Property(pc => pc.UpdatedAt).HasColumnName("UPDATED_AT");
+        // Timestamps
+        builder.Property(pc => pc.CreatedAt)
+            .HasColumnName("CREATED_AT")
+            .HasColumnType("TIMESTAMP(6)")
+            .ValueGeneratedOnAdd();
 
-        builder.HasIndex(pc => pc.PatientId);
-        builder.HasIndex(pc => pc.ContactType);
+        // IMPORTANT: UpdatedAt does NOT exist in Oracle table
+        builder.Ignore(pc => pc.UpdatedAt);
 
-        // Relationships
-        builder.HasOne(pc => pc.Patient)
-            .WithMany(p => p.Contacts)
-            .HasForeignKey(pc => pc.PatientId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Indexes
+        builder.HasIndex(pc => pc.PatientId)
+            .HasDatabaseName("IDX_CONTACT_PATIENT");
+
+        builder.HasIndex(pc => pc.ContactType)
+            .HasDatabaseName("IDX_CONTACT_TYPE");
+
+        builder.HasIndex(new[] { "PatientId", "IsPrimary" })
+            .HasDatabaseName("IDX_CONTACT_PRIMARY");
     }
 }
