@@ -697,11 +697,31 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 13.2 Crear RegisterDispensationCommand con handler
-  - [ ] 13.3 Crear VerifyDispensationCommand con handler
-  - [ ] 13.4 Crear GetDispensationQuery con handler
-  - [ ] 13.5 Crear DispensationsController con endpoints
-  - [ ] 13.6 Probar endpoints de dispensación con Postman
+
+  - [x] 13.2 Crear RegisterDispensationCommand con handler
+
+
+
+
+  - [x] 13.3 Crear VerifyDispensationCommand con handler
+
+
+
+  - [x] 13.4 Crear GetDispensationQuery con handler
+
+
+
+
+  - [x] 13.5 Crear DispensationsController con endpoints
+
+
+
+  - [x] 13.6 Probar endpoints de dispensación con Postman
+
+
+
+
+
   - [ ] 13.7 Crear DTOs, validadores y mappers para inventario
   - [ ] 13.8 Crear commands para gestión de inventario (AddStock, AdjustStock, GetInventory)
   - [ ] 13.9 Crear InventoryController con endpoints

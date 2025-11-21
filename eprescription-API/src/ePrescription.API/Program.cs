@@ -80,6 +80,16 @@ builder.Services.AddScoped<EPrescription.Application.Interfaces.ICIE10CatalogSer
     EPrescription.Infrastructure.Services.CIE10CatalogService>();
 builder.Services.AddMemoryCache(); // Required for CIE10CatalogService caching
 
+// Add Repositories
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IDispensationRepository,
+    EPrescription.Infrastructure.Persistence.Repositories.DispensationRepository>();
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IInventoryRepository,
+    EPrescription.Infrastructure.Persistence.Repositories.InventoryRepository>();
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPrescriptionRepository,
+    EPrescription.Infrastructure.Persistence.Repositories.PrescriptionRepository>();
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IUnitOfWork,
+    EPrescription.Infrastructure.Persistence.UnitOfWork>();
+
 // Add AI Assistant Service (Hugging Face)
 builder.Services.AddHttpClient<EPrescription.Application.Interfaces.IAIAssistantService,
     EPrescription.Infrastructure.Services.HuggingFaceAIService>();
