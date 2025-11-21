@@ -7,6 +7,7 @@ namespace EPrescription.Domain.Interfaces;
 /// </summary>
 public interface IPharmacyRepository : IRepository<Pharmacy>
 {
+    Task<Pharmacy?> GetByIdWithAddressAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Pharmacy?> GetByLicenseNumberAsync(string licenseNumber, CancellationToken cancellationToken = default);
     Task<IEnumerable<Pharmacy>> GetByCityAsync(string city, CancellationToken cancellationToken = default);
     Task<IEnumerable<Pharmacy>> GetActiveAsync(CancellationToken cancellationToken = default);

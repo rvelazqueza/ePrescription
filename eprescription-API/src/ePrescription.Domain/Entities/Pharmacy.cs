@@ -46,6 +46,13 @@ public class Pharmacy : BaseEntity
         UpdateTimestamp();
     }
 
+    public void SetAddress(Address address)
+    {
+        Address = address;
+        AddressId = address.Id;
+        UpdateTimestamp();
+    }
+
     public void Deactivate()
     {
         IsActive = false;

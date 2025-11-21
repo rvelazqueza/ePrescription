@@ -34,6 +34,15 @@ public class Address : BaseEntity
         Longitude = longitude;
     }
 
+    public void UpdateAddress(string streetAddress, string city, string stateProvince, string? postalCode = null)
+    {
+        StreetAddress = streetAddress;
+        City = city;
+        StateProvince = stateProvince;
+        PostalCode = postalCode;
+        UpdateTimestamp();
+    }
+
     public void UpdateCoordinates(decimal latitude, decimal longitude)
     {
         Latitude = latitude;

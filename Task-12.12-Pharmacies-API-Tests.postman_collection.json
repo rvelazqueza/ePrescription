@@ -1,0 +1,110 @@
+{
+	"info": {
+		"_postman_id": "pharmacies-api-tests-12-12",
+		"name": "Task 12.12 - Pharmacies API Tests",
+		"description": "Colección de pruebas para los endpoints de Pharmacies API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "CRUD Operations",
+			"item": [
+				{
+					"name": "1. Create Pharmacy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has pharmacy data', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('id');",
+									"    pm.expect(responseJson).to.have.property('licenseNumber');",
+									"    pm.expect(responseJson).to.have.property('name');",
+									"    pm.expect(responseJson).to.have.property('city');",
+									"    pm.expect(responseJson.isActive).to.be.true;",
+									"    pm.environment.set('pharmacyId', responseJson.id);",
+									"    pm.environment.set('pharmacyLicenseNumber', responseJson.licenseNumber);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\\n  \\\"licenseNumber\\\": \\\"PHARM-TEST-{{$randomInt}}\\\",\\n  \\\"name\\\": \\\"Farmacia Test\\\",\\n  \\\"address\\\": \\\"123 Main St\\\",\\n  \\\"city\\\": \\\"San José\\\",\\n  \\\"state\\\": \\\"San José\\\",\\n  \\\"zipCode\\\": \\\"10101\\\",\\n  \\\"phone\\\": \\\"+506-2222-3333\\\",\\n  \\\"email\\\": \\\"info@farmacia.com\\\"\\n}"
+						},
+						"url": {"raw": "{{baseUrl}}/api/pharmacies", "host": ["{{baseUrl}}"], "path": ["api", "pharmacies"]}
+					}
+				},
+				{
+					"name": "2. Get Pharmacy by ID",
+					"event": [{"listen": "test", "script": {"exec": ["pm.test('Status code is 200', function () { pm.response.to.have.status(200); });", "pm.test('Response contains pharmacy details', function () { const responseJson = pm.response.json(); pm.expect(responseJson.id).to.equal(pm.environment.get('pharmacyId')); pm.expect(responseJson).to.have.property('fullAddress'); });"], "type": "text/javascript"}}],
+					"request": {"method": "GET", "header": [], "url": {"raw": "{{baseUrl}}/api/pharmacies/{{pharmacyId}}", "host": ["{{baseUrl}}"], "path": ["api", "pharmacies", "{{pharmacyId}}"]}}
+				},
+				{
+					"name": "3. Update Pharmacy",
+					"event": [{"listen": "test", "script": {"exec": ["pm.test('Status code is 200', function () { pm.response.to.have.status(200); });", "pm.test('Contact info was updated', function () { const responseJson = pm.response.json(); pm.expect(responseJson.phone).to.equal('+506-9999-8888'); });"], "type": "text/javascript"}}],
+					"request": {"method": "PUT", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\\n  \\\"phone\\\": \\\"+506-9999-8888\\\",\\n  \\\"email\\\": \\\"updated@farmacia.com\\\"\\n}"}, "url": {"raw": "{{baseUrl}}/api/pharmacies/{{pharmacyId}}", "host": ["{{baseUrl}}"], "path": ["api", "pharmacies", "{{pharmacyId}}"]}}
+				},
+				{
+					"name": "4. Delete Pharmacy",
+					"event": [{"listen": "test", "script": {"exec": ["pm.test('Status code is 204', function () { pm.response.to.have.status(204); });"], "type": "text/javascript"}}],
+					"request": {"method": "DELETE", "header": [], "url": {"raw": "{{baseUrl}}/api/pharmacies/{{pharmacyId}}", "host": ["{{baseUrl}}"], "path": ["api", "pharmacies", "{{pharmacyId}}"]}}
+				}
+			]
+		},
+		{
+			"name": "Search & Filters",
+			"item": [
+				{
+					"name": "Search All Pharmacies",
+					"event": [{"listen": "test", "script": {"exec": ["pm.test('Status code is 200', function () { pm.response.to.have.status(200); });", "pm.test('Response has pagination', function () { const responseJson = pm.response.json(); pm.expect(responseJson).to.have.property('items'); pm.expect(responseJson).to.have.property('totalCount'); });"], "type": "text/javascript"}}],
+					"request": {"method": "GET", "header": [], "url": {"raw": "{{baseUrl}}/api/pharmacies?pageNumber=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api", "pharmacies"], "query": [{"key": "pageNumber", "value": "1"}, {"key": "pageSize", "value": "10"}]}}
+				},
+				{
+					"name": "Search by City",
+					"event": [{"listen": "test", "script": {"exec": ["pm.test('Status code is 200', function () { pm.response.to.have.status(200); });", "pm.test('Filtered by city', function () { const responseJson = pm.response.json(); responseJson.items.forEach(p => { pm.expect(p.city.toLowerCase()).to.include('san josé'); }); });"], "type": "text/javascript"}}],
+					"request": {"method": "GET", "header": [], "url": {"raw": "{{baseUrl}}/api/pharmacies?city=San José&pageNumber=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api", "pharmacies"], "query": [{"key": "city", "value": "San José"}, {"key": "pageNumber", "value": "1"}, {"key": "pageSize", "value": "10"}]}}
+				},
+				{
+					"name": "Search Active Only",
+					"event": [{"listen": "test", "script": {"exec": ["pm.test('Status code is 200', function () { pm.response.to.have.status(200); });", "pm.test('All active', function () { const responseJson = pm.response.json(); responseJson.items.forEach(p => { pm.expect(p.isActive).to.be.true; }); });"], "type": "text/javascript"}}],
+					"request": {"method": "GET", "header": [], "url": {"raw": "{{baseUrl}}/api/pharmacies?isActive=true&pageNumber=1&pageSize=10", "host": ["{{baseUrl}}"], "path": ["api", "pharmacies"], "query": [{"key": "isActive", "value": "true"}, {"key": "pageNumber", "value": "1"}, {"key": "pageSize", "value": "10"}]}}
+				}
+			]
+		},
+		{
+			"name": "Validation Tests",
+			"item": [
+				{
+					"name": "Validation - Empty License",
+					"event": [{"listen": "test", "script": {"exec": ["pm.test('Status code is 400', function () { pm.response.to.have.status(400); });", "pm.test('Validation error', function () { const responseJson = pm.response.json(); pm.expect(responseJson).to.have.property('errors'); });"], "type": "text/javascript"}}],
+					"request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\\n  \\\"licenseNumber\\\": \\\"\\\",\\n  \\\"name\\\": \\\"Test\\\",\\n  \\\"address\\\": \\\"123\\\",\\n  \\\"city\\\": \\\"Test\\\",\\n  \\\"state\\\": \\\"Test\\\",\\n  \\\"zipCode\\\": \\\"123\\\",\\n  \\\"phone\\\": \\\"+506-1111\\\",\\n  \\\"email\\\": \\\"test@test.com\\\"\\n}"}, "url": {"raw": "{{baseUrl}}/api/pharmacies", "host": ["{{baseUrl}}"], "path": ["api", "pharmacies"]}}
+				},
+				{
+					"name": "Validation - Invalid Email",
+					"event": [{"listen": "test", "script": {"exec": ["pm.test('Status code is 400', function () { pm.response.to.have.status(400); });"], "type": "text/javascript"}}],
+					"request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\\n  \\\"licenseNumber\\\": \\\"TEST-123\\\",\\n  \\\"name\\\": \\\"Test\\\",\\n  \\\"address\\\": \\\"123\\\",\\n  \\\"city\\\": \\\"Test\\\",\\n  \\\"state\\\": \\\"Test\\\",\\n  \\\"zipCode\\\": \\\"123\\\",\\n  \\\"phone\\\": \\\"+506-1111\\\",\\n  \\\"email\\\": \\\"invalid-email\\\"\\n}"}, "url": {"raw": "{{baseUrl}}/api/pharmacies", "host": ["{{baseUrl}}"], "path": ["api", "pharmacies"]}}
+				}
+			]
+		}
+	],
+	"event": [
+		{"listen": "prerequest", "script": {"type": "text/javascript", "exec": ["if (!pm.environment.get('baseUrl')) { pm.environment.set('baseUrl', 'http://localhost:8000'); }"]}},
+		{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Response time OK', function () { pm.expect(pm.response.responseTime).to.be.below(5000); });"]}}
+	],
+	"variable": [
+		{"key": "baseUrl", "value": "http://localhost:8000", "type": "string"},
+		{"key": "pharmacyId", "value": "", "type": "string"},
+		{"key": "pharmacyLicenseNumber", "value": "", "type": "string"}
+	]
+}

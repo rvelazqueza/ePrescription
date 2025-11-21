@@ -15,8 +15,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Email).HasColumnName("EMAIL").HasMaxLength(200).IsRequired();
         builder.Property(u => u.KeycloakUserId).HasColumnName("KEYCLOAK_USER_ID").HasMaxLength(100);
         builder.Property(u => u.IsActive).HasColumnName("IS_ACTIVE").HasDefaultValue(true);
-        builder.Property(u => u.CreatedAt).HasColumnName("CREATED_AT");
-        builder.Property(u => u.UpdatedAt).HasColumnName("UPDATED_AT");
+        
+        builder.Property(u => u.CreatedAt)
+            .HasColumnName("CREATED_AT")
+            .ValueGeneratedOnAdd();
+            
+        builder.Property(u => u.UpdatedAt)
+            .HasColumnName("UPDATED_AT")
+            .ValueGeneratedOnAddOrUpdate();
         builder.HasIndex(u => u.Username).IsUnique();
         builder.HasIndex(u => u.Email).IsUnique();
     }

@@ -61,12 +61,14 @@ public class PrescriptionConfiguration : IEntityTypeConfiguration<Prescription>
         builder.Property(p => p.CreatedAt)
             .HasColumnName("CREATED_AT")
             .HasColumnType("TIMESTAMP(6)")
-            .IsRequired();
+            .IsRequired()
+            .ValueGeneratedOnAdd();
 
         builder.Property(p => p.UpdatedAt)
             .HasColumnName("UPDATED_AT")
             .HasColumnType("TIMESTAMP(6)")
-            .IsRequired();
+            .IsRequired()
+            .ValueGeneratedOnAddOrUpdate();
 
         // Indexes
         builder.HasIndex(p => p.PrescriptionNumber)

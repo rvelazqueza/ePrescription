@@ -580,7 +580,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 24-28 hours_ (aumentado por WHO API y Translation Service)
   - _IMPORTANTE: Verificar que NO se incluyan API keys en commits_
 
-- [-] 11. Implementar endpoints REST para gestión de prescripciones
+- [x] 11. Implementar endpoints REST para gestión de prescripciones
 
   - [x] 11.1 Crear DTOs para prescripciones (CreatePrescriptionDto, PrescriptionDto, UpdatePrescriptionDto)
 
@@ -619,31 +619,74 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 11.12 Probar endpoints con Postman (crear, leer, actualizar, eliminar)
-  - [ ] 11.13 Crear tests de integración para endpoints de prescripciones
-  - [ ] 11.14 Commit y push de endpoints de prescripciones
+  - [x] 11.12 Probar endpoints con Postman (crear, leer, actualizar, eliminar)
+  - [x] 11.13 Crear tests de integración para endpoints de prescripciones
+  - [x] 11.14 Commit y push de endpoints de prescripciones
   - _Requirements: 2.2_
   - _Branch: feature/task-11-prescriptions-api_
   - _Commit strategy: Push después de DTOs y validadores (11.2), después de commands (11.7), y después de controller (11.9)_
   - _Estimated time: 12-14 hours_
+  - _Completed: 2025-11-20_
+  - _Merged to develop: d4804f2_
 
-- [ ] 12. Implementar endpoints REST para pacientes, médicos y farmacias
-  - [ ] 12.1 Crear DTOs, validadores y mappers para pacientes
-  - [ ] 12.2 Crear commands/queries y handlers para pacientes (CRUD + búsqueda)
-  - [ ] 12.3 Crear PatientsController con endpoints
-  - [ ] 12.4 Probar endpoints de pacientes con Postman
-  - [ ] 12.5 Crear DTOs, validadores y mappers para médicos
-  - [ ] 12.6 Crear commands/queries y handlers para médicos (CRUD + búsqueda por especialidad)
-  - [ ] 12.7 Crear DoctorsController con endpoints
-  - [ ] 12.8 Probar endpoints de médicos con Postman
-  - [ ] 12.9 Crear DTOs, validadores y mappers para farmacias
-  - [ ] 12.10 Crear commands/queries y handlers para farmacias (CRUD + búsqueda)
-  - [ ] 12.11 Crear PharmaciesController con endpoints
-  - [ ] 12.12 Probar endpoints de farmacias con Postman
-  - [ ] 12.13 Implementar búsqueda avanzada con múltiples filtros
-  - [ ] 12.14 Implementar paginación en todos los listados
-  - [ ] 12.15 Crear tests de integración para todos los endpoints
-  - [ ] 12.16 Commit y push de endpoints de pacientes, médicos y farmacias
+- [x] 12. Implementar endpoints REST para pacientes, médicos y farmacias
+
+
+  - [x] 12.1 Crear DTOs, validadores y mappers para pacientes
+
+
+
+  - [x] 12.2 Crear commands/queries y handlers para pacientes (CRUD + búsqueda)
+
+
+
+  - [x] 12.3 Crear PatientsController con endpoints
+
+
+
+  - [x] 12.4 Probar endpoints de pacientes con Postman
+
+
+  - [x] 12.5 Crear DTOs, validadores y mappers para médicos
+
+
+
+  - [x] 12.6 Crear commands/queries y handlers para médicos (CRUD + búsqueda por especialidad)
+
+
+  - [x] 12.7 Crear DoctorsController con endpoints
+
+
+
+  - [x] 12.8 Probar endpoints de médicos con Postman
+
+
+  - [x] 12.9 Crear DTOs, validadores y mappers para farmacias
+
+
+  - [x] 12.10 Crear commands/queries y handlers para farmacias (CRUD + búsqueda)
+
+
+
+
+  - [x] 12.11 Crear PharmaciesController con endpoints
+
+
+  - [x] 12.12 Probar endpoints de farmacias con Postman
+
+
+  - [x] 12.13 Implementar búsqueda avanzada con múltiples filtros
+
+
+  - [x] 12.14 Implementar paginación en todos los listados
+
+  - [x] 12.15 Crear tests de integración para todos los endpoints
+
+
+  - [x] 12.16 Commit y push de endpoints de pacientes, médicos y farmacias
+
+
+
   - _Requirements: 2.2_
   - _Branch: feature/task-12-patients-doctors-pharmacies-api_
   - _Commit strategy: Push después de pacientes (12.4), después de médicos (12.8), y después de farmacias (12.12)_
