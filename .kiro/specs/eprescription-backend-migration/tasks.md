@@ -639,7 +639,10 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 12.2 Crear commands/queries y handlers para pacientes (CRUD + búsqueda)
 
 
-  - [ ] 12.3 Crear PatientsController con endpoints
+
+  - [x] 12.3 Crear PatientsController con endpoints
+
+
   - [ ] 12.4 Probar endpoints de pacientes con Postman
   - [ ] 12.5 Crear DTOs, validadores y mappers para médicos
   - [ ] 12.6 Crear commands/queries y handlers para médicos (CRUD + búsqueda por especialidad)
