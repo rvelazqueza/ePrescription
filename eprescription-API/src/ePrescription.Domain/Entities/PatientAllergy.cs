@@ -1,18 +1,18 @@
 namespace EPrescription.Domain.Entities;
 
 /// <summary>
-/// Patient allergy information (4NF normalization)
+/// PatientAllergy entity - represents a patient allergy or contraindication
 /// Maps to PATIENT_ALLERGIES table in Oracle
 /// </summary>
 public class PatientAllergy : BaseEntity
 {
     public Guid PatientId { get; private set; }
-    public string AllergenType { get; private set; } = string.Empty;
+    public string AllergenType { get; private set; } = string.Empty; // medication, food, environmental, other
     public string AllergenName { get; private set; } = string.Empty;
-    public string Severity { get; private set; } = string.Empty; // mild, moderate, severe
+    public string Severity { get; private set; } = string.Empty; // mild, moderate, severe, life-threatening
     public string? Notes { get; private set; }
 
-    // Navigation property
+    // Navigation properties
     public virtual Patient Patient { get; private set; } = null!;
 
     private PatientAllergy() { } // EF Core
@@ -31,10 +31,11 @@ public class PatientAllergy : BaseEntity
         Notes = notes;
     }
 
-    public void UpdateSeverity(string severity, string? notes = null)
+    public void UpdateAllergy(string allergenName, string severity, string? notes)
     {
+        AllergenName = allergenName;
         Severity = severity;
-        if (notes != null) Notes = notes;
+        Notes = notes;
         UpdateTimestamp();
     }
 }
