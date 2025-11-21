@@ -29,16 +29,35 @@ public class SearchPrescriptionsQueryHandler : IRequestHandler<SearchPrescriptio
     {
         try
         {
-            _logger.LogInformation("Searching prescriptions - returning empty result for now");
+            _logger.LogInformation(
+                "Searching prescriptions - PatientId: {PatientId}, DoctorId: {DoctorId}, Status: {Status}, Page: {Page}, PageSize: {PageSize}",
+                request.SearchCriteria.PatientId,
+                request.SearchCriteria.DoctorId,
+                request.SearchCriteria.Status,
+                request.SearchCriteria.Page,
+                request.SearchCriteria.PageSize);
 
-            // Simplified implementation - return empty result
+            var (items, totalCount) = await _prescriptionRepository.SearchAsync(
+                patientId: request.SearchCriteria.PatientId,
+                doctorId: request.SearchCriteria.DoctorId,
+                status: request.SearchCriteria.Status,
+                startDate: request.SearchCriteria.FromDate,
+                endDate: request.SearchCriteria.ToDate,
+                page: request.SearchCriteria.Page,
+                pageSize: request.SearchCriteria.PageSize,
+                cancellationToken: cancellationToken);
+
+            var dtos = _mapper.Map<List<PrescriptionListDto>>(items);
+
             var result = new PaginatedResult<PrescriptionListDto>
             {
-                Items = new List<PrescriptionListDto>(),
-                TotalCount = 0,
+                Items = dtos,
+                TotalCount = totalCount,
                 Page = request.SearchCriteria.Page,
                 PageSize = request.SearchCriteria.PageSize
             };
+
+            _logger.LogInformation("Found {Count} prescriptions (Total: {Total})", dtos.Count, totalCount);
 
             return result;
         }

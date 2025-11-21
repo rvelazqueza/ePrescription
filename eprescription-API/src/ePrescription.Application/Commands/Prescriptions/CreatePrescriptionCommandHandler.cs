@@ -8,15 +8,18 @@ namespace EPrescription.Application.Commands.Prescriptions;
 public class CreatePrescriptionCommandHandler : IRequestHandler<CreatePrescriptionCommand, PrescriptionDto>
 {
     private readonly IPrescriptionRepository _prescriptionRepository;
+    private readonly IRepository<EPrescription.Domain.Entities.Cie10Catalog> _cie10Repository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     public CreatePrescriptionCommandHandler(
         IPrescriptionRepository prescriptionRepository,
+        IRepository<EPrescription.Domain.Entities.Cie10Catalog> cie10Repository,
         IUnitOfWork unitOfWork,
         IMapper mapper)
     {
         _prescriptionRepository = prescriptionRepository;
+        _cie10Repository = cie10Repository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
@@ -64,9 +67,22 @@ public class CreatePrescriptionCommandHandler : IRequestHandler<CreatePrescripti
         {
             foreach (var diagnosisDto in dto.Diagnoses)
             {
+                // Look up CIE-10 catalog entry to get ID and description
+                var cie10Entry = await _cie10Repository.FindAsync(
+                    c => c.Code == diagnosisDto.Cie10Code && c.IsActive,
+                    cancellationToken);
+                
+                var cie10 = cie10Entry.FirstOrDefault();
+                if (cie10 == null)
+                {
+                    throw new KeyNotFoundException($"CIE-10 code '{diagnosisDto.Cie10Code}' not found in catalog");
+                }
+
                 var prescriptionDiagnosis = new EPrescription.Domain.Entities.PrescriptionDiagnosis(
                     prescriptionId: Guid.Empty, // Will be set by EF Core
-                    cie10Code: diagnosisDto.Cie10Code,
+                    cie10Id: cie10.Id,
+                    diagnosisCode: cie10.Code,
+                    diagnosisDescription: cie10.DescriptionEs,
                     isPrimary: diagnosisDto.IsPrimary,
                     notes: diagnosisDto.Notes
                 );

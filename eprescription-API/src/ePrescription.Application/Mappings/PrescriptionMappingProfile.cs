@@ -64,11 +64,18 @@ public class PrescriptionMappingProfile : Profile
         CreateMap<CreatePrescriptionDiagnosisDto, PrescriptionDiagnosis>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.PrescriptionId, opt => opt.Ignore())
+            .ForMember(dest => dest.Cie10Id, opt => opt.Ignore()) // Set manually in handler
+            .ForMember(dest => dest.DiagnosisCode, opt => opt.Ignore()) // Set manually in handler
+            .ForMember(dest => dest.DiagnosisDescription, opt => opt.Ignore()) // Set manually in handler
+            .ForMember(dest => dest.AiSuggested, opt => opt.Ignore())
+            .ForMember(dest => dest.AiConfidenceScore, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Prescription, opt => opt.Ignore());
             
-        CreateMap<PrescriptionDiagnosis, PrescriptionDiagnosisDto>();
+        CreateMap<PrescriptionDiagnosis, PrescriptionDiagnosisDto>()
+            .ForMember(dest => dest.Cie10Code, opt => opt.MapFrom(src => src.DiagnosisCode))
+            .ForMember(dest => dest.Cie10Description, opt => opt.MapFrom(src => src.DiagnosisDescription));
         
         // Prescription Dispensation mappings
         CreateMap<Dispensation, DispensationSummaryDto>()

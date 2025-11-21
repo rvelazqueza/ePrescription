@@ -284,7 +284,7 @@ public class CIE10CatalogService : ICIE10CatalogService
 
             // Get usage count
             var usageCount = await _context.Set<PrescriptionDiagnosis>()
-                .CountAsync(pd => pd.Cie10Code == entity.Code);
+                .CountAsync(pd => pd.DiagnosisCode == entity.Code);
 
             // Get related codes (same category)
             var relatedCodes = await _context.Set<Cie10Catalog>()
@@ -343,7 +343,7 @@ public class CIE10CatalogService : ICIE10CatalogService
 
             // Get most used codes from prescriptions
             var mostUsedCodes = await _context.Set<PrescriptionDiagnosis>()
-                .GroupBy(pd => pd.Cie10Code)
+                .GroupBy(pd => pd.DiagnosisCode)
                 .OrderByDescending(g => g.Count())
                 .Take(count)
                 .Select(g => g.Key)
@@ -445,7 +445,7 @@ public class CIE10CatalogService : ICIE10CatalogService
                 .CountAsync(c => c.IsActive);
 
             var commonCodes = await _context.Set<PrescriptionDiagnosis>()
-                .Select(pd => pd.Cie10Code)
+                .Select(pd => pd.DiagnosisCode)
                 .Distinct()
                 .CountAsync();
 

@@ -159,6 +159,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<EPrescription.Application.V
 // Add Unit of Work and Repositories
 builder.Services.AddScoped<EPrescription.Domain.Interfaces.IUnitOfWork,
     EPrescription.Infrastructure.Persistence.UnitOfWork>();
+builder.Services.AddScoped(typeof(EPrescription.Domain.Interfaces.IRepository<>),
+    typeof(EPrescription.Infrastructure.Persistence.Repositories.Repository<>));
 builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPrescriptionRepository,
     EPrescription.Infrastructure.Persistence.Repositories.PrescriptionRepository>();
 
