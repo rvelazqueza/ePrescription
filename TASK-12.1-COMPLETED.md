@@ -140,6 +140,22 @@ docker-compose build eprescription-api
 
 **Resultado**: ✅ Compilación exitosa (0 errores)
 
+## ⚠️ Corrección Aplicada
+
+**Problema Detectado**: Los validadores iniciales usaban valores de género en inglés/español mezclados que no coincidían con la base de datos.
+
+**Base de Datos (Oracle)**:
+```sql
+gender VARCHAR2(10) CHECK (gender IN ('M', 'F', 'Otro'))
+```
+
+**Corrección Aplicada**:
+- ✅ Actualizado `CreatePatientDtoValidator` para validar: `'M', 'F', 'Otro'`
+- ✅ Actualizado `MaxLength` de Gender de 20 a 10 caracteres
+- ✅ Compilación exitosa después de la corrección
+
+**Commit de Corrección**: `fix(patients): correct gender validation to match database schema (M, F, Otro)` (320e700)
+
 ---
 
 ## 📊 Estadísticas
@@ -180,5 +196,17 @@ Los DTOs, validadores y mappers están listos para ser utilizados en:
 
 El Task 12.1 se completó exitosamente. Todos los DTOs, validadores y mappers para pacientes están implementados siguiendo los patrones establecidos en el proyecto y están listos para ser utilizados en los handlers de CQRS.
 
-**Commit**: `feat(patients): create DTOs, validators and mappers for patients - Task 12.1`  
+**Commits**: 
+- `feat(patients): create DTOs, validators and mappers for patients - Task 12.1` (35d6e27)
+- `fix(patients): correct gender validation to match database schema (M, F, Otro)` (320e700)
+
 **Push**: ✅ Exitoso a `feature/task-12-patients-doctors-pharmacies-api`
+
+## ✅ Verificación de Estructura Existente
+
+Antes de continuar, se verificó que:
+- ✅ No existían DTOs previos para Patient
+- ✅ No existían Commands/Queries previos para Patient
+- ✅ La estructura de la tabla PATIENTS en Oracle fue revisada
+- ✅ Los DTOs coinciden con la estructura de la base de datos
+- ✅ Los validadores coinciden con los constraints de la base de datos
