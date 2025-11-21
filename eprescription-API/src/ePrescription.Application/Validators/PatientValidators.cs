@@ -32,9 +32,9 @@ public class CreatePatientDtoValidator : AbstractValidator<CreatePatientDto>
 
         RuleFor(x => x.Gender)
             .NotEmpty().WithMessage("Gender is required")
-            .MaximumLength(20).WithMessage("Gender cannot exceed 20 characters")
-            .Must(g => new[] { "Male", "Female", "Other", "Masculino", "Femenino", "Otro" }.Contains(g))
-            .WithMessage("Gender must be Male, Female, Other, Masculino, Femenino, or Otro");
+            .MaximumLength(10).WithMessage("Gender cannot exceed 10 characters")
+            .Must(g => new[] { "M", "F", "Otro" }.Contains(g))
+            .WithMessage("Gender must be M, F, or Otro");
 
         RuleFor(x => x.BloodType)
             .MaximumLength(10).WithMessage("Blood type cannot exceed 10 characters")

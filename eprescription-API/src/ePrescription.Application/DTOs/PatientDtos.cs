@@ -23,7 +23,7 @@ public class CreatePatientDto
     public DateTime DateOfBirth { get; set; }
     
     [Required(ErrorMessage = "Gender is required")]
-    [MaxLength(20, ErrorMessage = "Gender cannot exceed 20 characters")]
+    [MaxLength(10, ErrorMessage = "Gender cannot exceed 10 characters")]
     public string Gender { get; set; } = string.Empty;
     
     [MaxLength(10, ErrorMessage = "Blood type cannot exceed 10 characters")]
