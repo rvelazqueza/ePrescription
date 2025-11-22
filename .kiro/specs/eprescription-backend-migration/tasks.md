@@ -750,7 +750,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
   - [x] 13.13 Crear tests de integración para dispensación e inventario
-  - [-] 13.14 Commit y push de endpoints de dispensación e inventario
+  - [x] 13.14 Commit y push de endpoints de dispensación e inventario
+
 
   - _Requirements: 2.2_
   - _Branch: feature/task-13-dispensation-inventory-api_
