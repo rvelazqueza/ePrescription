@@ -63,14 +63,7 @@ public class PharmacyConfiguration : IEntityTypeConfiguration<Pharmacy>
             .HasForeignKey(p => p.AddressId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(p => p.Inventory)
-            .WithOne()
-            .HasForeignKey("PHARMACY_ID")
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(p => p.Dispensations)
-            .WithOne()
-            .HasForeignKey("PHARMACY_ID")
-            .OnDelete(DeleteBehavior.Restrict);
+        // Note: Inventory relationship is configured in InventoryConfiguration
+        // Note: Dispensations relationship is configured in DispensationConfiguration
     }
 }

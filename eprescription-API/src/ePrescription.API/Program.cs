@@ -117,6 +117,12 @@ builder.Services.AddAuthentication("Bearer")
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
             ValidateIssuer = true,
+            ValidIssuers = new[] 
+            { 
+                $"{keycloakUrl}/realms/{realm}",
+                $"http://localhost:8080/realms/{realm}",
+                $"http://keycloak:8080/realms/{realm}"
+            },
             ValidateAudience = false, // Keycloak doesn't always include audience
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,

@@ -722,14 +722,36 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 13.7 Crear DTOs, validadores y mappers para inventario
-  - [ ] 13.8 Crear commands para gestión de inventario (AddStock, AdjustStock, GetInventory)
-  - [ ] 13.9 Crear InventoryController con endpoints
-  - [ ] 13.10 Implementar alertas de stock bajo (query)
-  - [ ] 13.11 Implementar validación de lotes y fechas de vencimiento
-  - [ ] 13.12 Probar endpoints de inventario con Postman
-  - [ ] 13.13 Crear tests de integración para dispensación e inventario
-  - [ ] 13.14 Commit y push de endpoints de dispensación e inventario
+  - [x] 13.7 Crear DTOs, validadores y mappers para inventario
+
+
+  - [x] 13.8 Crear commands para gestión de inventario (AddStock, AdjustStock, GetInventory)
+
+
+
+  - [x] 13.9 Crear InventoryController con endpoints
+
+
+
+  - [x] 13.10 Implementar alertas de stock bajo (query)
+
+
+  - [x] 13.11 Implementar validación de lotes y fechas de vencimiento
+
+
+  - [x] 13.12 Probar endpoints de inventario con Postman
+
+
+
+
+
+
+
+
+
+  - [x] 13.13 Crear tests de integración para dispensación e inventario
+  - [-] 13.14 Commit y push de endpoints de dispensación e inventario
+
   - _Requirements: 2.2_
   - _Branch: feature/task-13-dispensation-inventory-api_
   - _Commit strategy: Push después de dispensación (13.6) y después de inventario (13.12)_

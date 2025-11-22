@@ -19,7 +19,7 @@ public class MedicationConfiguration : IEntityTypeConfiguration<Medication>
         builder.Property(m => m.Concentration).HasColumnName("CONCENTRATION").HasMaxLength(100);
         builder.Property(m => m.RequiresPrescription).HasColumnName("REQUIRES_PRESCRIPTION").HasDefaultValue(true);
         builder.Property(m => m.IsActive).HasColumnName("IS_ACTIVE").HasDefaultValue(true);
-        builder.Property(m => m.AdministrationRouteId).HasColumnName("ROUTE_ID");
+        builder.Property(m => m.AdministrationRouteId).HasColumnName("ADMINISTRATION_ROUTE_ID");
         
         builder.Property(m => m.CreatedAt)
             .HasColumnName("CREATED_AT")

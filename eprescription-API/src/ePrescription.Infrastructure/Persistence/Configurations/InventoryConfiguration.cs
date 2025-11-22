@@ -64,12 +64,12 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
 
         // Relationships
         builder.HasOne(i => i.Pharmacy)
-            .WithMany()
+            .WithMany(p => p.Inventory)
             .HasForeignKey(i => i.PharmacyId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(i => i.Medication)
-            .WithMany()
+            .WithMany(m => m.Inventories)
             .HasForeignKey(i => i.MedicationId)
             .OnDelete(DeleteBehavior.Restrict);
 
