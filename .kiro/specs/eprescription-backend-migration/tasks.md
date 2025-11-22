@@ -753,6 +753,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 13.14 Commit y push de endpoints de dispensación e inventario
 
 
+
   - _Requirements: 2.2_
   - _Branch: feature/task-13-dispensation-inventory-api_
   - _Commit strategy: Push después de dispensación (13.6) y después de inventario (13.12)_
@@ -765,7 +766,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [ ] 14.3 Actualizar docker-compose.yml agregando servicio backend-api
   - [ ] 14.4 Configurar variables de entorno para backend en docker-compose (ConnectionStrings, Keycloak, APIs externas)
   - [ ] 14.5 Configurar dependencias entre servicios (depends_on: oracle-db, keycloak con condition: service_healthy)
-  - [ ] 14.6 Exponer puertos 5000 (HTTP) y 5001 (HTTPS) para acceso externo (Postman)
+  - [ ] 14.6 Exponer puerto 8000 (HTTP externo) mapeado a 8080 (HTTP interno) para acceso externo (Postman)
   - [ ] 14.7 Configurar health check para backend API (verificar endpoint /health)
   - [ ] 14.8 Configurar red Docker personalizada para comunicación entre servicios (eprescription-network)
   - [ ] 14.9 Crear archivo .env.example con todas las variables necesarias (sin secrets)
@@ -773,7 +774,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [ ] 14.11 Probar docker-compose up -d con todos los servicios (Oracle, Keycloak, Backend)
   - [ ] 14.12 Verificar logs de cada servicio con docker-compose logs
   - [ ] 14.13 Verificar conectividad entre servicios (backend -> Oracle: oracle-db:1521, backend -> Keycloak: keycloak:8080)
-  - [ ] 14.14 Probar endpoints desde Postman (http://localhost:5000/swagger)
+  - [ ] 14.14 Probar endpoints desde Postman (http://localhost:8000/swagger)
   - [ ] 14.15 Documentar comandos Docker en README.md (up, down, logs, exec, ps)
   - [ ] 14.16 Crear script de inicio rápido (start.sh / start.bat)
   - [ ] 14.17 Commit y push de configuración Docker completa
@@ -784,7 +785,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Note: Todos los servicios se comunican dentro de la red Docker usando nombres de servicio_
 
 - [ ] 15. Integrar frontend Angular con backend API
-  - [ ] 15.1 Actualizar environment.ts con URL del backend API (http://localhost:5000)
+  - [ ] 15.1 Actualizar environment.ts con URL del backend API (http://localhost:8000)
   - [ ] 15.2 Crear HTTP interceptor para agregar JWT token a requests (auth.interceptor.ts)
   - [ ] 15.3 Crear HTTP interceptor para manejo de errores global (error.interceptor.ts)
   - [ ] 15.4 Actualizar AuthService para llamar endpoints de autenticación del backend
