@@ -760,7 +760,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Estimated time: 12-14 hours_
 
 
-- [ ] 14. Configurar Docker completo para backend API
+- [x] 14. Configurar Docker completo para backend API
   - [x] 14.1 Crear Dockerfile multi-stage para backend .NET 8 en eprescription-API/ (base: mcr.microsoft.com/dotnet/aspnet:8.0)
 
 
@@ -781,7 +781,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [x] 14.8 Configurar red Docker personalizada para comunicación entre servicios (eprescription-network)
 
 
-  - [ ] 14.9 Crear archivo .env.example con todas las variables necesarias (sin secrets)
+  - [x] 14.9 Crear archivo .env.example con todas las variables necesarias (sin secrets)
   - [x] 14.10 Agregar .env a .gitignore (nunca commitear secrets)
 
 
@@ -792,7 +792,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 14.13 Verificar conectividad entre servicios (backend -> Oracle: oracle-db:1521, backend -> Keycloak: keycloak:8080)
+  - [x] 14.13 Verificar conectividad entre servicios (backend -> Oracle: oracle-db:1521, backend -> Keycloak: keycloak:8080)
   - [x] 14.14 Probar endpoints desde Postman (http://localhost:8000/swagger)
 
 
@@ -801,8 +801,9 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
-  - [ ] 14.16 Crear script de inicio rápido (start.sh / start.bat)
+  - [x] 14.16 Crear script de inicio rápido (start.sh / start.bat)
   - [x] 14.17 Commit y push de configuración Docker completa
+
 
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6, 5.7, 5.9_
   - _Branch: feature/task-14-docker-backend_
