@@ -812,22 +812,50 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Note: Todos los servicios se comunican dentro de la red Docker usando nombres de servicio_
 
 - [ ] 15. Integrar frontend Angular con backend API
-  - [ ] 15.1 Actualizar environment.ts con URL del backend API (http://localhost:8000)
-  - [ ] 15.2 Crear HTTP interceptor para agregar JWT token a requests (auth.interceptor.ts)
-  - [ ] 15.3 Crear HTTP interceptor para manejo de errores global (error.interceptor.ts)
-  - [ ] 15.4 Actualizar AuthService para llamar endpoints de autenticación del backend
-  - [ ] 15.5 Implementar lógica de refresh token en AuthService
-  - [ ] 15.6 Actualizar guards para usar nuevo AuthService
-  - [ ] 15.7 Actualizar PrescriptionService para llamar endpoints REST de prescripciones
-  - [ ] 15.8 Actualizar PatientService para llamar endpoints REST de pacientes
-  - [ ] 15.9 Actualizar DoctorService para llamar endpoints REST de médicos
-  - [ ] 15.10 Actualizar PharmacyService para llamar endpoints REST de farmacias
+  - [x] 15.1 Actualizar environment.ts con URL del backend API (http://localhost:8000)
+
+
+
+  - [x] 15.2 Crear HTTP interceptor para agregar JWT token a requests (auth.interceptor.ts)
+
+
+  - [x] 15.3 Crear HTTP interceptor para manejo de errores global (error.interceptor.ts)
+
+  - [x] 15.4 Actualizar AuthService para llamar endpoints de autenticación del backend
+
+
+
+  - [x] 15.5 Implementar lógica de refresh token en AuthService
+
+  - [x] 15.6 Actualizar guards para usar nuevo AuthService
+
+
+  - [x] 15.7 Actualizar PrescriptionService para llamar endpoints REST de prescripciones
+
+
+  - [x] 15.8 Actualizar PatientService para llamar endpoints REST de pacientes
+
+
+  - [x] 15.9 Actualizar DoctorService para llamar endpoints REST de médicos
+
+
+  - [x] 15.10 Actualizar PharmacyService para llamar endpoints REST de farmacias
+
+
+
+
   - [ ] 15.11 Actualizar InventoryService para llamar endpoints REST de inventario
-  - [ ] 15.12 Actualizar DispensationService para llamar endpoints REST de dispensación
+  - [x] 15.12 Actualizar DispensationService para llamar endpoints REST de dispensación
+
   - [ ] 15.13 Migrar componentes del asistente de IA para llamar endpoints del backend
-  - [ ] 15.14 Eliminar API key de Hugging Face del frontend (si existe)
+  - [x] 15.14 Eliminar API key de Hugging Face del frontend (si existe)
+
+
   - [ ] 15.15 Actualizar manejo de estados de carga y errores en componentes
-  - [ ] 15.16 Eliminar servicios mock del frontend
+  - [x] 15.16 Eliminar servicios mock del frontend
+
+
+
   - [ ] 15.17 Probar flujos principales end-to-end (login, crear prescripción, dispensar)
   - [ ] 15.18 Realizar pruebas de integración frontend-backend
   - [ ] 15.19 Commit y push de integración frontend

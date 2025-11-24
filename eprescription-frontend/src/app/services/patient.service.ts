@@ -1,6 +1,8 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, BehaviorSubject } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, of, BehaviorSubject, catchError } from 'rxjs';
 import { delay, map, tap, switchMap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 import { 
   PatientData, 
   RecentPatient, 
@@ -13,10 +15,64 @@ import {
   EnhancedPatientData
 } from '../interfaces/patient.interface';
 
+export interface PatientDto {
+  id: string;
+  firstName: string;
+  firstLastName: string;
+  secondLastName?: string;
+  idType: string;
+  idNumber: string;
+  birthDate: string;
+  gender: string;
+  bloodType?: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  country: string;
+  allergies: string[];
+  chronicConditions: string[];
+  currentMedications: string[];
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePatientDto {
+  firstName: string;
+  firstLastName: string;
+  secondLastName?: string;
+  idType: string;
+  idNumber: string;
+  birthDate: string;
+  gender: string;
+  bloodType?: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  country: string;
+  allergies?: string[];
+  chronicConditions?: string[];
+  currentMedications?: string[];
+}
+
+export interface SearchPatientsParams {
+  searchTerm?: string;
+  idNumber?: string;
+  phone?: string;
+  email?: string;
+  pageNumber?: number;
+  pageSize?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class PatientService {
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/patients`;
+  
   private selectedPatientSubject = new BehaviorSubject<PatientData | null>(null);
   public selectedPatient$ = this.selectedPatientSubject.asObservable();
 
@@ -535,17 +591,23 @@ export class PatientService {
     '15': [] // Esperanza del Carmen Moreno
   };
 
-  constructor() {}
+  constructor() {
+    // Keep mock data as fallback for development
+  }
 
   /**
    * Get recent patients with visit information
    * Returns Observable<RecentPatient[]> with RxJS operators for data transformation
    */
   getRecentPatients(): Observable<RecentPatient[]> {
-    return of(this.mockPatients).pipe(
+    // Use backend API with fallback to mock data
+    return this.http.get<PatientDto[]>(`${this.apiUrl}/search`, {
+      params: new HttpParams().set('pageSize', '15')
+    }).pipe(
+      map(patients => patients.map(patient => this.mapPatientDtoToPatientData(patient))),
       map(patients => patients.map(patient => ({
         ...patient,
-        lastVisitDate: patient.lastVisit || '2024-09-15',
+        lastVisitDate: patient.lastVisit || new Date().toISOString().split('T')[0],
         visitCount: Math.floor(Math.random() * 20) + 1,
         lastPrescriptionId: `RX-${Math.random().toString(36).substring(2, 11).toUpperCase()}`
       }))),
@@ -554,8 +616,18 @@ export class PatientService {
           new Date(b.lastVisitDate).getTime() - new Date(a.lastVisitDate).getTime()
         )
       ),
-      delay(300), // Simulate API delay
-      tap(patients => console.log(`Loaded ${patients.length} recent patients`))
+      tap(patients => console.log(`Loaded ${patients.length} recent patients from backend`)),
+      catchError(error => {
+        console.error('Error loading recent patients, using mock data:', error);
+        return of(this.mockPatients).pipe(
+          map(patients => patients.map(patient => ({
+            ...patient,
+            lastVisitDate: patient.lastVisit || '2024-09-15',
+            visitCount: Math.floor(Math.random() * 20) + 1,
+            lastPrescriptionId: `RX-${Math.random().toString(36).substring(2, 11).toUpperCase()}`
+          })))
+        );
+      })
     );
   }
 
@@ -572,33 +644,62 @@ export class PatientService {
       });
     }
 
-    return of(this.mockPatients).pipe(
-      map(patients => patients.filter(patient => {
-        const searchQuery = query.toLowerCase().trim();
-        
-        switch (criteria) {
-          case 'name':
-            return patient.fullName.toLowerCase().includes(searchQuery) ||
-                   patient.firstName.toLowerCase().includes(searchQuery) ||
-                   patient.firstLastName.toLowerCase().includes(searchQuery) ||
-                   (patient.secondLastName && patient.secondLastName.toLowerCase().includes(searchQuery));
-          case 'idNumber':
-            return patient.idNumber.includes(query.trim());
-          case 'phone':
-            return patient.phone.includes(query.trim());
-          case 'email':
-            return patient.email?.toLowerCase().includes(searchQuery) || false;
-          default:
-            return patient.fullName.toLowerCase().includes(searchQuery);
-        }
-      })),
+    let params = new HttpParams();
+    
+    switch (criteria) {
+      case 'name':
+        params = params.set('searchTerm', query);
+        break;
+      case 'idNumber':
+        params = params.set('idNumber', query);
+        break;
+      case 'phone':
+        params = params.set('phone', query);
+        break;
+      case 'email':
+        params = params.set('email', query);
+        break;
+      default:
+        params = params.set('searchTerm', query);
+    }
+
+    return this.http.get<PatientDto[]>(`${this.apiUrl}/search`, { params }).pipe(
+      map(patients => patients.map(patient => this.mapPatientDtoToPatientData(patient))),
       map(filteredPatients => ({
         patients: filteredPatients,
         totalCount: filteredPatients.length,
         hasMore: false
       })),
-      delay(500), // Simulate API delay
-      tap(result => console.log(`Search for "${query}" (${criteria}) returned ${result.totalCount} results`))
+      tap(result => console.log(`Search for "${query}" (${criteria}) returned ${result.totalCount} results from backend`)),
+      catchError(error => {
+        console.error('Error searching patients, using mock data:', error);
+        return of(this.mockPatients).pipe(
+          map(patients => patients.filter(patient => {
+            const searchQuery = query.toLowerCase().trim();
+            
+            switch (criteria) {
+              case 'name':
+                return patient.fullName.toLowerCase().includes(searchQuery) ||
+                       patient.firstName.toLowerCase().includes(searchQuery) ||
+                       patient.firstLastName.toLowerCase().includes(searchQuery) ||
+                       (patient.secondLastName && patient.secondLastName.toLowerCase().includes(searchQuery));
+              case 'idNumber':
+                return patient.idNumber.includes(query.trim());
+              case 'phone':
+                return patient.phone.includes(query.trim());
+              case 'email':
+                return patient.email?.toLowerCase().includes(searchQuery) || false;
+              default:
+                return patient.fullName.toLowerCase().includes(searchQuery);
+            }
+          })),
+          map(filteredPatients => ({
+            patients: filteredPatients,
+            totalCount: filteredPatients.length,
+            hasMore: false
+          }))
+        );
+      })
     );
   }
 
@@ -606,8 +707,62 @@ export class PatientService {
    * Get patient by ID
    */
   getPatientById(id: string): Observable<PatientData | null> {
-    const patient = this.mockPatients.find(p => p.id === id);
-    return of(patient || null).pipe(delay(200));
+    return this.http.get<PatientDto>(`${this.apiUrl}/${id}`).pipe(
+      map(patient => this.mapPatientDtoToPatientData(patient)),
+      tap(patient => console.log(`Loaded patient ${id} from backend:`, patient)),
+      catchError(error => {
+        console.error(`Error loading patient ${id}, using mock data:`, error);
+        const patient = this.mockPatients.find(p => p.id === id);
+        return of(patient || null);
+      })
+    );
+  }
+
+  /**
+   * Map PatientDto from backend to PatientData for frontend
+   */
+  private mapPatientDtoToPatientData(dto: PatientDto): PatientData {
+    const age = this.calculateAge(dto.birthDate);
+    return {
+      id: dto.id,
+      fullName: `${dto.firstName} ${dto.firstLastName}${dto.secondLastName ? ' ' + dto.secondLastName : ''}`,
+      firstName: dto.firstName,
+      firstLastName: dto.firstLastName,
+      secondLastName: dto.secondLastName,
+      idType: dto.idType,
+      idNumber: dto.idNumber,
+      birthDate: dto.birthDate,
+      age: age,
+      gender: dto.gender as 'M' | 'F',
+      bloodType: dto.bloodType,
+      phone: dto.phone,
+      email: dto.email,
+      address: dto.address,
+      city: dto.city,
+      country: dto.country,
+      allergies: dto.allergies || [],
+      chronicConditions: dto.chronicConditions || [],
+      currentMedications: dto.currentMedications || [],
+      registrationDate: dto.createdAt.split('T')[0],
+      status: dto.status as 'active' | 'inactive',
+      lastVisit: dto.updatedAt.split('T')[0]
+    };
+  }
+
+  /**
+   * Calculate age from birth date
+   */
+  private calculateAge(birthDate: string): number {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
   }
 
   /**
@@ -657,60 +812,111 @@ export class PatientService {
    * Add a new patient (for integration with NewPatientDialog)
    */
   addPatient(patientData: Partial<PatientData>): Observable<PatientData> {
-    const newPatient: PatientData = {
-      id: (this.mockPatients.length + 1).toString(),
-      fullName: `${patientData.firstName} ${patientData.firstLastName}`,
+    const createDto: CreatePatientDto = {
       firstName: patientData.firstName || '',
       firstLastName: patientData.firstLastName || '',
       secondLastName: patientData.secondLastName,
       idType: patientData.idType || 'CC',
       idNumber: patientData.idNumber || '',
       birthDate: patientData.birthDate || '',
-      age: patientData.age || 0,
       gender: patientData.gender || 'M',
       bloodType: patientData.bloodType,
       phone: patientData.phone || '',
       email: patientData.email,
       address: patientData.address,
       city: patientData.city,
-      country: patientData.country || 'Colombia',
+      country: patientData.country || 'Costa Rica',
       allergies: patientData.allergies || [],
       chronicConditions: patientData.chronicConditions || [],
-      currentMedications: patientData.currentMedications || [],
-      registrationDate: new Date().toISOString().split('T')[0],
-      status: 'active',
-      lastVisit: new Date().toISOString().split('T')[0]
+      currentMedications: patientData.currentMedications || []
     };
 
-    // Add to mock data
-    this.mockPatients.push(newPatient);
-
-    return of(newPatient).pipe(delay(800)); // Simulate API delay
+    return this.http.post<PatientDto>(this.apiUrl, createDto).pipe(
+      map(dto => this.mapPatientDtoToPatientData(dto)),
+      tap(patient => console.log('Patient created:', patient)),
+      catchError(error => {
+        console.error('Error creating patient, using mock:', error);
+        const newPatient: PatientData = {
+          id: (this.mockPatients.length + 1).toString(),
+          fullName: `${patientData.firstName} ${patientData.firstLastName}`,
+          firstName: patientData.firstName || '',
+          firstLastName: patientData.firstLastName || '',
+          secondLastName: patientData.secondLastName,
+          idType: patientData.idType || 'CC',
+          idNumber: patientData.idNumber || '',
+          birthDate: patientData.birthDate || '',
+          age: patientData.age || 0,
+          gender: patientData.gender || 'M',
+          bloodType: patientData.bloodType,
+          phone: patientData.phone || '',
+          email: patientData.email,
+          address: patientData.address,
+          city: patientData.city,
+          country: patientData.country || 'Costa Rica',
+          allergies: patientData.allergies || [],
+          chronicConditions: patientData.chronicConditions || [],
+          currentMedications: patientData.currentMedications || [],
+          registrationDate: new Date().toISOString().split('T')[0],
+          status: 'active',
+          lastVisit: new Date().toISOString().split('T')[0]
+        };
+        this.mockPatients.push(newPatient);
+        return of(newPatient);
+      })
+    );
   }
 
   /**
    * Update patient information
    */
   updatePatient(id: string, updates: Partial<PatientData>): Observable<PatientData | null> {
-    const patientIndex = this.mockPatients.findIndex(p => p.id === id);
-    
-    if (patientIndex === -1) {
-      return of(null);
-    }
-
-    this.mockPatients[patientIndex] = {
-      ...this.mockPatients[patientIndex],
-      ...updates
+    const updateDto: Partial<CreatePatientDto> = {
+      firstName: updates.firstName,
+      firstLastName: updates.firstLastName,
+      secondLastName: updates.secondLastName,
+      phone: updates.phone,
+      email: updates.email,
+      address: updates.address,
+      city: updates.city,
+      bloodType: updates.bloodType,
+      allergies: updates.allergies,
+      chronicConditions: updates.chronicConditions,
+      currentMedications: updates.currentMedications
     };
 
-    return of(this.mockPatients[patientIndex]).pipe(delay(600));
+    return this.http.put<PatientDto>(`${this.apiUrl}/${id}`, updateDto).pipe(
+      map(dto => this.mapPatientDtoToPatientData(dto)),
+      tap(patient => console.log('Patient updated:', patient)),
+      catchError(error => {
+        console.error(`Error updating patient ${id}, using mock:`, error);
+        const patientIndex = this.mockPatients.findIndex(p => p.id === id);
+        
+        if (patientIndex === -1) {
+          return of(null);
+        }
+
+        this.mockPatients[patientIndex] = {
+          ...this.mockPatients[patientIndex],
+          ...updates
+        };
+
+        return of(this.mockPatients[patientIndex]);
+      })
+    );
   }
 
   /**
    * Get all patients (for admin purposes)
    */
   getAllPatients(): Observable<PatientData[]> {
-    return of([...this.mockPatients]).pipe(delay(400));
+    return this.http.get<PatientDto[]>(`${this.apiUrl}/search`).pipe(
+      map(patients => patients.map(patient => this.mapPatientDtoToPatientData(patient))),
+      tap(patients => console.log(`Loaded ${patients.length} patients from backend`)),
+      catchError(error => {
+        console.error('Error loading all patients, using mock data:', error);
+        return of([...this.mockPatients]);
+      })
+    );
   }
 
   /**

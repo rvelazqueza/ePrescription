@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Search, Download, X, Building2, Package, AlertTriangle, Filter, Eye, CheckCircle, XCircle, TrendingUp, TrendingDown, MapPin, Phone, FileText } from 'lucide-angular';
 import { Subject, takeUntil, Subscription } from 'rxjs';
-import { InventoryQueryMockService } from '../../../services/inventory-query-mock.service';
+import { InventoryService } from '../../../services/inventory.service';
 import { BreadcrumbsComponent, BreadcrumbItem } from '../../../components/breadcrumbs/breadcrumbs.component';
 import { RoleSuggestionModalComponent } from '../../../components/role-suggestion-modal/role-suggestion-modal.component';
 import { InventoryQuery } from '../../../interfaces/inventory.interface';
@@ -92,7 +92,7 @@ export class ConsultaInventarioComponent implements OnInit, OnDestroy {
   private roleSubscriptions = new Subscription();
 
   constructor(
-    private inventoryQueryService: InventoryQueryMockService,
+    private inventoryQueryService: InventoryService,
     private roleDemoService: RoleDemoService
   ) {}
 

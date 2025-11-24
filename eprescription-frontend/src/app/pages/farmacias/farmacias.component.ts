@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Plus, Search, Building2, MapPin, Phone, Filter, Eye, Edit } from 'lucide-angular';
 import { Subject, takeUntil } from 'rxjs';
-import { PharmacyMockService } from '../../services/pharmacy-mock.service';
+import { PharmacyService } from '../../services/pharmacy.service';
 import { Pharmacy } from '../../interfaces/pharmacy.interface';
 import { RouterModule } from '@angular/router';
 import { BreadcrumbsComponent, BreadcrumbItem } from '../../components/breadcrumbs/breadcrumbs.component';
@@ -103,7 +103,7 @@ export class FarmaciasComponent implements OnInit, OnDestroy {
 
   farmacias: Pharmacy[] = [];
 
-  constructor(private pharmacyService: PharmacyMockService) {}
+  constructor(private pharmacyService: PharmacyService) {}
 
   ngOnInit(): void {
     console.log('⚠️ COMPONENTE DEPRECATED - NO SE USA EN LA APLICACIÓN');
@@ -120,7 +120,7 @@ export class FarmaciasComponent implements OnInit, OnDestroy {
   private loadFarmacias(): void {
     this.pharmacyService.getPharmacies()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(farmacias => {
+      .subscribe((farmacias: Pharmacy[]) => {
         this.farmacias = farmacias.slice(0, 6); // Show only first 6 for overview
       });
   }

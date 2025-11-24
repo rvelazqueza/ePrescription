@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Building2, MapPin, Phone, Mail, Plus, Edit, Eye, Search, Download, Filter, CheckCircle, XCircle, AlertCircle, ChevronLeft, ChevronRight, Trash2, MoreVertical, Printer } from 'lucide-angular';
-import { PharmacyMockService } from '../../../services/pharmacy-mock.service';
+import { PharmacyService } from '../../../services/pharmacy.service';
 import { Pharmacy } from '../../../interfaces/pharmacy.interface';
 import { PharmacyDetailModalComponent } from '../../../components/pharmacy-detail-modal/pharmacy-detail-modal.component';
 import { PharmacyFormModalComponent } from '../../../components/pharmacy-form-modal/pharmacy-form-modal.component';
@@ -728,7 +728,7 @@ export class FarmaciasInventarioComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
 
   constructor(
-    private pharmacyService: PharmacyMockService,
+    private pharmacyService: PharmacyService,
     private roleDemoService: RoleDemoService
   ) {}
 
@@ -748,7 +748,7 @@ export class FarmaciasInventarioComponent implements OnInit, OnDestroy {
   private loadPharmacies(): void {
     this.isLoading = true;
     this.pharmacyService.getPharmacies()
-      .subscribe(pharmacies => {
+      .subscribe((pharmacies: Pharmacy[]) => {
         this.pharmacies = pharmacies;
         this.applyFilters();
         this.isLoading = false;

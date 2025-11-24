@@ -14,7 +14,7 @@ import { ToastComponent } from '../../../components/toast/toast.component';
 import { NewDoctorModalComponent } from '../../../components/new-doctor-modal/new-doctor-modal.component';
 
 // Import services and interfaces
-import { DoctorMockService } from '../../../services/doctor-mock.service';
+import { DoctorService } from '../../../services/doctor.service';
 import { DoctorSearchService } from '../../../services/doctor-search.service';
 import { ToastService } from '../../../services/toast.service';
 import { Doctor } from '../../../interfaces/doctor.interface';
@@ -96,7 +96,7 @@ export class EditarMedicoComponent implements OnInit, OnDestroy {
   totalPages = 1;
 
   constructor(
-    private doctorMockService: DoctorMockService,
+    private doctorMockService: DoctorService,
     private doctorSearchService: DoctorSearchService,
     private toastService: ToastService,
     private router: Router,
@@ -116,7 +116,7 @@ export class EditarMedicoComponent implements OnInit, OnDestroy {
   private loadDoctors(): void {
     this.isLoading = true;
     this.doctorMockService.getDoctors().subscribe({
-      next: (doctors) => {
+      next: (doctors: any) => {
         this.allDoctors = doctors;
         this.filteredDoctors = [...doctors];
         
@@ -127,7 +127,7 @@ export class EditarMedicoComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.cdr.markForCheck();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading doctors:', error);
         this.toastService.error('Error', 'No se pudieron cargar los médicos. Por favor, intente nuevamente.');
         this.isLoading = false;
@@ -155,7 +155,7 @@ export class EditarMedicoComponent implements OnInit, OnDestroy {
         // Trigger change detection for OnPush strategy
         this.cdr.markForCheck();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error in real-time search:', error);
       }
     });
@@ -248,13 +248,13 @@ export class EditarMedicoComponent implements OnInit, OnDestroy {
   onDeleteDoctor(doctor: Doctor): void {
     if (confirm(`¿Está seguro de que desea eliminar al médico ${doctor.fullName}?`)) {
       this.doctorMockService.deleteDoctor(doctor.id).subscribe({
-        next: (success) => {
+        next: (success: any) => {
           if (success) {
             this.loadDoctors();
             this.toastService.success('Éxito', `El médico ${doctor.fullName} ha sido eliminado correctamente.`);
           }
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error deleting doctor:', error);
           this.toastService.error('Error', 'No se pudo eliminar el médico. Por favor, intente nuevamente.');
         }

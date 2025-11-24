@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideAngularModule, Search, Filter, AlertTriangle, CheckCircle, Clock, Package, ArrowUpDown, X, Eye, PackageCheck, Info, FileText, Building2, Calendar, DollarSign, Calculator, Truck, Loader2 } from 'lucide-angular';
 import { Subject, takeUntil, Subscription } from 'rxjs';
-import { InventoryMockService } from '../../../services/inventory-mock.service';
+import { InventoryService } from '../../../services/inventory.service';
 import { StockAlert } from '../../../interfaces/inventory.interface';
 import { BreadcrumbItem } from '../../../components/breadcrumbs/breadcrumbs.component';
 import { PageLayoutComponent } from '../../../components/page-layout/page-layout.component';
@@ -147,7 +147,7 @@ export class AlertasComponent implements OnInit, OnDestroy {
   private roleSubscriptions = new Subscription();
 
   constructor(
-    private inventoryService: InventoryMockService,
+    private inventoryService: InventoryService,
     private router: Router,
     private roleDemoService: RoleDemoService
   ) {}
@@ -191,16 +191,16 @@ export class AlertasComponent implements OnInit, OnDestroy {
   private loadAlerts(): void {
     this.isLoading = true;
     
-    this.inventoryService.getStockAlerts()
+    this.inventoryService.getAlerts()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (alerts) => {
+        next: (alerts: any) => {
           this.alerts = alerts;
           this.filteredAlerts = [...alerts];
           this.calculateStats();
           this.isLoading = false;
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error loading alerts:', error);
           this.isLoading = false;
         }
