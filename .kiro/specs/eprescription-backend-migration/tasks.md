@@ -761,20 +761,35 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 - [ ] 14. Configurar Docker completo para backend API
-  - [ ] 14.1 Crear Dockerfile multi-stage para backend .NET 8 en eprescription-API/ (base: mcr.microsoft.com/dotnet/aspnet:8.0)
-  - [ ] 14.2 Optimizar imagen Docker (multi-stage build con SDK y runtime separados, tamaño reducido)
+  - [x] 14.1 Crear Dockerfile multi-stage para backend .NET 8 en eprescription-API/ (base: mcr.microsoft.com/dotnet/aspnet:8.0)
+
+
+  - [x] 14.2 Optimizar imagen Docker (multi-stage build con SDK y runtime separados, tamaño reducido)
+
   - [ ] 14.3 Actualizar docker-compose.yml agregando servicio backend-api
-  - [ ] 14.4 Configurar variables de entorno para backend en docker-compose (ConnectionStrings, Keycloak, APIs externas)
-  - [ ] 14.5 Configurar dependencias entre servicios (depends_on: oracle-db, keycloak con condition: service_healthy)
-  - [ ] 14.6 Exponer puerto 8000 (HTTP externo) mapeado a 8080 (HTTP interno) para acceso externo (Postman)
-  - [ ] 14.7 Configurar health check para backend API (verificar endpoint /health)
-  - [ ] 14.8 Configurar red Docker personalizada para comunicación entre servicios (eprescription-network)
+  - [x] 14.4 Configurar variables de entorno para backend en docker-compose (ConnectionStrings, Keycloak, APIs externas)
+
+  - [x] 14.5 Configurar dependencias entre servicios (depends_on: oracle-db, keycloak con condition: service_healthy)
+
+  - [x] 14.6 Exponer puerto 8000 (HTTP externo) mapeado a 8080 (HTTP interno) para acceso externo (Postman)
+
+  - [x] 14.7 Configurar health check para backend API (verificar endpoint /health)
+
+
+  - [x] 14.8 Configurar red Docker personalizada para comunicación entre servicios (eprescription-network)
+
   - [ ] 14.9 Crear archivo .env.example con todas las variables necesarias (sin secrets)
-  - [ ] 14.10 Agregar .env a .gitignore (nunca commitear secrets)
-  - [ ] 14.11 Probar docker-compose up -d con todos los servicios (Oracle, Keycloak, Backend)
-  - [ ] 14.12 Verificar logs de cada servicio con docker-compose logs
+  - [x] 14.10 Agregar .env a .gitignore (nunca commitear secrets)
+
+
+  - [x] 14.11 Probar docker-compose up -d con todos los servicios (Oracle, Keycloak, Backend)
+
+
+  - [x] 14.12 Verificar logs de cada servicio con docker-compose logs
+
   - [ ] 14.13 Verificar conectividad entre servicios (backend -> Oracle: oracle-db:1521, backend -> Keycloak: keycloak:8080)
-  - [ ] 14.14 Probar endpoints desde Postman (http://localhost:8000/swagger)
+  - [x] 14.14 Probar endpoints desde Postman (http://localhost:8000/swagger)
+
   - [ ] 14.15 Documentar comandos Docker en README.md (up, down, logs, exec, ps)
   - [ ] 14.16 Crear script de inicio rápido (start.sh / start.bat)
   - [ ] 14.17 Commit y push de configuración Docker completa
