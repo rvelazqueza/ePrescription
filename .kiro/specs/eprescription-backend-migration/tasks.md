@@ -802,7 +802,8 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
   - [ ] 14.16 Crear script de inicio rápido (start.sh / start.bat)
-  - [ ] 14.17 Commit y push de configuración Docker completa
+  - [x] 14.17 Commit y push de configuración Docker completa
+
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6, 5.7, 5.9_
   - _Branch: feature/task-14-docker-backend_
   - _Commit strategy: Push después de Dockerfile (14.2), después de docker-compose (14.8), y después de pruebas (14.14)_
