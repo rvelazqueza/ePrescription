@@ -86,6 +86,21 @@ Este proyecto implementa una arquitectura empresarial completa con tres componen
 
 ### Instalación con Docker Compose
 
+#### Opción 1: Script de Inicio Rápido (Recomendado)
+
+**Windows (PowerShell):**
+```powershell
+.\start-docker.ps1
+```
+
+**Linux/Mac:**
+```bash
+chmod +x start-docker.sh
+./start-docker.sh
+```
+
+#### Opción 2: Manual
+
 ```bash
 # Clonar el repositorio
 git clone https://github.com/rvelazqueza/ePrescription.git
@@ -104,15 +119,131 @@ docker-compose ps
 
 ### Acceso a los Servicios
 
-- **Oracle Database**: localhost:1521 (Service: XEPDB1)
+- **Backend API**: http://localhost:8000
+  - Swagger/OpenAPI: http://localhost:8000/swagger
+- **Keycloak Admin Console**: http://localhost:8080
+  - Usuario: `admin`
+  - Password: `admin123`
+- **Oracle Database**: localhost:1521
+  - Service Name: `XEPDB1`
   - Usuario: `eprescription_user`
   - Password: `EprescriptionPass123!`
   - Herramienta recomendada: Oracle SQL Developer
-- **Frontend Angular**: http://localhost:4200 (próximamente)
-- **Backend API**: http://localhost:5000 (próximamente)
-- **Swagger/OpenAPI**: http://localhost:5000/swagger (próximamente)
-- **Keycloak Admin**: http://localhost:8080 (próximamente)
-- **Oracle Database**: localhost:1521 (SID: XE)
+
+### Comandos Docker Útiles
+
+#### Gestión de Servicios
+
+```bash
+# Iniciar todos los servicios
+docker-compose up -d
+
+# Detener todos los servicios
+docker-compose down
+
+# Reiniciar todos los servicios
+docker-compose restart
+
+# Reiniciar un servicio específico
+docker-compose restart eprescription-api
+
+# Ver estado de los servicios
+docker-compose ps
+
+# Ver recursos utilizados
+docker stats
+```
+
+#### Ver Logs
+
+```bash
+# Ver logs de todos los servicios
+docker-compose logs -f
+
+# Ver logs de un servicio específico
+docker-compose logs -f eprescription-api
+docker-compose logs -f oracle-db
+docker-compose logs -f keycloak
+
+# Ver últimas 50 líneas de logs
+docker-compose logs --tail=50 eprescription-api
+```
+
+#### Reconstruir Servicios
+
+```bash
+# Reconstruir imagen del API
+docker-compose build eprescription-api
+
+# Reconstruir y reiniciar
+docker-compose up -d --build eprescription-api
+
+# Reconstruir todo desde cero
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+#### Ejecutar Comandos en Contenedores
+
+```bash
+# Conectar a Oracle SQL*Plus
+docker exec -it eprescription-oracle-db sqlplus eprescription_user/EprescriptionPass123!@XEPDB1
+
+# Bash en contenedor del API
+docker exec -it eprescription-api bash
+
+# Ver archivos de configuración
+docker exec eprescription-api cat /app/appsettings.json
+```
+
+#### Verificar Conectividad
+
+```bash
+# Verificar que el API puede conectarse a Oracle
+docker exec eprescription-api curl -s http://localhost:8080/api/patients
+
+# Verificar que el API puede conectarse a Keycloak
+docker exec eprescription-api curl -s http://keycloak:8080/health/ready
+
+# Inspeccionar red Docker
+docker network inspect eprescription-network
+```
+
+#### Gestión de Volúmenes
+
+```bash
+# Listar volúmenes
+docker volume ls
+
+# Inspeccionar volumen de Oracle
+docker volume inspect eprescription_oracle-data
+
+# Backup de base de datos (exportar)
+docker exec eprescription-oracle-db sh -c 'expdp eprescription_user/EprescriptionPass123!@XEPDB1 directory=DATA_PUMP_DIR dumpfile=backup.dmp'
+
+# CUIDADO: Eliminar volúmenes (borra todos los datos)
+docker-compose down -v
+```
+
+#### Troubleshooting
+
+```bash
+# Ver logs de error del API
+docker logs eprescription-api --tail=100 | grep -i error
+
+# Verificar health checks
+docker inspect eprescription-api | grep -A 10 Health
+
+# Reiniciar servicio que falla
+docker-compose restart eprescription-api
+docker-compose logs -f eprescription-api
+
+# Limpiar todo y empezar de nuevo
+docker-compose down -v
+docker system prune -a
+docker-compose up -d
+```
 
 ### Desarrollo Local
 
