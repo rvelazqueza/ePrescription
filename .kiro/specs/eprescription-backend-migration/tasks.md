@@ -856,6 +856,12 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
 
 
 
+
+
+
+
+
+
   - [ ] 15.17 Probar flujos principales end-to-end (login, crear prescripción, dispensar)
   - [ ] 15.18 Realizar pruebas de integración frontend-backend
   - [ ] 15.19 Commit y push de integración frontend

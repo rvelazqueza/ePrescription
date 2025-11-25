@@ -65,8 +65,8 @@ public class UpdatePrescriptionValidator : AbstractValidator<UpdatePrescriptionD
             
         RuleFor(x => x.Status)
             .Must(status => string.IsNullOrEmpty(status) || 
-                          new[] { "active", "dispensed", "expired", "cancelled" }.Contains(status))
-            .WithMessage("Status must be one of: active, dispensed, expired, cancelled");
+                          new[] { "draft", "active", "dispensed", "expired", "cancelled" }.Contains(status))
+            .WithMessage("Status must be one of: draft, active, dispensed, expired, cancelled");
             
         RuleFor(x => x.Notes)
             .MaximumLength(2000)
@@ -156,8 +156,8 @@ public class SearchPrescriptionsValidator : AbstractValidator<SearchPrescription
             
         RuleFor(x => x.Status)
             .Must(status => string.IsNullOrEmpty(status) || 
-                          new[] { "active", "dispensed", "expired", "cancelled" }.Contains(status))
-            .WithMessage("Status must be one of: active, dispensed, expired, cancelled");
+                          new[] { "draft", "active", "dispensed", "expired", "cancelled" }.Contains(status))
+            .WithMessage("Status must be one of: draft, active, dispensed, expired, cancelled");
             
         RuleFor(x => x.FromDate)
             .LessThanOrEqualTo(x => x.ToDate)

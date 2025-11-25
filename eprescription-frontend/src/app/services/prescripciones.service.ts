@@ -81,12 +81,22 @@ export interface SearchPrescriptionsParams {
   pageSize?: number;
 }
 
+export interface PaginatedPrescriptionResponse {
+  items: PrescriptionDto[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class PrescripcionesService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/prescriptions`;
+  private apiUrl = `${environment.apiUrl}/api/prescriptions`;
   
   private prescripcionesSubject = new BehaviorSubject<Prescripcion[]>([]);
   public prescripciones$ = this.prescripcionesSubject.asObservable();
@@ -96,7 +106,7 @@ export class PrescripcionesService {
   /**
    * Get all prescriptions with optional filters
    */
-  getPrescripciones(params?: SearchPrescriptionsParams): Observable<PrescriptionDto[]> {
+  getPrescripciones(params?: SearchPrescriptionsParams): Observable<PaginatedPrescriptionResponse> {
     let httpParams = new HttpParams();
     
     if (params) {
@@ -105,15 +115,15 @@ export class PrescripcionesService {
       if (params.status) httpParams = httpParams.set('status', params.status);
       if (params.startDate) httpParams = httpParams.set('startDate', params.startDate);
       if (params.endDate) httpParams = httpParams.set('endDate', params.endDate);
-      if (params.pageNumber) httpParams = httpParams.set('pageNumber', params.pageNumber.toString());
+      if (params.pageNumber) httpParams = httpParams.set('page', params.pageNumber.toString());
       if (params.pageSize) httpParams = httpParams.set('pageSize', params.pageSize.toString());
     }
 
-    return this.http.get<PrescriptionDto[]>(`${this.apiUrl}/search`, { params: httpParams }).pipe(
-      tap(prescriptions => console.log(`Loaded ${prescriptions.length} prescriptions from backend`)),
+    return this.http.get<PaginatedPrescriptionResponse>(`${this.apiUrl}/search`, { params: httpParams }).pipe(
+      tap(response => console.log(`Loaded ${response.items.length} prescriptions from backend (total: ${response.totalCount})`)),
       catchError(error => {
         console.error('Error loading prescriptions:', error);
-        return of([]);
+        return of({ items: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0, hasNextPage: false, hasPreviousPage: false });
       })
     );
   }
@@ -179,21 +189,34 @@ export class PrescripcionesService {
   /**
    * Search prescriptions with filters
    */
-  searchPrescriptions(params: SearchPrescriptionsParams): Observable<PrescriptionDto[]> {
+  searchPrescriptions(params: SearchPrescriptionsParams): Observable<PaginatedPrescriptionResponse> {
     return this.getPrescripciones(params);
   }
 
   /**
    * Get prescriptions by patient ID
    */
-  getPrescriptionsByPatient(patientId: string): Observable<PrescriptionDto[]> {
+  getPrescriptionsByPatient(patientId: string): Observable<PaginatedPrescriptionResponse> {
     return this.getPrescripciones({ patientId });
   }
 
   /**
    * Get prescriptions by doctor ID
    */
-  getPrescriptionsByDoctor(doctorId: string): Observable<PrescriptionDto[]> {
+  getPrescriptionsByDoctor(doctorId: string): Observable<PaginatedPrescriptionResponse> {
     return this.getPrescripciones({ doctorId });
+  }
+
+  /**
+   * Get prescription by QR code
+   */
+  getPrescriptionByQR(qrCode: string): Observable<PrescriptionDto> {
+    return this.http.get<PrescriptionDto>(`${this.apiUrl}/qr/${qrCode}`).pipe(
+      tap(prescription => console.log(`Loaded prescription by QR ${qrCode}:`, prescription)),
+      catchError(error => {
+        console.error(`Error loading prescription by QR ${qrCode}:`, error);
+        throw error;
+      })
+    );
   }
 }

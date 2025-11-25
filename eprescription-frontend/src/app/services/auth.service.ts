@@ -107,7 +107,7 @@ export class AuthService {
   login(username: string, password: string): Observable<{ success: boolean; requiresMFA?: boolean; userId?: string; error?: string }> {
     const loginRequest: LoginRequest = { username, password };
     
-    return this.http.post<any>(`${this.apiUrl}/auth/login`, loginRequest)
+    return this.http.post<any>(`${this.apiUrl}/api/auth/login`, loginRequest)
       .pipe(
         tap(response => {
           console.log('🔐 Login successful:', response);
@@ -227,7 +227,7 @@ export class AuthService {
 
     const refreshRequest: RefreshTokenRequest = { refresh_token: refreshToken };
     
-    return this.http.post<any>(`${this.apiUrl}/auth/refresh`, refreshRequest)
+    return this.http.post<any>(`${this.apiUrl}/api/auth/refresh`, refreshRequest)
       .pipe(
         tap(response => {
           console.log('🔄 Token refreshed successfully');
@@ -356,7 +356,7 @@ export class AuthService {
     // If we have a refresh token, notify the server
     if (refreshToken) {
       const logoutRequest: LogoutRequest = { refresh_token: refreshToken };
-      return this.http.post<void>(`${this.apiUrl}/auth/logout`, logoutRequest)
+      return this.http.post<void>(`${this.apiUrl}/api/auth/logout`, logoutRequest)
         .pipe(
           tap(() => console.log('🚪 Logout successful')),
           catchError(error => {

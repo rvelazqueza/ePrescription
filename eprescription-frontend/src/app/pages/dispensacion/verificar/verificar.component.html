@@ -222,20 +222,7 @@
           </div>
         </div>
 
-        <!-- Ejemplos de tokens -->
-        <div class="space-y-2">
-          <p class="text-sm font-medium text-gray-700">Tokens de ejemplo para prueba:</p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <button
-              *ngFor="let rx of mockPrescriptions"
-              (click)="useExampleToken(rx.token)"
-              class="p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
-            >
-              <p class="font-mono text-sm font-medium text-gray-900">{{ rx.token || 'N/A' }}</p>
-              <p class="text-xs text-gray-600 mt-1">{{ rx.prescriptionNumber }}</p>
-            </button>
-          </div>
-        </div>
+        <!-- Tokens de ejemplo eliminados - ahora se usan datos reales del backend -->
       </div>
     </div>
   </div>
