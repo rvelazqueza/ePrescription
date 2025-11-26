@@ -50,9 +50,12 @@ import { NotificationService } from '../../services/notification.service';
                   Activo
                 </span>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900">{{ selectedPatient.fullName }}</h3>
+              <h3 class="text-lg font-semibold text-gray-900">{{ getPatientFullName() }}</h3>
               <p class="text-sm text-gray-600">
-                {{ selectedPatient.idType }} {{ selectedPatient.idNumber }} • {{ selectedPatient.age }} años • Tipo de sangre: {{ selectedPatient.bloodType || 'O+' }}
+                <span *ngIf="selectedPatient.idType && selectedPatient.idNumber">{{ selectedPatient.idType }} {{ selectedPatient.idNumber }}</span>
+                <span *ngIf="selectedPatient.age"> • {{ selectedPatient.age }} años</span>
+                <span *ngIf="selectedPatient.bloodType"> • Tipo de sangre: {{ selectedPatient.bloodType }}</span>
+                <span *ngIf="!selectedPatient.idType && !selectedPatient.idNumber && !selectedPatient.age && !selectedPatient.bloodType">Información del paciente</span>
               </p>
             </div>
           </div>
@@ -206,5 +209,23 @@ export class PatientSelectionSectionComponent implements OnChanges {
     return this.selectedPatient.allergies.length > 0 || 
            this.selectedPatient.chronicConditions.length > 0 || 
            (this.selectedPatient.currentMedications && this.selectedPatient.currentMedications.length > 0);
+  }
+
+  getPatientFullName(): string {
+    if (!this.selectedPatient) return '';
+    
+    // Use fullName if available, otherwise construct from parts
+    if (this.selectedPatient.fullName) {
+      return this.selectedPatient.fullName;
+    }
+    
+    const parts = [
+      this.selectedPatient.firstName,
+      this.selectedPatient.secondName,
+      this.selectedPatient.firstLastName,
+      this.selectedPatient.secondLastName
+    ].filter(part => part && part.trim() !== '');
+    
+    return parts.join(' ');
   }
 }

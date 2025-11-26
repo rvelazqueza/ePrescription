@@ -18,6 +18,7 @@ import { RoleDemoService } from '../../../services/role-demo.service';
 import { RoleSuggestionService } from '../../../services/role-suggestion.service';
 import { PrescripcionesService, PrescriptionDto } from '../../../services/prescripciones.service';
 import { PatientService } from '../../../services/patient.service';
+import { AIAssistantService, DrugInteraction } from '../../../services/ai-assistant.service';
 
 interface Medicamento {
   id: string;
@@ -75,8 +76,8 @@ interface Paciente {
           (changePatient)="openPatientSelectionModal()"
         ></app-patient-selection-section>
 
-        <!-- Tarjeta de Prescripción Médica Electrónica como en React -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <!-- Tarjeta de Prescripción Médica Electrónica - Solo visible con paciente seleccionado -->
+        <div *ngIf="selectedPatient" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
             <lucide-icon [img]="fileTextIcon" class="w-6 h-6 text-blue-600"></lucide-icon>
@@ -103,30 +104,30 @@ interface Paciente {
           </div>
           <div class="flex items-center gap-2">
             <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">Borrador</span>
-            <span class="text-sm text-gray-500">10/10/2025 10:54 a.m.</span>
+            <span class="text-sm text-gray-500">{{ currentDate | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
         </div>
 
-        <!-- Información del Paciente como en React -->
+        <!-- Información del Paciente -->
         <div class="bg-gray-50 rounded-lg p-4 mb-6">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <span class="text-blue-600 font-semibold text-lg">{{ pacienteSeleccionado ? getInitials(pacienteSeleccionado.nombre) : 'MG' }}</span>
+              <span class="text-blue-600 font-semibold text-lg">{{ getInitials(selectedPatient.fullName) }}</span>
             </div>
             <div class="flex-1">
-              <h3 class="text-xl font-semibold text-gray-900">{{ selectedPatient?.fullName || 'Seleccione un paciente' }}</h3>
+              <h3 class="text-xl font-semibold text-gray-900">{{ selectedPatient.fullName }}</h3>
               <div class="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-1" *ngIf="selectedPatient.gender">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  Femenino
+                  {{ getGenderLabel(selectedPatient.gender) }}
                 </span>
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-1" *ngIf="selectedPatient.age">
                   <lucide-icon [img]="calendarIcon" class="w-4 h-4"></lucide-icon>
-                  {{ pacienteSeleccionado?.edad || 45 }} años
+                  {{ selectedPatient.age }} años
                 </span>
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-1" *ngIf="selectedPatient.idNumber">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  ID: {{ pacienteSeleccionado?.cedula || 'CC-52.841.963' }}
+                  ID: {{ selectedPatient.idNumber }}
                 </span>
               </div>
             </div>
@@ -136,26 +137,26 @@ interface Paciente {
             <div>
               <h4 class="text-sm font-medium text-gray-700 mb-2">Información del Médico</h4>
               <div class="space-y-1 text-sm text-gray-600">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" *ngIf="doctorName">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  <span>{{ doctorName || 'Médico' }}</span>
+                  <span>{{ doctorName }}</span>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" *ngIf="doctorCode">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  <span>Código RM-12345-COL</span>
+                  <span>Código {{ doctorCode }}</span>
                 </div>
               </div>
             </div>
             <div>
               <h4 class="text-sm font-medium text-gray-700 mb-2">Información de Contacto</h4>
               <div class="space-y-1 text-sm text-gray-600">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" *ngIf="doctorPhone">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  <span>+57 (1) 234-5678</span>
+                  <span>{{ doctorPhone }}</span>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" *ngIf="doctorEmail">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  <span>contacto&#64;hospital.com</span>
+                  <span>{{ doctorEmail }}</span>
                 </div>
               </div>
             </div>
@@ -245,8 +246,8 @@ interface Paciente {
         </div>
         </div>
 
-        <!-- Botones de acción como en React -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <!-- Botones de acción - Solo visible con paciente seleccionado y medicamentos agregados -->
+        <div *ngIf="selectedPatient && medicamentos.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 text-orange-600">
             <lucide-icon [img]="alertTriangleIcon" class="w-5 h-5"></lucide-icon>
@@ -666,7 +667,13 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
 
   // Doctor and prescription properties
   doctorName: string = '';
+  doctorCode: string = '';
+  doctorPhone: string = '';
+  doctorEmail: string = '';
   prescriptionNumber: string = '';
+  
+  // Current date
+  currentDate: Date = new Date();
 
   // Role suggestion modal state
   showRoleSuggestionModal = signal(false);
@@ -693,7 +700,8 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
     private roleDemoService: RoleDemoService,
     private roleSuggestionService: RoleSuggestionService,
     private prescripcionesService: PrescripcionesService,
-    private patientService: PatientService
+    private patientService: PatientService,
+    private aiAssistantService: AIAssistantService
   ) {}
 
   ngOnInit() {
@@ -709,6 +717,9 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
     });
     
     this.subscriptions.add(roleSubscription);
+
+    // Load doctor information
+    this.loadDoctorInfo();
 
     // Handle patient preselection from route parameters
     this.handlePatientPreselection();
@@ -754,6 +765,13 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
     } else {
       this.showRoleSuggestionModal.set(false);
     }
+  }
+
+  private loadDoctorInfo() {
+    // TODO: Get doctor info from AuthService or DoctorService
+    // For now, we'll leave it empty and it won't show in the UI
+    // This should be implemented when we have the doctor profile service
+    console.log('Doctor info should be loaded from authenticated user profile');
   }
 
   onRoleSuggestionDismiss() {
@@ -1150,7 +1168,12 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
   }
 
   getInitials(nombre: string): string {
+    if (!nombre) return '??';
     return nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  }
+
+  getGenderLabel(gender: 'M' | 'F'): string {
+    return gender === 'M' ? 'Masculino' : 'Femenino';
   }
 
   editarMedicamento(medicamento: any) {
@@ -1292,16 +1315,91 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
   }
 
   verificarConDrugBank() {
-    console.log('Verificando medicamentos con DrugBank:', this.medicamentos);
+    console.log('Verificando medicamentos con AI Assistant:', this.medicamentos);
 
-    // Mostrar primera notificación (azul - consultando)
-    this.mostrarNotificacion('info', 'Consultando DrugBank...', 'Verificando interacciones con base de datos externa');
+    // Validar que hay medicamentos
+    if (!this.medicamentos || this.medicamentos.length < 2) {
+      this.notificationService.showWarning(
+        'Medicamentos insuficientes',
+        'Se necesitan al menos 2 medicamentos para verificar interacciones'
+      );
+      return;
+    }
 
-    // Después de 2 segundos, mostrar segunda notificación (verde - completada)
-    setTimeout(() => {
-      this.cerrarTodasLasNotificaciones();
-      this.mostrarNotificacion('success', 'Consulta completada: DrugBank', 'No se encontraron interacciones adicionales');
-    }, 2000);
+    // Mostrar notificación de inicio
+    this.notificationService.showInfo(
+      'Consultando AI Assistant',
+      'Verificando interacciones medicamentosas con inteligencia artificial'
+    );
+
+    // Extraer IDs de medicamentos (si existen) o usar nombres
+    // Por ahora usamos un array vacío ya que los medicamentos no tienen IDs del backend
+    // TODO: Cuando los medicamentos vengan del backend, usar sus IDs reales
+    const medicationIds: string[] = [];
+
+    // Si no hay IDs, mostrar mensaje informativo
+    if (medicationIds.length === 0) {
+      setTimeout(() => {
+        this.notificationService.showInfo(
+          'Verificación de interacciones',
+          'Para verificar interacciones, los medicamentos deben estar registrados en el sistema. Por ahora, se muestran las alertas locales.'
+        );
+      }, 1500);
+      return;
+    }
+
+    // Llamar al servicio de AI Assistant
+    this.aiAssistantService.checkDrugInteractions(medicationIds).subscribe({
+      next: (interactions: DrugInteraction[]) => {
+        console.log('Interacciones detectadas:', interactions);
+
+        if (interactions.length === 0) {
+          this.notificationService.showSuccess(
+            'Verificación completada',
+            'No se encontraron interacciones medicamentosas significativas'
+          );
+        } else {
+          // Mostrar interacciones encontradas
+          const interaccionesGraves = interactions.filter(i => i.severity === 'HIGH');
+          const interaccionesModeras = interactions.filter(i => i.severity === 'MEDIUM');
+
+          if (interaccionesGraves.length > 0) {
+            this.notificationService.showError(
+              'Interacciones graves detectadas',
+              `Se encontraron ${interaccionesGraves.length} interacciones de alta severidad`
+            );
+
+            // Agregar a alertas
+            interaccionesGraves.forEach(interaction => {
+              this.alertas.push(
+                `⚠️ INTERACCIÓN GRAVE: ${interaction.medication1Name} + ${interaction.medication2Name} - ${interaction.description}`
+              );
+            });
+          }
+
+          if (interaccionesModeras.length > 0) {
+            this.notificationService.showWarning(
+              'Interacciones moderadas detectadas',
+              `Se encontraron ${interaccionesModeras.length} interacciones de severidad media`
+            );
+
+            // Agregar a alertas
+            interaccionesModeras.forEach(interaction => {
+              this.alertas.push(
+                `⚠️ INTERACCIÓN: ${interaction.medication1Name} + ${interaction.medication2Name} - ${interaction.description}`
+              );
+            });
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error verificando interacciones:', error);
+        this.notificationService.showError(
+          'Error en verificación',
+          'No se pudo completar la verificación de interacciones. Intente nuevamente.'
+        );
+      }
+    });
   }
 
   abrirModalFinalizar() {
