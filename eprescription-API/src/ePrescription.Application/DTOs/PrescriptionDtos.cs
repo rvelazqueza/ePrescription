@@ -84,15 +84,39 @@ public class PrescriptionListDto
 {
     public Guid Id { get; set; }
     public string PrescriptionNumber { get; set; } = string.Empty;
+    
+    // IDs necesarios para el frontend
+    public Guid PatientId { get; set; }
+    public Guid DoctorId { get; set; }
+    
+    // Nombres para mostrar (opcional)
     public string PatientName { get; set; } = string.Empty;
     public string DoctorName { get; set; } = string.Empty;
     public string MedicalCenterName { get; set; } = string.Empty;
+    
+    // Datos del paciente
+    public string PatientIdNumber { get; set; } = string.Empty;
+    public int PatientAge { get; set; }
+    public string PatientGender { get; set; } = string.Empty;
+    
+    // Datos del médico
+    public string DoctorSpecialty { get; set; } = string.Empty;
+    public string DoctorLicenseNumber { get; set; } = string.Empty;
+    
     public DateTime PrescriptionDate { get; set; }
     public DateTime? ExpirationDate { get; set; }
     public string Status { get; set; } = string.Empty;
+    
+    // Arrays completos de medicamentos y diagnósticos
+    public List<PrescriptionMedicationDto> Medications { get; set; } = new();
+    public List<PrescriptionDiagnosisDto> Diagnoses { get; set; } = new();
+    
+    // Contadores (opcional, para compatibilidad)
     public int MedicationCount { get; set; }
     public int DiagnosisCount { get; set; }
+    
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }
 
 /// <summary>

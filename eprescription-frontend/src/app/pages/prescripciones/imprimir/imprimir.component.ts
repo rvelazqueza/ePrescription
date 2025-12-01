@@ -318,8 +318,59 @@ export class ImprimirComponent implements OnInit {
   }
 
   cargarReceta(id: string) {
-    // Aquí normalmente harías una llamada al servicio para obtener los datos
-    // Por ahora, usamos datos de muestra
+    // Intentar obtener los datos del sessionStorage primero
+    const recetaGuardada = sessionStorage.getItem('recetaParaImprimir');
+    
+    if (recetaGuardada) {
+      try {
+        const datosReceta = JSON.parse(recetaGuardada);
+        
+        // Mapear los datos reales al formato esperado
+        this.receta = {
+          id: datosReceta.id,
+          paciente: {
+            nombre: datosReceta.paciente.nombre,
+            cedula: datosReceta.paciente.cedula,
+            edad: datosReceta.paciente.edad,
+            genero: datosReceta.paciente.genero,
+            tipoSangre: 'N/A', // No disponible en los datos
+            diagnostico: datosReceta.diagnostico,
+            alertas: [] // No disponible en los datos
+          },
+          medicamentos: datosReceta.medicamentos.map((med: any) => ({
+            nombre: med.nombre,
+            presentacion: 'N/A', // No disponible en los datos
+            dosis: med.dosis,
+            frecuencia: med.frecuencia,
+            via: med.frecuencia ? 'V.O.' : 'N/A',
+            duracion: med.duracion,
+            cantidad: med.cantidad
+          })),
+          medico: {
+            nombre: datosReceta.medico.nombre,
+            especialidad: datosReceta.medico.especialidad,
+            licencia: datosReceta.medico.codigoMedico,
+            centroMedico: 'Hospital San Juan de Dios'
+          },
+          firmaDigital: {
+            codigo: `QR-${datosReceta.id}`,
+            token: `SIG-${datosReceta.id}`,
+            fechaEmision: datosReceta.fechaEmision,
+            horaEmision: new Date().toLocaleTimeString('es-ES')
+          },
+          notasClinicas: undefined,
+          fechaGeneracion: new Date().toLocaleString()
+        };
+        
+        // Limpiar el sessionStorage después de usar los datos
+        sessionStorage.removeItem('recetaParaImprimir');
+        return;
+      } catch (error) {
+        console.error('Error al parsear datos de receta:', error);
+      }
+    }
+    
+    // Si no hay datos en sessionStorage, usar datos de muestra
     this.receta = {
       id: id,
       paciente: {

@@ -49,6 +49,94 @@ public class SearchPrescriptionsQueryHandler : IRequestHandler<SearchPrescriptio
 
             var dtos = _mapper.Map<List<PrescriptionListDto>>(items);
 
+            // Load all medications and patients needed for this batch
+            var medicationIds = items.SelectMany(p => p.Medications).Select(m => m.MedicationId).Distinct().ToList();
+            var medications = medicationIds.Any() 
+                ? await _prescriptionRepository.GetMedicationsByIdsAsync(medicationIds, cancellationToken)
+                : new Dictionary<Guid, Medication>();
+
+            var patientIds = items.Select(p => p.PatientId).Distinct().ToList();
+            var patients = patientIds.Any()
+                ? await _prescriptionRepository.GetPatientsByIdsAsync(patientIds, cancellationToken)
+                : new Dictionary<Guid, Patient>();
+
+            var doctorIds = items.Select(p => p.DoctorId).Distinct().ToList();
+            var doctors = doctorIds.Any()
+                ? await _prescriptionRepository.GetDoctorsByIdsAsync(doctorIds, cancellationToken)
+                : new Dictionary<Guid, Doctor>();
+
+            // Enrich DTOs with medication and diagnosis details
+            foreach (var dto in dtos)
+            {
+                var prescription = items.FirstOrDefault(p => p.Id == dto.Id);
+                if (prescription != null)
+                {
+                    dto.MedicationCount = prescription.Medications.Count;
+                    dto.DiagnosisCount = prescription.Diagnoses.Count;
+
+                    // Set patient data
+                    if (patients.ContainsKey(prescription.PatientId))
+                    {
+                        var patient = patients[prescription.PatientId];
+                        dto.PatientName = $"{patient.FirstName} {patient.LastName}".Trim();
+                        dto.PatientIdNumber = patient.IdentificationNumber ?? string.Empty;
+                        dto.PatientGender = patient.Gender ?? string.Empty;
+                        
+                        // Calculate age
+                        if (patient.DateOfBirth != default)
+                        {
+                            var today = DateTime.Today;
+                            var age = today.Year - patient.DateOfBirth.Year;
+                            if (patient.DateOfBirth.Date > today.AddYears(-age))
+                                age--;
+                            dto.PatientAge = age;
+                        }
+                    }
+
+                    // Set doctor data
+                    if (doctors.ContainsKey(prescription.DoctorId))
+                    {
+                        var doctor = doctors[prescription.DoctorId];
+                        dto.DoctorName = $"{doctor.FirstName} {doctor.LastName}".Trim();
+                        dto.DoctorSpecialty = doctor.Specialty?.SpecialtyName ?? string.Empty;
+                        dto.DoctorLicenseNumber = doctor.MedicalLicenseNumber ?? string.Empty;
+                    }
+
+                    // Map medications with names
+                    dto.Medications = prescription.Medications.Select(pm => new PrescriptionMedicationDto
+                    {
+                        Id = pm.Id,
+                        MedicationId = pm.MedicationId,
+                        Dosage = pm.Dosage,
+                        Frequency = pm.Frequency,
+                        DurationDays = pm.DurationDays,
+                        AdministrationRouteId = pm.AdministrationRouteId,
+                        Quantity = pm.Quantity,
+                        Instructions = pm.Instructions,
+                        AiSuggested = pm.AiSuggested,
+                        Medication = medications.ContainsKey(pm.MedicationId) ? new MedicationSummaryDto
+                        {
+                            Id = medications[pm.MedicationId].Id,
+                            Name = medications[pm.MedicationId].CommercialName,
+                            GenericName = medications[pm.MedicationId].GenericName,
+                            Presentation = medications[pm.MedicationId].Presentation,
+                            Concentration = medications[pm.MedicationId].Concentration
+                        } : null,
+                        AdministrationRoute = null
+                    }).ToList();
+
+                    // Map diagnoses
+                    dto.Diagnoses = prescription.Diagnoses.Select(pd => new PrescriptionDiagnosisDto
+                    {
+                        Id = pd.Id,
+                        Cie10Code = pd.DiagnosisCode,
+                        Cie10Description = pd.DiagnosisDescription,
+                        IsPrimary = pd.IsPrimary,
+                        Notes = pd.Notes
+                    }).ToList();
+                }
+            }
+
             var result = new PaginatedResult<PrescriptionListDto>
             {
                 Items = dtos,

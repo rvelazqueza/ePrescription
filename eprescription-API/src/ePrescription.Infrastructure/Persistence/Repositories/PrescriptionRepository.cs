@@ -12,9 +12,21 @@ public class PrescriptionRepository : Repository<Prescription>, IPrescriptionRep
 
     public override async Task<Prescription?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        // Simplified query without includes to avoid mapping issues
-        return await _context.Prescriptions
+        var prescription = await _context.Prescriptions
+            .Include(p => p.Medications)
+            .Include(p => p.Diagnoses)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+        if (prescription != null && prescription.Medications.Any())
+        {
+            var medicationIds = prescription.Medications.Select(m => m.MedicationId).ToList();
+            // Load medications to populate the context
+            await _context.Medications
+                .Where(m => medicationIds.Contains(m.Id))
+                .ToListAsync(cancellationToken);
+        }
+
+        return prescription;
     }
 
     Task<Prescription> IPrescriptionRepository.AddAsync(Prescription prescription, CancellationToken cancellationToken)
@@ -44,7 +56,6 @@ public class PrescriptionRepository : Repository<Prescription>, IPrescriptionRep
         int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
-        // Simplified query without includes to avoid mapping issues
         var query = _context.Prescriptions.AsQueryable();
 
         // Apply filters
@@ -68,11 +79,50 @@ public class PrescriptionRepository : Repository<Prescription>, IPrescriptionRep
 
         // Apply pagination and ordering
         var items = await query
+            .Include(p => p.Medications)
+            .Include(p => p.Diagnoses)
             .OrderByDescending(p => p.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
+        // Load medications to populate the context
+        var medicationIds = items.SelectMany(p => p.Medications).Select(m => m.MedicationId).Distinct().ToList();
+        if (medicationIds.Any())
+        {
+            await _context.Medications
+                .Where(m => medicationIds.Contains(m.Id))
+                .ToListAsync(cancellationToken);
+        }
+
         return (items, totalCount);
+    }
+
+    public async Task<Dictionary<Guid, Medication>> GetMedicationsByIdsAsync(IEnumerable<Guid> medicationIds, CancellationToken cancellationToken = default)
+    {
+        var medications = await _context.Medications
+            .Where(m => medicationIds.Contains(m.Id))
+            .ToListAsync(cancellationToken);
+
+        return medications.ToDictionary(m => m.Id);
+    }
+
+    public async Task<Dictionary<Guid, Patient>> GetPatientsByIdsAsync(IEnumerable<Guid> patientIds, CancellationToken cancellationToken = default)
+    {
+        var patients = await _context.Patients
+            .Where(p => patientIds.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
+        return patients.ToDictionary(p => p.Id);
+    }
+
+    public async Task<Dictionary<Guid, Doctor>> GetDoctorsByIdsAsync(IEnumerable<Guid> doctorIds, CancellationToken cancellationToken = default)
+    {
+        var doctors = await _context.Doctors
+            .Include(d => d.Specialty)
+            .Where(d => doctorIds.Contains(d.Id))
+            .ToListAsync(cancellationToken);
+
+        return doctors.ToDictionary(d => d.Id);
     }
 }
