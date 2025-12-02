@@ -460,7 +460,7 @@ public class PrescriptionsController : ControllerBase
 
             _logger.LogInformation("Prescription {PrescriptionId} duplicated successfully", id);
 
-            return CreatedAtAction(nameof(GetPrescriptionById), new { id = result.Id }, result);
+            return CreatedAtAction(nameof(GetPrescription), new { id = result.Id }, result);
         }
         catch (KeyNotFoundException ex)
         {
