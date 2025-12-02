@@ -125,4 +125,77 @@ public class PrescriptionRepository : Repository<Prescription>, IPrescriptionRep
 
         return doctors.ToDictionary(d => d.Id);
     }
+
+    public async Task<Prescription?> DuplicatePrescriptionAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var originalPrescription = await GetByIdAsync(id, cancellationToken);
+        if (originalPrescription == null)
+            return null;
+
+        // Create new prescription as draft
+        var newPrescription = new Prescription(
+            prescriptionNumber: string.Empty, // Will be generated
+            patientId: originalPrescription.PatientId,
+            doctorId: originalPrescription.DoctorId,
+            medicalCenterId: originalPrescription.MedicalCenterId,
+            prescriptionDate: DateTime.UtcNow,
+            expirationDate: null,
+            notes: originalPrescription.Notes
+        );
+
+        // Generate prescription number
+        newPrescription.GeneratePrescriptionNumber();
+
+        // Set status to draft
+        newPrescription.UpdateStatus("draft");
+
+        // Copy medications
+        foreach (var medication in originalPrescription.Medications)
+        {
+            var newMedication = new PrescriptionMedication(
+                prescriptionId: Guid.Empty, // Will be set by EF Core
+                medicationId: medication.MedicationId,
+                dosage: medication.Dosage,
+                frequency: medication.Frequency,
+                durationDays: medication.DurationDays,
+                administrationRouteId: medication.AdministrationRouteId,
+                quantity: medication.Quantity,
+                instructions: medication.Instructions,
+                aiSuggested: medication.AiSuggested
+            );
+            newPrescription.AddMedication(newMedication);
+        }
+
+        // Copy diagnoses
+        foreach (var diagnosis in originalPrescription.Diagnoses)
+        {
+            var newDiagnosis = new PrescriptionDiagnosis(
+                prescriptionId: Guid.Empty, // Will be set by EF Core
+                cie10Id: diagnosis.Cie10Id,
+                diagnosisCode: diagnosis.DiagnosisCode,
+                diagnosisDescription: diagnosis.DiagnosisDescription,
+                isPrimary: diagnosis.IsPrimary,
+                notes: diagnosis.Notes
+            );
+            newPrescription.AddDiagnosis(newDiagnosis);
+        }
+
+        await AddAsync(newPrescription, cancellationToken);
+        return newPrescription;
+    }
+
+    public async Task<bool> CancelPrescriptionAsync(Guid id, string? reason = null, CancellationToken cancellationToken = default)
+    {
+        var prescription = await GetByIdAsync(id, cancellationToken);
+        if (prescription == null)
+            return false;
+
+        // Only allow cancelling active prescriptions
+        if (prescription.Status.ToLower() != "active")
+            return false;
+
+        prescription.Cancel(reason ?? "Cancelled by user");
+        Update(prescription);
+        return true;
+    }
 }
