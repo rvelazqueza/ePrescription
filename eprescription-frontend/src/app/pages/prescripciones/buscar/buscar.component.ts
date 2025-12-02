@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../components/page-header/page-header
 import { RoleSuggestionModalComponent } from '../../../components/role-suggestion-modal/role-suggestion-modal.component';
 import { RoleDemoService } from '../../../services/role-demo.service';
 import { RoleSuggestionService } from '../../../services/role-suggestion.service';
+import { PrescripcionesService, PrescriptionDto, SearchPrescriptionsParams } from '../../../services/prescripciones.service';
 
 interface Receta {
   id: string;
@@ -1125,7 +1126,8 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
 
   constructor(
     private roleDemoService: RoleDemoService,
-    private roleSuggestionService: RoleSuggestionService
+    private roleSuggestionService: RoleSuggestionService,
+    private prescripcionesService: PrescripcionesService
   ) {
     this.calcularPaginacion();
   }
@@ -1143,6 +1145,96 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
     });
     
     this.subscriptions.add(roleSubscription);
+
+    // Cargar todas las prescripciones del backend
+    this.cargarTodasLasPrescripciones();
+  }
+
+  /**
+   * Cargar todas las prescripciones del backend
+   */
+  private cargarTodasLasPrescripciones() {
+    const params: SearchPrescriptionsParams = {
+      pageSize: 100 // Máximo permitido por el backend
+    };
+
+    this.prescripcionesService.getPrescripciones(params).subscribe({
+      next: async (response) => {
+        if (response.items && response.items.length > 0) {
+          await this.mapPrescriptionsToRecetas(response.items);
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando prescripciones:', error);
+        this.mostrarNotificacion('Error al cargar las recetas', 'error');
+      }
+    });
+  }
+
+  /**
+   * Mapear prescripciones del backend a la interfaz local
+   */
+  private async mapPrescriptionsToRecetas(prescriptions: PrescriptionDto[]) {
+    const recetas: Receta[] = [];
+
+    for (const p of prescriptions) {
+      try {
+        const receta: Receta = {
+          id: p.prescriptionNumber || p.id,
+          paciente: {
+            nombre: p.patientName || 'Paciente no encontrado',
+            cedula: p.patientIdNumber || 'N/A',
+            edad: p.patientAge || 0,
+            genero: (p.patientGender === 'M' || p.patientGender === 'Male') ? 'M' : 'F'
+          },
+          diagnostico: p.diagnoses && p.diagnoses.length > 0 
+            ? `${p.diagnoses[0].description} (${p.diagnoses[0].cie10Code})`
+            : 'Sin diagnóstico',
+          medicamentos: p.medications && p.medications.length > 0 
+            ? p.medications.map(m => ({
+                nombre: m.medication?.name || `Medicamento ${m.medicationId.substring(0, 8)}`,
+                dosis: m.dosage,
+                cantidad: m.quantity,
+                frecuencia: m.frequency,
+                duracion: `${m.durationDays} días`,
+                estado: 'pendiente' as const
+              }))
+            : [],
+          medico: {
+            nombre: p.doctorName || 'Médico',
+            especialidad: p.doctorSpecialty || 'N/A',
+            codigoMedico: p.doctorLicenseNumber || p.doctorId || 'N/A',
+            firmaDigital: true
+          },
+          fecha: p.prescriptionDate,
+          fechaVencimiento: p.expirationDate || '',
+          estado: this.mapStatus(p.status),
+          fechaModificacion: p.updatedAt || p.prescriptionDate
+        };
+
+        recetas.push(receta);
+      } catch (error) {
+        console.error(`Error mapeando prescripción ${p.id}:`, error);
+      }
+    }
+
+    this.todasLasRecetas = recetas;
+    this.calcularPaginacion();
+  }
+
+  /**
+   * Mapear estado del backend al frontend
+   */
+  private mapStatus(backendStatus: string): 'borrador' | 'emitida' | 'dispensada' | 'parcialmente-dispensada' | 'vencida' | 'anulada' {
+    const statusMap: { [key: string]: 'borrador' | 'emitida' | 'dispensada' | 'parcialmente-dispensada' | 'vencida' | 'anulada' } = {
+      'draft': 'borrador',
+      'active': 'emitida',
+      'dispensed': 'dispensada',
+      'expired': 'vencida',
+      'cancelled': 'anulada'
+    };
+
+    return statusMap[backendStatus] || 'emitida';
   }
 
   ngOnDestroy() {
@@ -1188,6 +1280,7 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
   }
 
   realizarBusquedaAvanzada() {
+    // Filtrar datos locales (ya cargados del backend)
     this.recetasFiltradas = this.todasLasRecetas.filter(receta => {
       const cumpleNumero = !this.filtrosAvanzados.numeroReceta || 
         receta.id.toLowerCase().includes(this.filtrosAvanzados.numeroReceta.toLowerCase());
@@ -1206,10 +1299,11 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
       const cumpleMedicamento = !this.filtrosAvanzados.medicamento || 
         receta.medicamentos.some(med => med.nombre.toLowerCase().includes(this.filtrosAvanzados.medicamento.toLowerCase()));
 
-      // Filtros de fecha (simplificado para el ejemplo)
-      const cumpleFecha = true;
+      // Filtros de fecha
+      const cumpleFechaDesde = !this.filtrosAvanzados.fechaDesde || receta.fecha >= this.filtrosAvanzados.fechaDesde;
+      const cumpleFechaHasta = !this.filtrosAvanzados.fechaHasta || receta.fecha <= this.filtrosAvanzados.fechaHasta;
 
-      return cumpleNumero && cumpleEstado && cumpleNombrePaciente && cumpleCedulaPaciente && cumpleMedico && cumpleMedicamento && cumpleFecha;
+      return cumpleNumero && cumpleEstado && cumpleNombrePaciente && cumpleCedulaPaciente && cumpleMedico && cumpleMedicamento && cumpleFechaDesde && cumpleFechaHasta;
     });
 
     this.mostrarResultados = true;
@@ -1298,7 +1392,18 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
   }
 
   reimprimirReceta(receta: Receta) {
-    // Abrir nueva pestaña con la vista de impresión (sin layout)
+    // Guardar los datos de la receta en sessionStorage para que el componente de impresión los use
+    sessionStorage.setItem('recetaParaImprimir', JSON.stringify({
+      id: receta.id,
+      paciente: receta.paciente,
+      medicamentos: receta.medicamentos,
+      medico: receta.medico,
+      diagnostico: receta.diagnostico,
+      fecha: receta.fecha,
+      fechaVencimiento: receta.fechaVencimiento
+    }));
+    
+    // Abrir nueva pestaña con la vista de impresión
     const url = `/prescripciones/imprimir/${receta.id}`;
     window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
   }
@@ -1368,7 +1473,18 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
   }
 
   exportarPDF(receta: Receta) {
-    // Abrir nueva pestaña con auto-impresión (sin layout)
+    // Guardar los datos de la receta en sessionStorage para que el componente de impresión los use
+    sessionStorage.setItem('recetaParaImprimir', JSON.stringify({
+      id: receta.id,
+      paciente: receta.paciente,
+      medicamentos: receta.medicamentos,
+      medico: receta.medico,
+      diagnostico: receta.diagnostico,
+      fecha: receta.fecha,
+      fechaVencimiento: receta.fechaVencimiento
+    }));
+    
+    // Abrir nueva pestaña con auto-impresión
     const url = `/prescripciones/imprimir/${receta.id}?autoprint=true`;
     window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
   }
