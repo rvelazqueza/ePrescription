@@ -40,7 +40,10 @@ export interface CreatePrescriptionDto {
     dosage: string;
     frequency: string;
     duration: number;
+    administrationRouteId: string;
+    quantity: number;
     instructions?: string;
+    aiSuggested?: boolean;
   }>;
   notes?: string;
 }
@@ -50,6 +53,13 @@ export interface PrescriptionDto {
   prescriptionNumber: string;
   patientId: string;
   doctorId: string;
+  patientName: string;
+  patientIdNumber: string;
+  patientAge: number;
+  patientGender: string;
+  doctorName: string;
+  doctorSpecialty: string;
+  doctorLicenseNumber: string;
   prescriptionDate: string;
   expirationDate: string;
   status: string;
@@ -59,12 +69,27 @@ export interface PrescriptionDto {
     isPrimary: boolean;
   }>;
   medications: Array<{
+    id: string;
     medicationId: string;
-    medicationName: string;
     dosage: string;
     frequency: string;
-    duration: number;
+    durationDays: number;
+    administrationRouteId: string;
+    quantity: number;
     instructions?: string;
+    aiSuggested: boolean;
+    medication?: {
+      id: string;
+      name: string;
+      genericName?: string;
+      presentation?: string;
+      concentration?: string;
+    };
+    administrationRoute?: {
+      id: string;
+      name: string;
+      description?: string;
+    };
   }>;
   notes?: string;
   createdAt: string;
@@ -215,6 +240,51 @@ export class PrescripcionesService {
       tap(prescription => console.log(`Loaded prescription by QR ${qrCode}:`, prescription)),
       catchError(error => {
         console.error(`Error loading prescription by QR ${qrCode}:`, error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Duplicate a prescription
+   */
+  duplicarPrescripcion(id: string): Observable<PrescriptionDto> {
+    return this.http.post<PrescriptionDto>(`${this.apiUrl}/${id}/duplicate`, {}).pipe(
+      tap(duplicated => {
+        console.log(`Prescription ${id} duplicated:`, duplicated);
+      }),
+      catchError(error => {
+        console.error(`Error duplicating prescription ${id}:`, error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Cancel a prescription
+   */
+  anularPrescripcion(id: string, reason?: string): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/${id}/cancel`, { reason }).pipe(
+      tap(() => {
+        console.log(`Prescription ${id} cancelled`);
+      }),
+      catchError(error => {
+        console.error(`Error cancelling prescription ${id}:`, error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Delete a draft prescription
+   */
+  eliminarBorrador(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}/draft`).pipe(
+      tap(() => {
+        console.log(`Draft prescription ${id} deleted`);
+      }),
+      catchError(error => {
+        console.error(`Error deleting draft prescription ${id}:`, error);
         throw error;
       })
     );

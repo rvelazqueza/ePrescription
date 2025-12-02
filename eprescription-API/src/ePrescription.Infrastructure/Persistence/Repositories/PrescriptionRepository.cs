@@ -134,7 +134,7 @@ public class PrescriptionRepository : Repository<Prescription>, IPrescriptionRep
 
         // Create new prescription as draft
         var newPrescription = new Prescription(
-            prescriptionNumber: string.Empty, // Will be generated
+            prescriptionNumber: string.Empty,
             patientId: originalPrescription.PatientId,
             doctorId: originalPrescription.DoctorId,
             medicalCenterId: originalPrescription.MedicalCenterId,
@@ -149,39 +149,42 @@ public class PrescriptionRepository : Repository<Prescription>, IPrescriptionRep
         // Set status to draft
         newPrescription.UpdateStatus("draft");
 
-        // Copy medications
-        foreach (var medication in originalPrescription.Medications)
+        // Save the new prescription first
+        _context.Prescriptions.Add(newPrescription);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Now copy medications using raw SQL to avoid EF Core issues
+        if (originalPrescription.Medications.Any())
         {
-            var newMedication = new PrescriptionMedication(
-                prescriptionId: Guid.Empty, // Will be set by EF Core
-                medicationId: medication.MedicationId,
-                dosage: medication.Dosage,
-                frequency: medication.Frequency,
-                durationDays: medication.DurationDays,
-                administrationRouteId: medication.AdministrationRouteId,
-                quantity: medication.Quantity,
-                instructions: medication.Instructions,
-                aiSuggested: medication.AiSuggested
-            );
-            newPrescription.AddMedication(newMedication);
+            var medicationSql = @"
+                INSERT INTO PRESCRIPTION_MEDICATIONS 
+                (ID, PRESCRIPTION_ID, MEDICATION_ID, DOSAGE, FREQUENCY, DURATION_DAYS, ADMINISTRATION_ROUTE_ID, QUANTITY, INSTRUCTIONS, AI_SUGGESTED, CREATED_AT, UPDATED_AT)
+                SELECT SYS_GUID(), :newPrescriptionId, MEDICATION_ID, DOSAGE, FREQUENCY, DURATION_DAYS, ADMINISTRATION_ROUTE_ID, QUANTITY, INSTRUCTIONS, AI_SUGGESTED, SYSDATE, SYSDATE
+                FROM PRESCRIPTION_MEDICATIONS
+                WHERE PRESCRIPTION_ID = :originalPrescriptionId";
+
+            await _context.Database.ExecuteSqlRawAsync(medicationSql, 
+                new Oracle.ManagedDataAccess.Client.OracleParameter(":newPrescriptionId", newPrescription.Id.ToString()),
+                new Oracle.ManagedDataAccess.Client.OracleParameter(":originalPrescriptionId", id.ToString()));
         }
 
-        // Copy diagnoses
-        foreach (var diagnosis in originalPrescription.Diagnoses)
+        // Copy diagnoses using raw SQL
+        if (originalPrescription.Diagnoses.Any())
         {
-            var newDiagnosis = new PrescriptionDiagnosis(
-                prescriptionId: Guid.Empty, // Will be set by EF Core
-                cie10Id: diagnosis.Cie10Id,
-                diagnosisCode: diagnosis.DiagnosisCode,
-                diagnosisDescription: diagnosis.DiagnosisDescription,
-                isPrimary: diagnosis.IsPrimary,
-                notes: diagnosis.Notes
-            );
-            newPrescription.AddDiagnosis(newDiagnosis);
+            var diagnosisSql = @"
+                INSERT INTO PRESCRIPTION_DIAGNOSES 
+                (ID, PRESCRIPTION_ID, CIE10_ID, DIAGNOSIS_CODE, DIAGNOSIS_DESCRIPTION, IS_PRIMARY, NOTES, CREATED_AT, UPDATED_AT)
+                SELECT SYS_GUID(), :newPrescriptionId, CIE10_ID, DIAGNOSIS_CODE, DIAGNOSIS_DESCRIPTION, IS_PRIMARY, NOTES, SYSDATE, SYSDATE
+                FROM PRESCRIPTION_DIAGNOSES
+                WHERE PRESCRIPTION_ID = :originalPrescriptionId";
+
+            await _context.Database.ExecuteSqlRawAsync(diagnosisSql,
+                new Oracle.ManagedDataAccess.Client.OracleParameter(":newPrescriptionId", newPrescription.Id.ToString()),
+                new Oracle.ManagedDataAccess.Client.OracleParameter(":originalPrescriptionId", id.ToString()));
         }
 
-        await AddAsync(newPrescription, cancellationToken);
-        return newPrescription;
+        // Reload the prescription with all related data
+        return await GetByIdAsync(newPrescription.Id, cancellationToken);
     }
 
     public async Task<bool> CancelPrescriptionAsync(Guid id, string? reason = null, CancellationToken cancellationToken = default)
