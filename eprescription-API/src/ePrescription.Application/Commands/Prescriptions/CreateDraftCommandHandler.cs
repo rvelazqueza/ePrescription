@@ -39,11 +39,11 @@ public class CreateDraftCommandHandler : IRequestHandler<CreateDraftCommand, Pre
             notes: dto.Notes
         );
         
-        // Set status to draft
-        prescription.SetStatus("draft");
-        
         // Generate prescription number
         prescription.GeneratePrescriptionNumber();
+        
+        // Set status to draft
+        prescription.UpdateStatus("draft");
 
         // Add medications if provided
         if (dto.Medications != null && dto.Medications.Count > 0)
