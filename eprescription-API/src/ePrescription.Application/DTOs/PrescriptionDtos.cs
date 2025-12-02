@@ -291,3 +291,34 @@ public class DispensationSummaryDto
     public DateTime DispensationDate { get; set; }
     public string Status { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// DTO for creating a draft prescription
+/// </summary>
+public class CreateDraftDto
+{
+    [Required(ErrorMessage = "Patient ID is required")]
+    public Guid PatientId { get; set; }
+    
+    [Required(ErrorMessage = "Doctor ID is required")]
+    public Guid DoctorId { get; set; }
+    
+    [Required(ErrorMessage = "Medical Center ID is required")]
+    public Guid MedicalCenterId { get; set; }
+    
+    public List<CreatePrescriptionDiagnosisDto>? Diagnoses { get; set; }
+    
+    public List<CreatePrescriptionMedicationDto>? Medications { get; set; }
+    
+    [MaxLength(2000, ErrorMessage = "Notes cannot exceed 2000 characters")]
+    public string? Notes { get; set; }
+}
+
+/// <summary>
+/// DTO for cancelling a prescription
+/// </summary>
+public class CancelPrescriptionDto
+{
+    [MaxLength(500, ErrorMessage = "Reason cannot exceed 500 characters")]
+    public string? Reason { get; set; }
+}

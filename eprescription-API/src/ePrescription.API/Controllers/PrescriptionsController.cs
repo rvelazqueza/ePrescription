@@ -435,6 +435,199 @@ public class PrescriptionsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Duplicate a prescription
+    /// </summary>
+    /// <remarks>
+    /// Creates a copy of an existing prescription as a draft.
+    /// </remarks>
+    [HttpPost("{id}/duplicate")]
+    [ProducesResponseType(typeof(PrescriptionListDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DuplicatePrescription(Guid id)
+    {
+        try
+        {
+            var command = new DuplicatePrescriptionCommand(id);
+            var result = await _mediator.Send(command);
+
+            if (result == null)
+            {
+                return NotFound(new { message = $"Prescription with ID {id} not found" });
+            }
+
+            _logger.LogInformation("Prescription {PrescriptionId} duplicated successfully", id);
+
+            return CreatedAtAction(nameof(GetPrescriptionById), new { id = result.Id }, result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Prescription {PrescriptionId} not found", id);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Cannot duplicate prescription {PrescriptionId}", id);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error duplicating prescription {PrescriptionId}", id);
+            return StatusCode(500, new { message = "An error occurred while duplicating the prescription" });
+        }
+    }
+
+    /// <summary>
+    /// Cancel a prescription
+    /// </summary>
+    /// <remarks>
+    /// Changes the status of a prescription to cancelled.
+    /// </remarks>
+    [HttpPatch("{id}/cancel")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CancelPrescription(Guid id, [FromBody] CancelPrescriptionDto? dto = null)
+    {
+        try
+        {
+            var command = new CancelPrescriptionCommand(id, dto?.Reason);
+            var result = await _mediator.Send(command);
+
+            if (!result)
+            {
+                return NotFound(new { message = $"Prescription with ID {id} not found or cannot be cancelled" });
+            }
+
+            _logger.LogInformation("Prescription {PrescriptionId} cancelled successfully", id);
+
+            return Ok(new { message = "Prescription cancelled successfully" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Prescription {PrescriptionId} not found", id);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Cannot cancel prescription {PrescriptionId}", id);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling prescription {PrescriptionId}", id);
+            return StatusCode(500, new { message = "An error occurred while cancelling the prescription" });
+        }
+    }
+
+    /// <summary>
+    /// Create a new draft prescription
+    /// </summary>
+    /// <remarks>
+    /// Creates a new prescription in draft status with initial data.
+    /// </remarks>
+    [HttpPost("create-draft")]
+    [ProducesResponseType(typeof(PrescriptionDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateDraft([FromBody] CreateDraftDto dto)
+    {
+        try
+        {
+            _logger.LogInformation("Received CreateDraft request: PatientId={PatientId}, DoctorId={DoctorId}", 
+                dto.PatientId, dto.DoctorId);
+
+            // Get user ID from claims
+            var userId = GetUserIdFromClaims();
+
+            // Create command
+            var command = new CreateDraftCommand(dto, userId);
+
+            // Execute command
+            var result = await _mediator.Send(command);
+
+            _logger.LogInformation("Draft prescription {PrescriptionNumber} created successfully by user {UserId}", 
+                result.PrescriptionNumber, userId);
+
+            return CreatedAtAction(
+                nameof(GetPrescription),
+                new { id = result.Id },
+                result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Entity not found while creating draft");
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Invalid operation while creating draft");
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating draft prescription");
+            return StatusCode(500, new { message = "An error occurred while creating the draft prescription" });
+        }
+    }
+
+    /// <summary>
+    /// Delete a draft prescription
+    /// </summary>
+    /// <remarks>
+    /// Permanently deletes a prescription that is in draft status. Only draft prescriptions can be deleted.
+    /// </remarks>
+    [HttpDelete("{id}/draft")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteDraft(Guid id)
+    {
+        try
+        {
+            _logger.LogInformation("Received DeleteDraft request for prescription {PrescriptionId}", id);
+
+            // Get user ID from claims
+            var userId = GetUserIdFromClaims();
+
+            // Create command
+            var command = new DeleteDraftCommand(id, userId);
+
+            // Execute command
+            var result = await _mediator.Send(command);
+
+            if (!result)
+            {
+                return NotFound(new { message = $"Draft prescription with ID {id} not found" });
+            }
+
+            _logger.LogInformation("Draft prescription {PrescriptionId} deleted successfully by user {UserId}", 
+                id, userId);
+
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Draft prescription {PrescriptionId} not found", id);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Cannot delete prescription {PrescriptionId}", id);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting draft prescription {PrescriptionId}", id);
+            return StatusCode(500, new { message = "An error occurred while deleting the draft prescription" });
+        }
+    }
+
     private Guid GetUserIdFromClaims()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
