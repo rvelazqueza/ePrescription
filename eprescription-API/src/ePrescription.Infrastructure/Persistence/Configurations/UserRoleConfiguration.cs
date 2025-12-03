@@ -19,22 +19,34 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
         builder.Property(ur => ur.Id)
             .HasColumnName("USER_ROLE_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Foreign Keys
         builder.Property(ur => ur.UserId)
             .HasColumnName("USER_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         builder.Property(ur => ur.RoleId)
             .HasColumnName("ROLE_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         builder.Property(ur => ur.AssignedBy)
             .HasColumnName("ASSIGNED_BY")
-            .HasColumnType("RAW(16)");
+            .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.HasValue ? guid.Value.ToByteArray() : null,
+                bytes => bytes != null ? new Guid(bytes) : (Guid?)null);
 
         // Timestamps
         builder.Property(ur => ur.AssignedAt)

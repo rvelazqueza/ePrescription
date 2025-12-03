@@ -15,12 +15,18 @@ public class PatientContactConfiguration : IEntityTypeConfiguration<PatientConta
         builder.Property(pc => pc.Id)
             .HasColumnName("CONTACT_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Foreign Key
         builder.Property(pc => pc.PatientId)
             .HasColumnName("PATIENT_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Properties

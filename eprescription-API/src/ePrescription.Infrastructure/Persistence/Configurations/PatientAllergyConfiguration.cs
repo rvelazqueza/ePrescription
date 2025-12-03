@@ -15,12 +15,18 @@ public class PatientAllergyConfiguration : IEntityTypeConfiguration<PatientAller
         builder.Property(pa => pa.Id)
             .HasColumnName("ALLERGY_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Foreign Key
         builder.Property(pa => pa.PatientId)
             .HasColumnName("PATIENT_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Properties

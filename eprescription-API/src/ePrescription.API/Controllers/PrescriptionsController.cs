@@ -628,6 +628,85 @@ public class PrescriptionsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Debug endpoint to check medications for specific prescription
+    /// </summary>
+    [HttpGet("debug/medications/{prescriptionId}")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMedicationsForPrescription(Guid prescriptionId)
+    {
+        try
+        {
+            var query = new GetPrescriptionQuery(prescriptionId);
+            var prescription = await _mediator.Send(query);
+            
+            if (prescription == null)
+                return NotFound(new { message = "Prescription not found" });
+
+            return Ok(new
+            {
+                prescriptionId = prescriptionId,
+                prescriptionIdString = prescriptionId.ToString(),
+                medicationCount = prescription.Medications?.Count ?? 0,
+                medications = prescription.Medications?.Select(m => new
+                {
+                    id = m.Id,
+                    medicationId = m.MedicationId,
+                    dosage = m.Dosage,
+                    frequency = m.Frequency
+                }).ToList()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting medications for prescription");
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Debug endpoint to check medications in database
+    /// </summary>
+    [HttpGet("debug/medications-count")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMedicationsCount()
+    {
+        try
+        {
+            var query = new SearchPrescriptionsQuery(new SearchPrescriptionsDto { PageSize = 1000 });
+            var result = await _mediator.Send(query);
+
+            var totalMeds = result.Items.Sum(p => p.Medications?.Count ?? 0);
+            var prescriptionsWithMeds = result.Items.Count(p => p.Medications?.Count > 0);
+
+            return Ok(new
+            {
+                totalPrescriptions = result.Items.Count,
+                prescriptionsWithMedications = prescriptionsWithMeds,
+                totalMedications = totalMeds,
+                prescriptions = result.Items.Select(p => new
+                {
+                    id = p.Id,
+                    prescriptionNumber = p.PrescriptionNumber,
+                    status = p.Status,
+                    medicationCount = p.Medications?.Count ?? 0,
+                    medications = p.Medications?.Select(m => new
+                    {
+                        id = m.Id,
+                        medicationId = m.MedicationId,
+                        dosage = m.Dosage,
+                        frequency = m.Frequency
+                    }).ToList()
+                }).ToList()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting medications count");
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
+
     private Guid GetUserIdFromClaims()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 

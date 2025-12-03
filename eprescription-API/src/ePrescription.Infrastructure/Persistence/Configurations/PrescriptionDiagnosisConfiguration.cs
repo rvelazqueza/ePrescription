@@ -10,34 +10,35 @@ public class PrescriptionDiagnosisConfiguration : IEntityTypeConfiguration<Presc
     {
         builder.ToTable("PRESCRIPTION_DIAGNOSES");
 
-        // Primary Key - maps to DIAGNOSIS_ID in Oracle
+        // Primary Key - maps to DIAGNOSIS_ID in Oracle (not PRESCRIPTION_DIAGNOSIS_ID)
         builder.HasKey(pd => pd.Id);
         builder.Property(pd => pd.Id)
             .HasColumnName("DIAGNOSIS_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Foreign Keys - match Oracle schema exactly
         builder.Property(pd => pd.PrescriptionId)
             .HasColumnName("PRESCRIPTION_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
-        builder.Property(pd => pd.Cie10Id)
-            .HasColumnName("CIE10_ID")
-            .HasColumnType("RAW(16)")
-            .IsRequired();
+        // IMPORTANT: The real Oracle table uses CIE10_CODE as VARCHAR2, not RAW(16)
+        // We need to ignore Cie10Id since it doesn't map to the real schema
+        builder.Ignore(pd => pd.Cie10Id);
 
-        // Denormalized fields from CIE10_CATALOG (for performance)
-        builder.Property(pd => pd.DiagnosisCode)
-            .HasColumnName("DIAGNOSIS_CODE")
-            .HasMaxLength(10)
-            .IsRequired();
-
-        builder.Property(pd => pd.DiagnosisDescription)
-            .HasColumnName("DIAGNOSIS_DESCRIPTION")
-            .HasMaxLength(500)
-            .IsRequired();
+        // IMPORTANT: These columns don't exist in the real Oracle table
+        // Ignore them to prevent EF Core from trying to map them
+        builder.Ignore(pd => pd.DiagnosisCode);
+        builder.Ignore(pd => pd.DiagnosisDescription);
+        builder.Ignore(pd => pd.AiSuggested);
+        builder.Ignore(pd => pd.AiConfidenceScore);
 
         // Diagnosis-specific properties
         builder.Property(pd => pd.IsPrimary)
@@ -48,33 +49,19 @@ public class PrescriptionDiagnosisConfiguration : IEntityTypeConfiguration<Presc
             .HasColumnName("NOTES")
             .HasMaxLength(1000);
 
-        // AI-assisted diagnosis fields
-        builder.Property(pd => pd.AiSuggested)
-            .HasColumnName("AI_SUGGESTED")
-            .HasDefaultValue(false);
-
-        builder.Property(pd => pd.AiConfidenceScore)
-            .HasColumnName("AI_CONFIDENCE_SCORE")
-            .HasPrecision(5, 2);
-
         // Timestamps
         builder.Property(pd => pd.CreatedAt)
             .HasColumnName("CREATED_AT")
             .HasColumnType("TIMESTAMP(6)")
             .IsRequired();
 
-        // IMPORTANT: UpdatedAt does NOT exist in Oracle table
-        builder.Ignore(pd => pd.UpdatedAt);
+        builder.Property(pd => pd.UpdatedAt)
+            .HasColumnName("UPDATED_AT")
+            .HasColumnType("TIMESTAMP(6)");
 
         // Indexes for performance
         builder.HasIndex(pd => pd.PrescriptionId)
             .HasDatabaseName("IDX_PRESCRIPTION_DIAGNOSES_RX");
-
-        builder.HasIndex(pd => pd.Cie10Id)
-            .HasDatabaseName("IDX_PRESCRIPTION_DIAGNOSES_CIE10");
-
-        builder.HasIndex(pd => pd.DiagnosisCode)
-            .HasDatabaseName("IDX_PRESCRIPTION_DIAGNOSES_CODE");
 
         // Relationships
         // Only map the Prescription relationship, NOT Cie10Catalog
@@ -83,9 +70,5 @@ public class PrescriptionDiagnosisConfiguration : IEntityTypeConfiguration<Presc
             .WithMany(p => p.Diagnoses)
             .HasForeignKey(pd => pd.PrescriptionId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        // Note: Cie10Id is a real FK in Oracle to CIE10_CATALOG.ID
-        // But we don't map it as a navigation property to avoid shadow properties
-        // Use repository queries with Cie10Id if you need to join with CIE10_CATALOG
     }
 }
