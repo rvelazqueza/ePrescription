@@ -158,18 +158,31 @@ Completar la integración del frontend Angular con el backend, eliminando todos 
 3. **FASE 3** (Subtasks 15.13.6 - 15.13.10) - Asistente de IA
 4. **FASE 4** (Subtasks 15.17 - 15.19) - Pruebas y commit
 
-## 📊 Progreso Esperado
+## 📊 Progreso Actualizado
 
 | Fase | Tiempo | Subtasks | Estado |
 |------|--------|----------|--------|
+| **Recetas Emitidas** | 45min | 1 | ✅ **COMPLETADO** |
 | Fase 1 | 2-3h | 3 | ⏳ Pendiente |
 | Fase 2 | 4-5h | 5 | ⏳ Pendiente |
 | Fase 3 | 6-8h | 5 | ⏳ Pendiente |
 | Fase 4 | 1-2h | 3 | ⏳ Pendiente |
-| **Total** | **13-18h** | **16** | **0% Completo** |
+| **Total** | **13-18h** | **16** | **~5% Completo** |
+
+## ✅ Completado
+
+### Recetas Emitidas - Integración con Backend
+- ✅ Corregido status de `'Issued'` a `'active'`
+- ✅ Actualizado mapeo de estados
+- ✅ Corregido registrar.component.ts
+- ✅ Corregido verificar.component.ts
+- ✅ Corregido borradores.component.ts
+- ✅ Listo para probar
+
+**Ver**: `TASK-15-EMITIDAS-READY-TO-TEST.md`
 
 ## 🎯 Próximo Paso
 
-**Comenzar con Subtask 15.16.1**: Actualizar patient.service.ts
+**Probar Recetas Emitidas** y luego continuar con Borradores
 
-¿Listo para comenzar?
+¿Listo para probar?

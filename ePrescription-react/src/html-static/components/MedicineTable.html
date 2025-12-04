@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedicineTable - ePrescription</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2b6cb0;
+            --primary-dark: #2c5282;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #e53e3e;
+            --gray-50: #f7fafc;
+            --gray-100: #edf2f7;
+            --gray-200: #e2e8f0;
+            --gray-500: #718096;
+            --gray-600: #4a5568;
+            --gray-700: #2d3748;
+            --gray-800: #1a202c;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .demo-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--gray-500);
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            background: #ebf8ff;
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 2rem;
+        }
+
+        .alert-title {
+            color: var(--primary-dark);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tabla de Medicamentos */
+        .medicine-table-wrapper {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-200);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-50);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--gray-50);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 2px solid var(--gray-200);
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        tbody tr {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        tbody tr.selected {
+            background: #ebf8ff;
+        }
+
+        /* Doble clic animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        tbody tr.double-clicked {
+            animation: pulse 0.3s;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge-low {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .badge-out {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .badge-controlled {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        /* Panel Lateral */
+        .side-panel {
+            position: fixed;
+            right: -600px;
+            top: 0;
+            width: 600px;
+            height: 100vh;
+            background: white;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .side-panel.active {
+            right: 0;
+        }
+
+        .panel-header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .panel-subtitle {
+            color: var(--gray-500);
+        }
+
+        .panel-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gray-700);
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .panel-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <a href="../../index.html" class="back-link">
+            ← Volver al índice
+        </a>
+
+        <h1>📋 Tabla de Medicamentos</h1>
+        <p class="subtitle">Tabla principal con funcionalidad de doble clic para editar</p>
+
+        <div class="alert">
+            <div class="alert-title">💡 Cómo usar esta tabla</div>
+            <div>
+                <strong>Doble clic en cualquier fila</strong> para abrir el panel lateral de edición.<br>
+                Esta es la funcionalidad principal del sistema de prescripción ePrescription.
+            </div>
+        </div>
+
+        <div class="medicine-table-wrapper">
+            <div class="table-header">
+                <h2 class="table-title">Medicamentos en Prescripción</h2>
+                <div class="table-actions">
+                    <button class="btn btn-secondary" onclick="alert('Exportar a PDF')">📄 Exportar</button>
+                    <button class="btn btn-primary" onclick="alert('Agregar Medicamento')">+ Agregar</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Medicamento</th>
+                            <th>Presentación</th>
+                            <th>Dosis</th>
+                            <th>Frecuencia</th>
+                            <th>Vía</th>
+                            <th>Duración</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicineTableBody">
+                        <tr ondblclick="openPanel(this, 'Paracetamol')">
+                            <td>1</td>
+                            <td><strong>Paracetamol</strong></td>
+                            <td>Tableta 500mg</td>
+                            <td>1 tableta</td>
+                            <td>Cada 8 horas</td>
+                            <td>Oral</td>
+                            <td>5 días</td>
+                            <td>150</td>
+                            <td><span class="badge badge-active">Activo</span></td>
+                        </tr>
+                        <tr ondblclick="openPanel(this, 'Ibuprofeno')">
+                            <td>2</td>
+                            <td><strong>Ibuprofeno</strong></td>
+                            <td>Tableta 400mg</td>
+                            <td>1 tableta</td>
+                            <td>Cada 6 horas</td>
+                            <td>Oral</td>
+                            <td>3 días</td>
+                            <td>200</td>
+                            <td><span class="badge badge-active">Activo</span></td>
+                        </tr>
+                        <tr ondblclick="openPanel(this, 'Amoxicilina')">
+                            <td>3</td>
+                            <td><strong>Amoxicilina</strong></td>
+                            <td>Cápsula 875mg</td>
+                            <td>1 cápsula</td>
+                            <td>Cada 12 horas</td>
+                            <td>Oral</td>
+                            <td>7 días</td>
+                            <td>45</td>
+                            <td><span class="badge badge-low">Bajo Stock</span></td>
+                        </tr>
+                        <tr ondblclick="openPanel(this, 'Omeprazol')">
+                            <td>4</td>
+                            <td><strong>Omeprazol</strong></td>
+                            <td>Cápsula 20mg</td>
+                            <td>1 cápsula</td>
+                            <td>Cada 24 horas</td>
+                            <td>Oral</td>
+                            <td>30 días</td>
+                            <td>300</td>
+                            <td><span class="badge badge-active">Activo</span></td>
+                        </tr>
+                        <tr ondblclick="openPanel(this, 'Metformina')">
+                            <td>5</td>
+                            <td><strong>Metformina</strong></td>
+                            <td>Tableta 850mg</td>
+                            <td>1 tableta</td>
+                            <td>Cada 12 horas</td>
+                            <td>Oral</td>
+                            <td>90 días</td>
+                            <td>500</td>
+                            <td><span class="badge badge-active">Activo</span></td>
+                        </tr>
+                        <tr ondblclick="openPanel(this, 'Atorvastatina')">
+                            <td>6</td>
+                            <td><strong>Atorvastatina</strong></td>
+                            <td>Tableta 10mg</td>
+                            <td>1 tableta</td>
+                            <td>Cada 24 horas</td>
+                            <td>Oral</td>
+                            <td>90 días</td>
+                            <td>0</td>
+                            <td><span class="badge badge-out">Agotado</span></td>
+                        </tr>
+                        <tr ondblclick="openPanel(this, 'Losartán')">
+                            <td>7</td>
+                            <td><strong>Losartán</strong></td>
+                            <td>Tableta 50mg</td>
+                            <td>1 tableta</td>
+                            <td>Cada 24 horas</td>
+                            <td>Oral</td>
+                            <td>90 días</td>
+                            <td>250</td>
+                            <td><span class="badge badge-active">Activo</span></td>
+                        </tr>
+                        <tr ondblclick="openPanel(this, 'Salbutamol')">
+                            <td>8</td>
+                            <td><strong>Salbutamol</strong></td>
+                            <td>Inhalador 100mcg/dosis</td>
+                            <td>2 inhalaciones</td>
+                            <td>Cada 4-6 horas</td>
+                            <td>Inhalada</td>
+                            <td>30 días</td>
+                            <td>80</td>
+                            <td><span class="badge badge-controlled">Controlado</span></td>
+                        </tr>
+                        <tr ondblclick="openPanel(this, 'Insulina Glargina')">
+                            <td>9</td>
+                            <td><strong>Insulina Glargina</strong></td>
+                            <td>Inyectable 100 UI/mL</td>
+                            <td>20 UI</td>
+                            <td>Cada 24 horas</td>
+                            <td>Subcutánea</td>
+                            <td>30 días</td>
+                            <td>60</td>
+                            <td><span class="badge badge-controlled">Controlado</span></td>
+                        </tr>
+                        <tr ondblclick="openPanel(this, 'Enalapril')">
+                            <td>10</td>
+                            <td><strong>Enalapril</strong></td>
+                            <td>Tableta 20mg</td>
+                            <td>1 tableta</td>
+                            <td>Cada 12 horas</td>
+                            <td>Oral</td>
+                            <td>90 días</td>
+                            <td>400</td>
+                            <td><span class="badge badge-active">Activo</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="closePanel()"></div>
+
+    <!-- Panel Lateral -->
+    <div class="side-panel" id="sidePanel">
+        <div class="panel-header">
+            <h3 class="panel-title" id="panelTitle">Editar Medicamento</h3>
+            <p class="panel-subtitle">Modifica la información de prescripción</p>
+        </div>
+
+        <div class="panel-body">
+            <div class="form-group">
+                <label class="form-label">Medicamento</label>
+                <input type="text" class="form-input" id="medicineName" readonly>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Presentación</label>
+                <select class="form-input">
+                    <option>Tableta</option>
+                    <option>Cápsula</option>
+                    <option>Jarabe</option>
+                    <option>Inyectable</option>
+                    <option>Inhalador</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Dosis</label>
+                <input type="text" class="form-input" placeholder="Ej: 1 tableta, 5ml, 100mg">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Frecuencia</label>
+                <select class="form-input">
+                    <option>Cada 4 horas</option>
+                    <option>Cada 6 horas</option>
+                    <option>Cada 8 horas</option>
+                    <option>Cada 12 horas</option>
+                    <option>Cada 24 horas</option>
+                    <option>SOS (si es necesario)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Vía de Administración</label>
+                <select class="form-input">
+                    <option>Oral</option>
+                    <option>Intravenosa</option>
+                    <option>Intramuscular</option>
+                    <option>Subcutánea</option>
+                    <option>Inhalada</option>
+                    <option>Tópica</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Duración del Tratamiento</label>
+                <input type="text" class="form-input" placeholder="Ej: 5 días, 2 semanas, 3 meses">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Indicaciones Especiales</label>
+                <textarea class="form-input" rows="3" placeholder="Instrucciones adicionales para el paciente..."></textarea>
+            </div>
+        </div>
+
+        <div class="panel-footer">
+            <button class="btn btn-secondary" onclick="closePanel()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveMedicine()">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <script>
+        function openPanel(row, medicineName) {
+            // Animación de doble clic
+            row.classList.add('double-clicked');
+            setTimeout(() => row.classList.remove('double-clicked'), 300);
+
+            // Abrir panel
+            document.getElementById('sidePanel').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById('medicineName').value = medicineName;
+            document.getElementById('panelTitle').textContent = `Editar: ${medicineName}`;
+            
+            // Bloquear scroll del body
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePanel() {
+            document.getElementById('sidePanel').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function saveMedicine() {
+            alert('✅ Cambios guardados correctamente');
+            closePanel();
+        }
+
+        // Cerrar con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePanel();
+            }
+        });
+
+        // Hover effect en filas
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('click', function() {
+                document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    </script>
+</body>
+</html>

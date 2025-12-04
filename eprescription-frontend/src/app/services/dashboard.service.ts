@@ -39,6 +39,14 @@ export interface Insight {
   route: string;
 }
 
+export interface SystemMetric {
+  label: string;
+  status: string;
+  health: number;
+  icon: string;
+  color: string;
+}
+
 export interface DashboardStats {
   kpis: DashboardKPI[];
   quickActions: QuickAction[];
@@ -117,5 +125,115 @@ export class DashboardService {
         return of([]);
       })
     );
+  }
+
+  /**
+   * Get system health metrics
+   * Returns Observable<SystemMetric[]> with real-time system status
+   */
+  getSystemMetrics(): Observable<SystemMetric[]> {
+    return this.http.get<any>(`${environment.apiUrl}/api/health`).pipe(
+      map(healthData => this.mapHealthDataToMetrics(healthData)),
+      catchError(error => {
+        console.error('Error loading system metrics:', error);
+        // Return fallback metrics on error
+        return of(this.getFallbackMetrics());
+      }),
+      tap(metrics => console.log('System metrics loaded:', metrics))
+    );
+  }
+
+  /**
+   * Map health check response to SystemMetric array
+   */
+  private mapHealthDataToMetrics(healthData: any): SystemMetric[] {
+    const metrics: SystemMetric[] = [];
+
+    // Database health
+    if (healthData.checks?.database) {
+      const db = healthData.checks.database;
+      metrics.push({
+        label: 'Base de datos',
+        status: db.status === 'healthy' ? 'Operativa' : 'Error',
+        health: db.status === 'healthy' ? 100 : 0,
+        icon: 'database',
+        color: db.status === 'healthy' ? 'green' : 'red'
+      });
+    }
+
+    // API health
+    if (healthData.checks?.api) {
+      const api = healthData.checks.api;
+      metrics.push({
+        label: 'API Sistema',
+        status: api.status === 'healthy' ? 'En línea' : 'Error',
+        health: api.status === 'healthy' ? 100 : 0,
+        icon: 'zap',
+        color: api.status === 'healthy' ? 'green' : 'red'
+      });
+    }
+
+    // Memory health
+    if (healthData.checks?.memory) {
+      const memory = healthData.checks.memory;
+      metrics.push({
+        label: 'Memoria Sistema',
+        status: memory.status === 'healthy' ? 'Normal' : memory.status === 'warning' ? 'Advertencia' : 'Crítico',
+        health: memory.healthPercentage || 0,
+        icon: 'shield-check',
+        color: memory.status === 'healthy' ? 'green' : memory.status === 'warning' ? 'yellow' : 'red'
+      });
+    }
+
+    // Response time
+    if (healthData.checks?.responseTime) {
+      const rt = healthData.checks.responseTime;
+      const responseTimeMs = rt.responseTimeMs || 0;
+      metrics.push({
+        label: 'Tiempo de respuesta',
+        status: `${responseTimeMs}ms`,
+        health: responseTimeMs < 100 ? 100 : responseTimeMs < 500 ? 80 : 50,
+        icon: 'trending-up',
+        color: responseTimeMs < 100 ? 'green' : responseTimeMs < 500 ? 'yellow' : 'red'
+      });
+    }
+
+    return metrics;
+  }
+
+  /**
+   * Fallback metrics when health check fails
+   */
+  private getFallbackMetrics(): SystemMetric[] {
+    return [
+      {
+        label: 'Base de datos',
+        status: 'Desconocido',
+        health: 0,
+        icon: 'database',
+        color: 'gray'
+      },
+      {
+        label: 'API Sistema',
+        status: 'Sin conexión',
+        health: 0,
+        icon: 'zap',
+        color: 'red'
+      },
+      {
+        label: 'Memoria Sistema',
+        status: 'Desconocido',
+        health: 0,
+        icon: 'shield-check',
+        color: 'gray'
+      },
+      {
+        label: 'Tiempo de respuesta',
+        status: 'N/A',
+        health: 0,
+        icon: 'trending-up',
+        color: 'gray'
+      }
+    ];
   }
 }

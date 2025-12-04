@@ -1225,6 +1225,12 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
 
         console.log('Nueva receta creada:', nuevaReceta.id);
         this.mostrarNotificacion(`Receta duplicada exitosamente: ${nuevaReceta.id}`, 'success');
+        
+        // Recargar todas las prescripciones para asegurar que los datos estén sincronizados
+        setTimeout(() => {
+          this.cargarTodasLasPrescripciones();
+        }, 500);
+        
         this.cerrarModalDetalles();
       },
       error: (error) => {

@@ -928,18 +928,9 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Commit strategy: Push después de mappers (17.7), después de endpoints (17.10), y después de documentación (17.14)_
   - _Estimated time: 14-16 hours_
 
-- [ ] 18. Crear documentación y diagramas de arquitectura
-  - [ ] 18.1 Crear diagrama de arquitectura de alto nivel del sistema completo
-  - [ ] 18.2 Crear diagrama ERD (Entity Relationship Diagram) de la base de datos
-  - [ ] 18.3 Crear diagrama de componentes mostrando capas de Clean Architecture
-  - [ ] 18.4 Crear diagrama de despliegue con Docker containers
-  - [ ] 18.5 Crear diagrama de secuencia para flujo de creación de prescripción
-  - [ ] 18.6 Crear diagrama de secuencia para flujo de análisis de IA con traducción
-  - [ ] 18.7 Crear diagrama de secuencia para flujo de dispensación
-  - [ ] 18.8 Crear diagrama de integración con WHO API y Translation Service
-  - [ ] 18.9 Configurar Swagger/OpenAPI en backend API
   - [ ] 18.10 Agregar comentarios XML a controllers y DTOs para Swagger
   - [ ] 18.11 Crear README.md principal del proyecto con overview completo
+
   - [ ] 18.12 Actualizar README.md de eprescription-API con guía de desarrollo
   - [ ] 18.13 Actualizar README.md de eprescription-Database con guía de scripts
   - [ ] 18.14 Actualizar README.md de eprescription-frontend con guía de integración
@@ -949,6 +940,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [ ] 18.18 Documentar estrategia de branching en docs/BRANCHING_STRATEGY.md
   - [ ] 18.19 Crear guía de seguridad y compliance (docs/SECURITY_COMPLIANCE.md)
   - [ ] 18.20 Documentar integración con WHO API (docs/WHO_API_INTEGRATION.md)
+
   - [ ] 18.21 Documentar servicio de traducción (docs/TRANSLATION_SERVICE.md)
   - [ ] 18.22 Exportar diagramas en formatos PNG, SVG y PDF
   - [ ] 18.23 Organizar diagramas en carpeta docs/architecture-diagrams/

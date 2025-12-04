@@ -90,8 +90,8 @@ export class PatientService {
    */
   getRecentPatients(): Observable<RecentPatient[]> {
     const searchDto = {
-      pageSize: 15,
-      page: 1
+      pageNumber: 1,
+      pageSize: 15
     };
     
     return this.http.post<any>(`${this.apiUrl}/search`, searchDto).pipe(
@@ -126,7 +126,7 @@ export class PatientService {
     }
 
     const searchDto: any = {
-      page: 1,
+      pageNumber: 1,
       pageSize: 50
     };
     
@@ -175,31 +175,37 @@ export class PatientService {
   /**
    * Map PatientDto from backend to PatientData for frontend
    */
-  private mapPatientDtoToPatientData(dto: PatientDto): PatientData {
+  private mapPatientDtoToPatientData(dto: any): PatientData {
     const age = this.calculateAge(dto.birthDate);
+    // Handle both API response formats
+    const fullName = dto.fullName || `${dto.firstName} ${dto.firstLastName}${dto.secondLastName ? ' ' + dto.secondLastName : ''}`;
+    const firstName = dto.firstName || '';
+    const firstLastName = dto.firstLastName || '';
+    const idNumber = dto.idNumber || dto.identificationNumber || '';
+    
     return {
       id: dto.id,
-      fullName: `${dto.firstName} ${dto.firstLastName}${dto.secondLastName ? ' ' + dto.secondLastName : ''}`,
-      firstName: dto.firstName,
-      firstLastName: dto.firstLastName,
+      fullName: fullName,
+      firstName: firstName,
+      firstLastName: firstLastName,
       secondLastName: dto.secondLastName,
-      idType: dto.idType,
-      idNumber: dto.idNumber,
+      idType: dto.idType || 'CC',
+      idNumber: idNumber,
       birthDate: dto.birthDate,
       age: age,
-      gender: dto.gender as 'M' | 'F',
+      gender: (dto.gender === 'M' || dto.gender === 'Male') ? 'M' : 'F',
       bloodType: dto.bloodType,
-      phone: dto.phone,
+      phone: dto.phone || '',
       email: dto.email,
       address: dto.address,
       city: dto.city,
-      country: dto.country,
+      country: dto.country || 'Costa Rica',
       allergies: dto.allergies || [],
       chronicConditions: dto.chronicConditions || [],
       currentMedications: dto.currentMedications || [],
-      registrationDate: dto.createdAt.split('T')[0],
-      status: dto.status as 'active' | 'inactive',
-      lastVisit: dto.updatedAt.split('T')[0]
+      registrationDate: dto.createdAt ? dto.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
+      status: (dto.status === 'active' || dto.isActive) ? 'active' : 'inactive',
+      lastVisit: dto.updatedAt ? dto.updatedAt.split('T')[0] : new Date().toISOString().split('T')[0]
     };
   }
 
@@ -328,8 +334,8 @@ export class PatientService {
    */
   getAllPatients(): Observable<PatientData[]> {
     const searchDto = {
-      page: 1,
-      pageSize: 1000
+      pageNumber: 1,
+      pageSize: 100  // Backend limit is 100
     };
     
     return this.http.post<any>(`${this.apiUrl}/search`, searchDto).pipe(
@@ -337,7 +343,7 @@ export class PatientService {
       tap(patients => console.log(`Loaded ${patients.length} patients from backend`)),
       catchError(error => {
         console.error('Error loading all patients:', error);
-        throw error;
+        return of([]); // Return empty array on error instead of throwing
       })
     );
   }
@@ -530,10 +536,10 @@ export class PatientService {
             licenseNumber: ''
           },
           medications: p.medications.map(m => ({
-            name: m.medicationName,
+            name: m.medication?.name || `Medicamento ${m.medicationId.substring(0, 8)}`,
             dosage: m.dosage,
             frequency: m.frequency,
-            duration: `${m.duration} días`,
+            duration: `${m.durationDays} días`,
             instructions: m.instructions
           })),
           status: p.status as PrescriptionStatus,

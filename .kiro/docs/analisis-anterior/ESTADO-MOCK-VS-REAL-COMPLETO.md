@@ -51,8 +51,11 @@ loadDrafts() {
 **Estado:** ⚠️ Parcialmente Mock
 **Archivo:** `eprescription-frontend/src/app/pages/prescripciones/nueva/nueva.component.ts`
 
-**Problemas:**
+**Completado:**
 - ✅ Servicios inyectados
+- ✅ AI Assistant integrado (verificación de interacciones)
+- ✅ `verificarConDrugBank()` conectado a backend real
+- ✅ Búsqueda de pacientes real
 - ⚠️ `cargarDatosBorrador()` incompleto
 - ❌ No convierte medications del API
 - ❌ `guardarCambios()` no persiste
@@ -62,13 +65,14 @@ loadDrafts() {
 - `POST /api/prescriptions` - Crear
 - `PUT /api/prescriptions/{id}` - Actualizar
 - `GET /api/prescriptions/{id}` - Obtener
+- `POST /api/AIAssistant/medications/check-interactions` - Verificar interacciones ✅
 
 **Trabajo Requerido:**
 - [ ] Completar `cargarDatosBorrador()`
 - [ ] Implementar mapper medications
 - [ ] Conectar `guardarCambios()` a `createPrescripcion()`
 - [ ] Conectar `finalizarPrescripcion()` a `updatePrescripcion()`
-- **Tiempo:** 3-4 horas
+- **Tiempo:** 2-3 horas
 
 ---
 
@@ -548,6 +552,20 @@ private mapData(apiData: ApiDto[]): Type[] {
 ## 🎉 Últimas Actualizaciones
 
 ### ✅ Completado Recientemente:
+
+**2025-01-15 - AI Assistant Integrado**
+- ✅ Servicio `AIAssistantService` creado
+- ✅ Verificación de interacciones medicamentosas conectada
+- ✅ Método `verificarConDrugBank()` usando backend real
+- ✅ Notificaciones de interacciones graves y moderadas
+- ✅ Sin errores de compilación
+- 📄 Ver: `AI-ASSISTANT-INTEGRADO.md`
+
+**2025-01-15 - Nueva Prescripción Migrada**
+- ✅ Búsqueda de pacientes conectada a backend real
+- ✅ Eliminado mock data de pacientes
+- ✅ Servicio `PatientService` integrado
+- 📄 Ver: `NUEVA-PRESCRIPCION-MIGRADA-COMPLETADO.md`
 
 **2025-01-XX - Borradores de Prescripciones**
 - ✅ Eliminado mock data completamente

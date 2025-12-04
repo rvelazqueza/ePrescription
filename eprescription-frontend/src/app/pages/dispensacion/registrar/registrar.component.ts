@@ -418,9 +418,10 @@ export class RegistrarDispensacionComponent implements OnInit, OnDestroy {
     // Determinar el estado de verificación
     let verificationStatus: 'valid' | 'expired' | 'already_dispensed' | 'cancelled' | 'invalid' = 'valid';
     
-    if (prescription.status === 'Cancelled') {
+    // Usar valores en minúsculas que coinciden con el backend
+    if (prescription.status === 'cancelled') {
       verificationStatus = 'cancelled';
-    } else if (prescription.status === 'Dispensed') {
+    } else if (prescription.status === 'dispensed') {
       verificationStatus = 'already_dispensed';
     } else if (prescription.validUntil && new Date(prescription.validUntil) < new Date()) {
       verificationStatus = 'expired';
@@ -428,9 +429,9 @@ export class RegistrarDispensacionComponent implements OnInit, OnDestroy {
 
     // Mapear el estado de dispensación
     let dispensationStatus: 'emitted' | 'fully_dispensed' | 'cancelled' = 'emitted';
-    if (prescription.status === 'Dispensed') {
+    if (prescription.status === 'dispensed') {
       dispensationStatus = 'fully_dispensed';
-    } else if (prescription.status === 'Cancelled') {
+    } else if (prescription.status === 'cancelled') {
       dispensationStatus = 'cancelled';
     }
 

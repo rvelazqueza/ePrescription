@@ -903,11 +903,11 @@ export class BorradoresComponent implements OnInit, OnDestroy {
       },
       diagnostico: diagnostico,
       medicamentos: prescription.medications.map(med => ({
-        nombre: med.medicationName,
+        nombre: med.medication?.name || `Medicamento ${med.medicationId.substring(0, 8)}`,
         dosis: med.dosage,
-        cantidad: med.duration, // Asumiendo que duration es la cantidad de días
+        cantidad: med.quantity,
         frecuencia: med.frequency,
-        duracion: `${med.duration} días`
+        duracion: `${med.durationDays} días`
       })),
       fechaCreacion: this.formatDate(prescription.createdAt),
       fechaModificacion: this.formatDate(prescription.updatedAt),
@@ -915,7 +915,8 @@ export class BorradoresComponent implements OnInit, OnDestroy {
         nombre: 'Cargando...', // Se cargará con una llamada adicional si es necesario
         especialidad: 'Cargando...',
         codigoMedico: prescription.doctorId,
-        firmaDigital: prescription.status === 'issued' || prescription.status === 'dispensed'
+        // Usar 'active' en vez de 'issued' (backend usa 'active' para prescripciones emitidas)
+        firmaDigital: prescription.status === 'active' || prescription.status === 'dispensed'
       }
     };
   }
@@ -1073,7 +1074,16 @@ export class BorradoresComponent implements OnInit, OnDestroy {
           patientId: originalPrescription.patientId,
           doctorId: originalPrescription.doctorId,
           diagnoses: originalPrescription.diagnoses,
-          medications: originalPrescription.medications,
+          medications: originalPrescription.medications.map(m => ({
+            medicationId: m.medicationId,
+            dosage: m.dosage,
+            frequency: m.frequency,
+            duration: m.durationDays,  // Mapear durationDays a duration para el DTO de creación
+            administrationRouteId: m.administrationRouteId,
+            quantity: m.quantity,
+            instructions: m.instructions,
+            aiSuggested: m.aiSuggested
+          })),
           notes: originalPrescription.notes ? `Copia de ${borrador.id} - ${originalPrescription.notes}` : `Copia de ${borrador.id}`
         };
 

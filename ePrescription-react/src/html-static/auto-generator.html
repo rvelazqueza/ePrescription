@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador Automático de Componentes HTML - ePrescription</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .generator-section {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .generator-section h2 {
+            color: #2b6cb0;
+            margin-bottom: 1rem;
+        }
+
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        .file-item {
+            padding: 0.5rem;
+            background: #edf2f7;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-item.completed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .file-item.pending {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: #2b6cb0;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #2c5282;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+        }
+
+        .output-area {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 6px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e2e8f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 0.875rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border-left: 4px solid #2b6cb0;
+        }
+
+        .alert-warning {
+            background: #feebc8;
+            color: #7c2d12;
+            border-left: 4px solid #ed8936;
+        }
+
+        .template-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .template-section h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .code-preview {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ Generador Automático de Componentes HTML</h1>
+        <p class="subtitle">
+            Esta herramienta genera automáticamente archivos HTML estáticos para todos los componentes
+            de ePrescription. Los archivos se crearán con plantillas predefinidas que replican
+            la funcionalidad y diseño de los componentes React originales.
+        </p>
+
+        <div class="alert alert-info">
+            <strong>ℹ️ Importante:</strong> Esta es una herramienta de demostración. En un entorno real,
+            usarías scripts de Node.js o Python para generar los archivos en el sistema de archivos.
+            Aquí se muestran las plantillas y se puede copiar el código generado.
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3 id="totalComponents">107</h3>
+                <p>Total Componentes</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="completedComponents">2</h3>
+                <p>Completados</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="pendingComponents">105</h3>
+                <p>Pendientes</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="progressPercentage">2%</h3>
+                <p>Progreso</p>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 2%;">2%</div>
+        </div>
+
+        <!-- COMPONENTES UI -->
+        <div class="generator-section">
+            <h2>🎨 Componentes UI (ShadCN)</h2>
+            <p style="margin-bottom: 1rem; color: #718096;">
+                Componentes de interfaz base convertidos desde ShadCN
+            </p>
+            
+            <button class="btn btn-secondary" onclick="generateAllUI()">
+                Generar Todos los Componentes UI
+            </button>
+            
+            <div class="file-list" id="uiFileList">
+                <!-- Se llenará con JavaScript -->
+            </div>
+        </div>
+
+        <!-- COMPONENTES DE APLICACIÓN -->
+        <div class="generator-section">
+            <h2>🧩 Componentes de Aplicación</h2>
+            <p style="margin-bottom: 1rem; color: #718096;">
+                Componentes específicos de ePrescription
+            </p>
+            
+            <button class="btn btn-secondary" onclick="generateAllComponents()">
+                Generar Todos los Componentes de Aplicación
+            </button>
+            
+            <div class="file-list" id="appFileList">
+                <!-- Se llenará con JavaScript -->
+            </div>
+        </div>
+
+        <!-- PÁGINAS -->
+        <div class="generator-section">
+            <h2>📄 Páginas</h2>
+            <p style="margin-bottom: 1rem; color: #718096;">
+                Páginas completas del sistema
+            </p>
+            
+            <button class="btn btn-secondary" onclick="generateAllPages()">
+                Generar Todas las Páginas
+            </button>
+            
+            <div class="file-list" id="pagesFileList">
+                <!-- Se llenará con JavaScript -->
+            </div>
+        </div>
+
+        <!-- UTILIDADES -->
+        <div class="generator-section">
+            <h2>🛠️ Utilidades JavaScript</h2>
+            <p style="margin-bottom: 1rem; color: #718096;">
+                Funciones utilitarias convertidas a JavaScript vanilla
+            </p>
+            
+            <button class="btn btn-secondary" onclick="generateAllUtils()">
+                Generar Todas las Utilidades
+            </button>
+            
+            <div class="file-list" id="utilsFileList">
+                <!-- Se llenará con JavaScript -->
+            </div>
+        </div>
+
+        <!-- PLANTILLAS -->
+        <div class="generator-section">
+            <h2>📝 Plantillas Base</h2>
+            <p style="margin-bottom: 1rem; color: #718096;">
+                Plantillas HTML reutilizables para generar componentes
+            </p>
+            
+            <div class="template-section">
+                <h3>Plantilla de Componente Básico</h3>
+                <div class="code-preview" id="basicTemplate">
+                    <!-- Se llenará con JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- OUTPUT -->
+        <div class="generator-section">
+            <h2>📤 Output de Generación</h2>
+            <button class="btn" onclick="clearOutput()">Limpiar Output</button>
+            <div class="output-area" id="output">Presiona un botón para generar componentes...</div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de componentes
+        const uiComponents = [
+            'accordion.html', 'alert-dialog.html', 'alert.html', 'aspect-ratio.html',
+            'avatar.html', 'badge.html', 'breadcrumb.html', 'button.html',
+            'calendar.html', 'card.html', 'carousel.html', 'chart.html',
+            'checkbox.html', 'collapsible.html', 'command.html', 'context-menu.html',
+            'dialog.html', 'drawer.html', 'dropdown-menu.html', 'form.html',
+            'hover-card.html', 'input-otp.html', 'input.html', 'label.html',
+            'menubar.html', 'navigation-menu.html', 'pagination.html', 'popover.html',
+            'progress.html', 'radio-group.html', 'resizable.html', 'scroll-area.html',
+            'select.html', 'separator.html', 'sheet.html', 'sidebar.html',
+            'skeleton.html', 'slider.html', 'sonner.html', 'switch.html',
+            'table.html', 'tabs.html', 'textarea.html', 'toggle-group.html',
+            'toggle.html', 'tooltip.html'
+        ];
+
+        const appComponents = [
+            'AddMedicineDialog.html', 'Breadcrumbs.html', 'ClinicalDocumentsDialog.html',
+            'ContactPatientDialog.html', 'Dashboard.html', 'DigitalSignatureDialog.html',
+            'DoctorDetailPanel.html', 'DraftPreviewPanel.html', 'EditDoctorDialog.html',
+            'EditPatientProfileDialog.html', 'EmailInput.html', 'EmittedPrescriptionPanel.html',
+            'EnhancedMedicinePanel.html', 'ExportButtons.html', 'Layout.html',
+            'LocationMap.html', 'Logo.html', 'MedicalHeader.html', 'MedicalTimeline.html',
+            'MedicinePanel.html', 'MedicineTable.html', 'MultiEmailInput.html',
+            'Navigation.html', 'NewDoctorDialog.html', 'NewInventoryOrderDialog.html',
+            'NewLayout.html', 'NewPatientDialog.html', 'PageBanner.html',
+            'PageHeader.html', 'PatientDetailPanel.html', 'PrescriptionHeader.html',
+            'PrescriptionManager.html', 'PrescriptionPage.html', 'RejectionDetailPanel.html',
+            'RoleSelector.html', 'Sidebar.html', 'SystemBanner.html',
+            'TablePagination.html', 'TopBar.html', 'UniversalPrescriptionPanel.html',
+            'UserEditDialog.html', 'VerificationResultPanel.html'
+        ];
+
+        const pages = [
+            'LoginPage.html', 'DashboardPage.html', 'PrescripcionesPage.html',
+            'PacientesPage.html', 'MedicosPage.html', 'InventarioPage.html',
+            'DispensacionPage.html', 'ReportesPage.html', 'InteropPage.html',
+            'SeguridadPage.html', 'MFAVerificationPage.html', 'PasswordRecoveryPage.html',
+            'OnboardingPage.html', 'RegistrationSuccessPage.html', 'UserApprovalsPage.html',
+            'SessionManagementPage.html', 'AlertasPage.html', 'AuditoriaPage.html',
+            'CatalogosPage.html', 'CentrosMedicosPage.html', 'ConfigPage.html',
+            'ConsultaInventarioPage.html', 'FarmaciasPage.html', 'FirmaPage.html',
+            'HistorialInteraccionesPage.html', 'NotificacionesConfigPage.html',
+            'NotificacionesListPage.html', 'NotificacionesPage.html',
+            'RegistroUsuariosPage.html', 'TalonariosPage.html', 'MultiRoleDemoPage.html'
+        ];
+
+        const utils = [
+            'authStore.js', 'usersStore.js', 'multiRoleSession.js',
+            'searchUtils.js', 'exportUtils.js', 'pdfGenerator.js',
+            'emailValidation.js', 'drugInteractionsDatabase.js',
+            'costaRicaData.js', 'draftsStore.js', 'emittedPrescriptionsStore.js',
+            'interactionsHistoryStore.js', 'externalPharmacologyAPI.js', 'usePagination.js'
+        ];
+
+        const completed = ['button.html', 'Logo.html'];
+
+        // Renderizar listas
+        function renderFileList(files, containerId, folder) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = files.map(file => {
+                const isCompleted = completed.includes(file);
+                const status = isCompleted ? 'completed' : 'pending';
+                const icon = isCompleted ? '✅' : '⏳';
+                return `<div class="file-item ${status}">${icon} ${file}</div>`;
+            }).join('');
+        }
+
+        // Plantilla base
+        function getBasicTemplate(componentName) {
+            return `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${componentName} - ePrescription</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f7fafc;
+            padding: 2rem;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #2b6cb0;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Estilos específicos del componente */
+        /* TODO: Agregar estilos del componente aquí */
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <a href="../../index.html" class="back-link">
+            ← Volver al índice
+        </a>
+
+        <h1>${componentName}</h1>
+        <p class="subtitle">Descripción del componente</p>
+
+        <!-- TODO: Agregar contenido del componente aquí -->
+
+    </div>
+
+    <script>
+        // TODO: Agregar JavaScript del componente aquí
+    </script>
+</body>
+</html>`;
+        }
+
+        // Funciones de generación
+        function generateComponent(name, folder) {
+            const template = getBasicTemplate(name.replace('.html', ''));
+            log(`Generando: ${folder}/${name}`);
+            log(`Tamaño: ${template.length} bytes`);
+            log(`---\n${template.substring(0, 200)}...\n---`);
+            return template;
+        }
+
+        function generateAllUI() {
+            log('🎨 Generando componentes UI...\n');
+            uiComponents.forEach(comp => {
+                if (!completed.includes(comp)) {
+                    generateComponent(comp, 'components/ui');
+                }
+            });
+            log(`\n✅ ${uiComponents.length} componentes UI generados`);
+        }
+
+        function generateAllComponents() {
+            log('🧩 Generando componentes de aplicación...\n');
+            appComponents.forEach(comp => {
+                if (!completed.includes(comp)) {
+                    generateComponent(comp, 'components');
+                }
+            });
+            log(`\n✅ ${appComponents.length} componentes de aplicación generados`);
+        }
+
+        function generateAllPages() {
+            log('📄 Generando páginas...\n');
+            pages.forEach(page => {
+                generateComponent(page, 'pages');
+            });
+            log(`\n✅ ${pages.length} páginas generadas`);
+        }
+
+        function generateAllUtils() {
+            log('🛠️ Generando utilidades...\n');
+            utils.forEach(util => {
+                log(`Generando: utils/${util}`);
+            });
+            log(`\n✅ ${utils.length} utilidades generadas`);
+        }
+
+        function log(message) {
+            const output = document.getElementById('output');
+            output.textContent += message + '\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').textContent = 'Presiona un botón para generar componentes...';
+        }
+
+        // Inicializar
+        window.onload = function() {
+            renderFileList(uiComponents, 'uiFileList', 'components/ui');
+            renderFileList(appComponents, 'appFileList', 'components');
+            renderFileList(pages, 'pagesFileList', 'pages');
+            renderFileList(utils, 'utilsFileList', 'utils');
+
+            document.getElementById('basicTemplate').textContent = getBasicTemplate('ComponentName');
+        };
+    </script>
+</body>
+</html>
