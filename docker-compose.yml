@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  # Oracle Database (compartido por aplicación y Keycloak)
+  oracle-db:
+    image: container-registry.oracle.com/database/express:21.3.0-xe
+    container_name: eprescription-oracle-db
+    ports:
+      - "1521:1521"
+      - "5500:5500"
+    environment:
+      - ORACLE_PWD=OraclePassword123!
+      - ORACLE_CHARACTERSET=AL32UTF8
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./eprescription-Database/scripts:/docker-entrypoint-initdb.d/startup
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'SELECT 1 FROM DUAL;' | sqlplus -s sys/OraclePassword123!@//localhost:1521/XEPDB1 as sysdba | grep -q 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - eprescription-network
+
+  # Keycloak (usando Oracle como base de datos)
+  keycloak:
+    build:
+      context: ./keycloak
+      dockerfile: Dockerfile
+    container_name: eprescription-keycloak
+    command: start-dev
+    ports:
+      - "8080:8080"
+    environment:
+      # Admin credentials
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin123
+      
+      # Oracle database configuration
+      - KC_DB=oracle
+      - KC_DB_URL=jdbc:oracle:thin:@oracle-db:1521/XEPDB1
+      - KC_DB_USERNAME=keycloak_user
+      - KC_DB_PASSWORD=KeycloakPass123!
+      - KC_DB_SCHEMA=keycloak_user
+      
+      # Keycloak configuration
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_HTTP_ENABLED=true
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
+      
+      # Logging
+      - KC_LOG_LEVEL=INFO
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    networks:
+      - eprescription-network
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+
+  # Backend API (.NET 8)
+  eprescription-api:
+    build:
+      context: ./eprescription-API
+      dockerfile: Dockerfile
+    container_name: eprescription-api
+    ports:
+      - "8000:8080"
+    environment:
+      # ASP.NET Core
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      
+      # Database connection
+      - ConnectionStrings__DefaultConnection=User Id=eprescription_user;Password=EprescriptionPass123!;Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=oracle-db)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)))
+      
+      # Keycloak configuration
+      - Keycloak__Url=http://keycloak:8080
+      - Keycloak__Realm=eprescription
+      - Keycloak__Authority=http://keycloak:8080/realms/eprescription
+      - Keycloak__Audience=eprescription-api
+      - Keycloak__RequireHttpsMetadata=false
+      - Keycloak__TokenUrl=http://keycloak:8080/realms/eprescription/protocol/openid-connect/token
+      - Keycloak__UserInfoUrl=http://keycloak:8080/realms/eprescription/protocol/openid-connect/userinfo
+      - Keycloak__ClientId=eprescription-api
+      - Keycloak__ClientSecret=Q7frqJfqjUaU73rKni061qpE9KDrbGL0
+      
+      # Logging
+      - Logging__LogLevel__Default=Information
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/swagger/index.html || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - eprescription-network
+
+volumes:
+  oracle-data:
+    driver: local
+  keycloak-data:
+    driver: local
+
+networks:
+  eprescription-network:
+    driver: bridge

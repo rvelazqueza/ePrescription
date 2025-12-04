@@ -1,0 +1,16 @@
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\bin\Debug\net8.0\EPrescription.Application.deps.json
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\bin\Debug\net8.0\EPrescription.Application.dll
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\bin\Debug\net8.0\EPrescription.Application.pdb
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\bin\Debug\net8.0\EPrescription.Domain.dll
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\bin\Debug\net8.0\EPrescription.Domain.pdb
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\EPrescription.Application.csproj.AssemblyReference.cache
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\EPrescription.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\EPrescription.Application.AssemblyInfoInputs.cache
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\EPrescription.Application.AssemblyInfo.cs
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\EPrescription.Application.csproj.CoreCompileInputs.cache
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\EPrescription.Application.sourcelink.json
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\EPrescription.Application.dll
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\refint\EPrescription.Application.dll
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\EPrescription.Application.pdb
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\ref\EPrescription.Application.dll
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Application\obj\Debug\net8.0\EPrescription.Application.csproj.CopyComplete

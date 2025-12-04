@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagramas de Arquitectura - ePrescription</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 3px solid #667eea;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: #667eea;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: white;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        nav a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .diagram-section {
+            margin-bottom: 60px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .diagram-section h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .diagram-section p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        
+        .diagram-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            overflow-x: auto;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            min-height: 400px;
+        }
+        
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            nav {
+                display: none;
+            }
+            .diagram-section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 Diagramas de Arquitectura</h1>
+            <p>Sistema ePrescription - Documentación Técnica Completa</p>
+        </header>
+        
+        <nav>
+            <ul>
+                <li><a href="#general">Arquitectura General</a></li>
+                <li><a href="#clean">Clean Architecture</a></li>
+                <li><a href="#auth">Autenticación</a></li>
+                <li><a href="#erd">Modelo de Datos</a></li>
+                <li><a href="#prescription">Prescripción</a></li>
+                <li><a href="#dispensation">Dispensación</a></li>
+                <li><a href="#security">Seguridad</a></li>
+                <li><a href="#docker">Docker</a></li>
+                <li><a href="#dataflow">Flujo de Datos</a></li>
+                <li><a href="#frontend">Frontend Angular</a></li>
+                <li><a href="#cqrs">Patrón CQRS</a></li>
+                <li><a href="#audit">Auditoría</a></li>
+                <li><a href="#ai-flow">AI + Traducción</a></li>
+                <li><a href="#who-integration">WHO Integration</a></li>
+                <li><a href="#who-sync">WHO Sync Job</a></li>
+            </ul>
+        </nav>
+        
+        <div class="content">
+
+            <!-- Diagrama 1: Arquitectura General -->
+            <div id="general" class="diagram-section">
+                <h2>1. Arquitectura General del Sistema <span class="badge">Vista de Alto Nivel</span></h2>
+                <p>
+                    Arquitectura completa del sistema mostrando todos los componentes principales: Frontend Angular, 
+                    Backend .NET, Keycloak para autenticación, Oracle Database y las integraciones con servicios externos 
+                    (WHO API para Medicamentos y CIE-10, DeepL para Traducción, HuggingFace para AI Assistant).
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+graph TB
+    subgraph "Frontend Layer"
+        FE[Angular Frontend<br/>Puerto 4200]
+    end
+    
+    subgraph "API Gateway Layer"
+        API[.NET 8 REST API<br/>Puerto 8000]
+    end
+    
+    subgraph "Authentication & Authorization"
+        KC[Keycloak<br/>Puerto 8080]
+    end
+    
+    subgraph "Database Layer"
+        DB[(Oracle Database<br/>Puerto 1521)]
+    end
+    
+    subgraph "External Services"
+        WHO[WHO API<br/>Medicamentos + CIE-10]
+        DEEPL[DeepL API<br/>Traducción]
+        HF[HuggingFace<br/>AI Assistant]
+    end
+    
+    FE -->|HTTP/REST| API
+    FE -->|OAuth2/OIDC| KC
+    API -->|OAuth2 Validation| KC
+    API -->|EF Core| DB
+    API -->|HTTP| WHO
+    API -->|HTTP| DEEPL
+    API -->|HTTP| HF
+    
+    style FE fill:#e1f5ff
+    style API fill:#fff3e0
+    style KC fill:#f3e5f5
+    style DB fill:#e8f5e9
+    style WHO fill:#fce4ec
+    style DEEPL fill:#fce4ec
+    style HF fill:#fce4ec
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 2: Clean Architecture -->
+            <div id="clean" class="diagram-section">
+                <h2>2. Clean Architecture del Backend <span class="badge">Capas y Dependencias</span></h2>
+                <p>
+                    Implementación de Clean Architecture con separación clara de responsabilidades en 4 capas: 
+                    Presentation (Controllers), Application (CQRS), Domain (Entidades) e Infrastructure (Persistencia y Servicios).
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+graph TB
+    subgraph "Presentation Layer"
+        CTRL[Controllers]
+        MW[Middleware]
+        ATTR[Attributes]
+    end
+    
+    subgraph "Application Layer"
+        CMD[Commands]
+        QRY[Queries]
+        DTO[DTOs]
+        VAL[Validators]
+        MAP[Mappings]
+        INT[Interfaces]
+    end
+    
+    subgraph "Domain Layer"
+        ENT[Entities]
+        VO[Value Objects]
+        ENUM[Enumerations]
+    end
+    
+    subgraph "Infrastructure Layer"
+        REPO[Repositories]
+        DBCTX[DbContext]
+        CFG[Configurations]
+        SVC[Services]
+        AUTH[Authentication]
+        AUTHZ[Authorization]
+        BG[Background Services]
+    end
+    
+    CTRL --> CMD
+    CTRL --> QRY
+    CMD --> INT
+    QRY --> INT
+    CMD --> VAL
+    QRY --> VAL
+    CMD --> MAP
+    QRY --> MAP
+    INT --> SVC
+    INT --> REPO
+    REPO --> DBCTX
+    DBCTX --> CFG
+    DBCTX --> ENT
+    SVC --> ENT
+    MW --> AUTHZ
+    ATTR --> AUTHZ
+    
+    style CTRL fill:#e1f5ff
+    style CMD fill:#fff3e0
+    style QRY fill:#fff3e0
+    style ENT fill:#f3e5f5
+    style REPO fill:#e8f5e9
+    style SVC fill:#e8f5e9
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 3: Flujo de Autenticación -->
+            <div id="auth" class="diagram-section">
+                <h2>3. Flujo de Autenticación y Autorización <span class="badge">OAuth2/OIDC</span></h2>
+                <p>
+                    Secuencia completa del proceso de autenticación usando Keycloak con OAuth2/OIDC, 
+                    incluyendo validación de tokens JWT y verificación de roles/permisos en base de datos.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+sequenceDiagram
+    participant U as Usuario
+    participant FE as Frontend
+    participant KC as Keycloak
+    participant API as REST API
+    participant MW as Auth Middleware
+    participant DB as Database
+    
+    U->>FE: Login (username/password)
+    FE->>KC: POST /token
+    KC->>KC: Validar credenciales
+    KC->>FE: JWT Token + Refresh Token
+    FE->>FE: Guardar tokens
+    
+    FE->>API: Request + Bearer Token
+    API->>MW: Interceptar request
+    MW->>KC: Validar token
+    KC->>MW: Token válido + Claims
+    MW->>DB: Verificar roles/permisos
+    DB->>MW: Roles/permisos del usuario
+    MW->>API: Autorizar request
+    API->>DB: Ejecutar operación
+    DB->>API: Resultado
+    API->>FE: Response
+    FE->>U: Mostrar resultado
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 4: Modelo Entidad-Relación -->
+            <div id="erd" class="diagram-section">
+                <h2>4. Modelo Entidad-Relación <span class="badge">Base de Datos</span></h2>
+                <p>
+                    Diagrama completo del modelo de datos mostrando todas las entidades y sus relaciones organizadas por módulos: 
+                    Seguridad (Usuarios y Roles), Médico (Doctores y Prescripciones), Farmacia (Dispensaciones e Inventario) y Auditoría.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+graph TB
+    subgraph "Módulo de Seguridad"
+        USERS[USERS<br/>👤 Usuarios]
+        ROLES[ROLES<br/>🔐 Roles]
+        PERMS[PERMISSIONS<br/>🔑 Permisos]
+        USER_ROLES[USER_ROLES<br/>Asignación]
+        ROLE_PERMS[ROLE_PERMISSIONS<br/>Asignación]
+    end
+    
+    subgraph "Módulo Médico"
+        DOCTORS[DOCTORS<br/>👨‍⚕️ Doctores]
+        PATIENTS[PATIENTS<br/>🧑 Pacientes]
+        SPECIALTIES[SPECIALTIES<br/>🏥 Especialidades]
+        PRESCRIPTIONS[PRESCRIPTIONS<br/>📋 Prescripciones]
+        PRESC_MEDS[PRESCRIPTION_MEDICATIONS<br/>Medicamentos Prescritos]
+        PRESC_DIAG[PRESCRIPTION_DIAGNOSES<br/>Diagnósticos]
+    end
+    
+    subgraph "Catálogos"
+        MEDICATIONS[MEDICATIONS<br/>💊 Medicamentos]
+        DIAGNOSES[DIAGNOSES<br/>🩺 CIE-10]
+        DRUG_INT[DRUG_INTERACTIONS<br/>⚠️ Interacciones]
+    end
+    
+    subgraph "Módulo Farmacia"
+        PHARMACIES[PHARMACIES<br/>🏪 Farmacias]
+        PHARMACISTS[PHARMACISTS<br/>👨‍🔬 Farmacéuticos]
+        DISPENSATIONS[DISPENSATIONS<br/>📦 Dispensaciones]
+        DISP_ITEMS[DISPENSATION_ITEMS<br/>Items Dispensados]
+        INVENTORY[INVENTORY<br/>📊 Inventario]
+    end
+    
+    subgraph "Auditoría"
+        AUDIT[AUDIT_LOGS<br/>📝 Logs de Auditoría]
+    end
+    
+    USERS -->|1:N| USER_ROLES
+    ROLES -->|1:N| USER_ROLES
+    ROLES -->|1:N| ROLE_PERMS
+    PERMS -->|1:N| ROLE_PERMS
+    
+    USERS -->|1:1| DOCTORS
+    USERS -->|1:1| PATIENTS
+    USERS -->|1:1| PHARMACISTS
+    
+    DOCTORS -->|N:1| SPECIALTIES
+    DOCTORS -->|1:N| PRESCRIPTIONS
+    PATIENTS -->|1:N| PRESCRIPTIONS
+    
+    PRESCRIPTIONS -->|1:N| PRESC_MEDS
+    PRESCRIPTIONS -->|1:N| PRESC_DIAG
+    MEDICATIONS -->|1:N| PRESC_MEDS
+    DIAGNOSES -->|1:N| PRESC_DIAG
+    
+    MEDICATIONS -->|N:N| DRUG_INT
+    
+    PRESCRIPTIONS -->|1:N| DISPENSATIONS
+    PHARMACIES -->|1:N| DISPENSATIONS
+    PHARMACISTS -->|N:1| PHARMACIES
+    
+    DISPENSATIONS -->|1:N| DISP_ITEMS
+    MEDICATIONS -->|1:N| DISP_ITEMS
+    
+    PHARMACIES -->|1:N| INVENTORY
+    MEDICATIONS -->|1:N| INVENTORY
+    
+    PRESCRIPTIONS -.->|audita| AUDIT
+    DISPENSATIONS -.->|audita| AUDIT
+    
+    style USERS fill:#e3f2fd
+    style ROLES fill:#e3f2fd
+    style PERMS fill:#e3f2fd
+    style DOCTORS fill:#fff3e0
+    style PATIENTS fill:#fff3e0
+    style PRESCRIPTIONS fill:#fff3e0
+    style MEDICATIONS fill:#f3e5f5
+    style DIAGNOSES fill:#f3e5f5
+    style PHARMACIES fill:#e8f5e9
+    style DISPENSATIONS fill:#e8f5e9
+    style INVENTORY fill:#e8f5e9
+    style AUDIT fill:#ffebee
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 5: Flujo de Prescripción -->
+            <div id="prescription" class="diagram-section">
+                <h2>5. Flujo de Creación de Prescripción <span class="badge">Proceso Médico</span></h2>
+                <p>
+                    Secuencia detallada del proceso de creación de una prescripción médica, 
+                    incluyendo sugerencias del AI Assistant, validaciones y registro de auditoría.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+sequenceDiagram
+    participant D as Doctor
+    participant FE as Frontend
+    participant API as API
+    participant VAL as Validator
+    participant CMD as CreatePrescriptionHandler
+    participant REPO as Repository
+    participant DB as Database
+    participant AUDIT as Audit Service
+    participant AI as AI Assistant
+    
+    D->>FE: Crear prescripción
+    FE->>AI: Sugerir diagnósticos (opcional)
+    AI->>FE: Sugerencias CIE-10
+    FE->>AI: Sugerir medicamentos (opcional)
+    AI->>FE: Sugerencias + interacciones
+    
+    FE->>API: POST /prescriptions
+    API->>VAL: Validar datos
+    VAL->>API: Validación OK
+    API->>CMD: Ejecutar comando
+    CMD->>REPO: Guardar prescripción
+    REPO->>DB: INSERT
+    DB->>REPO: ID generado
+    REPO->>CMD: Prescripción creada
+    CMD->>AUDIT: Registrar auditoría
+    AUDIT->>DB: INSERT audit_log
+    CMD->>API: Resultado
+    API->>FE: 201 Created
+    FE->>D: Prescripción creada
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 6: Flujo de Dispensación -->
+            <div id="dispensation" class="diagram-section">
+                <h2>6. Flujo de Dispensación en Farmacia <span class="badge">Proceso Farmacéutico</span></h2>
+                <p>
+                    Proceso completo de dispensación de medicamentos en farmacia, incluyendo búsqueda de prescripción, 
+                    verificación de inventario, reducción de stock y registro de auditoría.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+sequenceDiagram
+    participant P as Farmacéutico
+    participant FE as Frontend
+    participant API as API
+    participant VAL as Validator
+    participant CMD as RegisterDispensationHandler
+    participant PREPO as PrescriptionRepo
+    participant IREPO as InventoryRepo
+    participant DB as Database
+    participant AUDIT as Audit Service
+    
+    P->>FE: Buscar prescripción
+    FE->>API: GET /prescriptions/search
+    API->>PREPO: Buscar
+    PREPO->>DB: SELECT
+    DB->>FE: Lista prescripciones
+    
+    P->>FE: Seleccionar prescripción
+    FE->>API: GET /prescriptions/{id}
+    API->>FE: Detalle prescripción
+    
+    P->>FE: Registrar dispensación
+    FE->>API: POST /dispensations
+    API->>VAL: Validar datos
+    VAL->>API: Validación OK
+    API->>CMD: Ejecutar comando
+    
+    CMD->>PREPO: Verificar prescripción válida
+    PREPO->>CMD: OK
+    
+    CMD->>IREPO: Verificar inventario
+    IREPO->>DB: SELECT stock
+    DB->>IREPO: Stock disponible
+    IREPO->>CMD: Stock suficiente
+    
+    CMD->>IREPO: Reducir inventario
+    IREPO->>DB: UPDATE inventory
+    
+    CMD->>PREPO: Guardar dispensación
+    PREPO->>DB: INSERT dispensation
+    
+    CMD->>AUDIT: Registrar auditoría
+    AUDIT->>DB: INSERT audit_log
+    
+    CMD->>API: Resultado
+    API->>FE: 201 Created
+    FE->>P: Dispensación registrada
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 7: Arquitectura de Seguridad -->
+            <div id="security" class="diagram-section">
+                <h2>7. Arquitectura de Seguridad <span class="badge">5 Capas de Protección</span></h2>
+                <p>
+                    Modelo de seguridad en capas implementado en el sistema: Network Security (HTTPS/TLS), 
+                    Authentication (OAuth2), Authorization (RBAC/PBAC), Data Security (Encryption) y Audit Trail.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+graph TB
+    subgraph "Security Layers"
+        L1[Layer 1: Network Security<br/>HTTPS/TLS]
+        L2[Layer 2: Authentication<br/>Keycloak OAuth2/OIDC]
+        L3[Layer 3: Authorization<br/>Role-Based + Permission-Based]
+        L4[Layer 4: Data Security<br/>Encryption at Rest]
+        L5[Layer 5: Audit Trail<br/>Complete Logging]
+    end
+    
+    L1 --> L2
+    L2 --> L3
+    L3 --> L4
+    L4 --> L5
+    
+    subgraph "Security Components"
+        JWT[JWT Token Validation]
+        RBAC[Role-Based Access Control]
+        PBAC[Permission-Based Access Control]
+        ENC[Data Encryption]
+        LOG[Audit Logging]
+    end
+    
+    L2 -.-> JWT
+    L3 -.-> RBAC
+    L3 -.-> PBAC
+    L4 -.-> ENC
+    L5 -.-> LOG
+    
+    style L1 fill:#ffebee
+    style L2 fill:#fce4ec
+    style L3 fill:#f3e5f5
+    style L4 fill:#ede7f6
+    style L5 fill:#e8eaf6
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 8: Despliegue Docker -->
+            <div id="docker" class="diagram-section">
+                <h2>8. Arquitectura de Despliegue con Docker <span class="badge">Contenedores</span></h2>
+                <p>
+                    Configuración de Docker Compose mostrando los 4 contenedores principales (Frontend, API, Keycloak, Oracle), 
+                    sus puertos expuestos y volúmenes persistentes.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+graph TB
+    subgraph "Docker Compose"
+        subgraph "Container: Frontend"
+            FE[Angular App<br/>nginx:alpine<br/>Puerto 4200]
+        end
+        
+        subgraph "Container: API"
+            API[.NET 8 API<br/>mcr.microsoft.com/dotnet/aspnet:8.0<br/>Puerto 8000]
+        end
+        
+        subgraph "Container: Keycloak"
+            KC[Keycloak 23<br/>quay.io/keycloak/keycloak:23.0<br/>Puerto 8080]
+        end
+        
+        subgraph "Container: Database"
+            DB[Oracle 21c<br/>gvenzl/oracle-xe:21-slim<br/>Puerto 1521]
+        end
+    end
+    
+    subgraph "Volumes"
+        V1[oracle-data<br/>Persistencia BD]
+        V2[keycloak-data<br/>Configuración KC]
+    end
+    
+    DB -.->|Monta| V1
+    KC -.->|Monta| V2
+    
+    FE -->|HTTP| API
+    API -->|OAuth2| KC
+    API -->|SQL| DB
+    KC -->|SQL| DB
+    
+    style FE fill:#e1f5ff
+    style API fill:#fff3e0
+    style KC fill:#f3e5f5
+    style DB fill:#e8f5e9
+    style V1 fill:#fff9c4
+    style V2 fill:#fff9c4
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 9: Flujo de Datos Completo -->
+            <div id="dataflow" class="diagram-section">
+                <h2>9. Flujo de Datos Completo del Sistema <span class="badge">End-to-End</span></h2>
+                <p>
+                    Vista completa del flujo de datos desde el usuario hasta la base de datos, 
+                    incluyendo todas las interacciones con servicios externos (WHO API, DeepL, HuggingFace).
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+graph LR
+    U[Usuario] -->|1. Login| KC[Keycloak]
+    KC -->|2. Token JWT| U
+    U -->|3. Request + Token| FE[Frontend Angular]
+    FE -->|4. API Call REST| API[Backend .NET 8]
+    API -->|5. Validate Token| KC
+    API -->|6. Query/Command CQRS| DB[(Oracle Database)]
+    DB -->|7. Data| API
+    API -->|8. Response JSON| FE
+    FE -->|9. Display UI| U
+    
+    API -.->|Sync Diaria| WHO[WHO API<br/>Medicamentos + CIE-10]
+    API -.->|Traducción| DEEPL[DeepL API<br/>i18n]
+    API -.->|Sugerencias| HF[HuggingFace<br/>AI Assistant]
+    
+    style U fill:#e3f2fd
+    style FE fill:#e1f5ff
+    style API fill:#fff3e0
+    style KC fill:#f3e5f5
+    style DB fill:#e8f5e9
+    style WHO fill:#fce4ec
+    style DEEPL fill:#fce4ec
+    style HF fill:#fce4ec
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 10: Arquitectura de Componentes Frontend -->
+            <div id="frontend" class="diagram-section">
+                <h2>10. Arquitectura del Frontend Angular <span class="badge">SPA</span></h2>
+                <p>
+                    Estructura del frontend Angular mostrando componentes, servicios, guards y la comunicación con el backend.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+graph TB
+    subgraph "Angular Frontend"
+        subgraph "Components"
+            LOGIN[Login Component]
+            DASH[Dashboard Component]
+            PRESC[Prescriptions Component]
+            DISP[Dispensations Component]
+        end
+        
+        subgraph "Services"
+            AUTH_SVC[Auth Service]
+            PRESC_SVC[Prescription Service]
+            PATIENT_SVC[Patient Service]
+            MED_SVC[Medication Service]
+            DISP_SVC[Dispensation Service]
+        end
+        
+        subgraph "Guards & Interceptors"
+            AUTH_GUARD[Auth Guard]
+            HTTP_INT[HTTP Interceptor]
+        end
+        
+        subgraph "State Management"
+            STORE[RxJS State]
+        end
+    end
+    
+    LOGIN --> AUTH_SVC
+    DASH --> PRESC_SVC
+    DASH --> PATIENT_SVC
+    PRESC --> PRESC_SVC
+    PRESC --> MED_SVC
+    DISP --> DISP_SVC
+    
+    AUTH_SVC --> HTTP_INT
+    PRESC_SVC --> HTTP_INT
+    PATIENT_SVC --> HTTP_INT
+    MED_SVC --> HTTP_INT
+    DISP_SVC --> HTTP_INT
+    
+    AUTH_GUARD --> AUTH_SVC
+    HTTP_INT --> STORE
+    
+    HTTP_INT -->|REST API| API[Backend .NET]
+    
+    style LOGIN fill:#e1f5ff
+    style DASH fill:#e1f5ff
+    style PRESC fill:#e1f5ff
+    style DISP fill:#e1f5ff
+    style AUTH_SVC fill:#fff3e0
+    style API fill:#e8f5e9
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 11: Patrón CQRS Implementado -->
+            <div id="cqrs" class="diagram-section">
+                <h2>11. Patrón CQRS (Command Query Responsibility Segregation) <span class="badge">MediatR</span></h2>
+                <p>
+                    Implementación del patrón CQRS usando MediatR, separando comandos (escritura) de queries (lectura) 
+                    para mejor escalabilidad y mantenibilidad.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+graph TB
+    subgraph "Controller Layer"
+        CTRL[PrescriptionsController]
+    end
+    
+    subgraph "Commands - Write Operations"
+        CREATE_CMD[CreatePrescriptionCommand]
+        UPDATE_CMD[UpdatePrescriptionCommand]
+        DELETE_CMD[DeletePrescriptionCommand]
+        
+        CREATE_HANDLER[CreatePrescriptionHandler]
+        UPDATE_HANDLER[UpdatePrescriptionHandler]
+        DELETE_HANDLER[DeletePrescriptionHandler]
+    end
+    
+    subgraph "Queries - Read Operations"
+        GET_QRY[GetPrescriptionQuery]
+        SEARCH_QRY[SearchPrescriptionsQuery]
+        
+        GET_HANDLER[GetPrescriptionHandler]
+        SEARCH_HANDLER[SearchPrescriptionsHandler]
+    end
+    
+    subgraph "MediatR"
+        MEDIATOR[IMediator]
+    end
+    
+    subgraph "Data Access"
+        REPO[PrescriptionRepository]
+        DB[(Database)]
+    end
+    
+    CTRL -->|Send Command| MEDIATOR
+    CTRL -->|Send Query| MEDIATOR
+    
+    MEDIATOR --> CREATE_CMD
+    MEDIATOR --> UPDATE_CMD
+    MEDIATOR --> DELETE_CMD
+    MEDIATOR --> GET_QRY
+    MEDIATOR --> SEARCH_QRY
+    
+    CREATE_CMD --> CREATE_HANDLER
+    UPDATE_CMD --> UPDATE_HANDLER
+    DELETE_CMD --> DELETE_HANDLER
+    GET_QRY --> GET_HANDLER
+    SEARCH_QRY --> SEARCH_HANDLER
+    
+    CREATE_HANDLER --> REPO
+    UPDATE_HANDLER --> REPO
+    DELETE_HANDLER --> REPO
+    GET_HANDLER --> REPO
+    SEARCH_HANDLER --> REPO
+    
+    REPO --> DB
+    
+    style CREATE_CMD fill:#ffebee
+    style UPDATE_CMD fill:#ffebee
+    style DELETE_CMD fill:#ffebee
+    style GET_QRY fill:#e8f5e9
+    style SEARCH_QRY fill:#e8f5e9
+    style MEDIATOR fill:#fff3e0
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 12: Sistema de Auditoría -->
+            <div id="audit" class="diagram-section">
+                <h2>12. Sistema de Auditoría y Trazabilidad <span class="badge">Compliance</span></h2>
+                <p>
+                    Arquitectura del sistema de auditoría que registra todas las operaciones críticas 
+                    para cumplimiento normativo y trazabilidad completa.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+graph TB
+    subgraph "Application Layer"
+        CTRL[Controllers]
+        CMD[Command Handlers]
+    end
+    
+    subgraph "Audit System"
+        INTERCEPTOR[Audit Interceptor<br/>EF Core]
+        AUDIT_SVC[Audit Service]
+        RETENTION[Retention Service<br/>Background Job]
+    end
+    
+    subgraph "Database"
+        AUDIT_LOG[(Audit Logs Table)]
+        ENTITIES[(Business Tables)]
+    end
+    
+    subgraph "Audit Controller"
+        AUDIT_CTRL[Audit Controller<br/>Query Logs]
+    end
+    
+    CTRL --> CMD
+    CMD -->|Save Changes| INTERCEPTOR
+    INTERCEPTOR -->|Capture Changes| AUDIT_SVC
+    AUDIT_SVC -->|Write Log| AUDIT_LOG
+    CMD -->|Business Data| ENTITIES
+    
+    RETENTION -->|Clean Old Logs| AUDIT_LOG
+    AUDIT_CTRL -->|Query| AUDIT_LOG
+    
+    style INTERCEPTOR fill:#fff3e0
+    style AUDIT_SVC fill:#fff3e0
+    style RETENTION fill:#e1f5ff
+    style AUDIT_LOG fill:#ffebee
+    style ENTITIES fill:#e8f5e9
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 13: Flujo de AI Assistant con Traducción -->
+            <div id="ai-flow" class="diagram-section">
+                <h2>13. Flujo de Análisis de IA con Traducción <span class="badge">AI + i18n</span></h2>
+                <p>
+                    Proceso completo del AI Assistant para sugerir diagnósticos y medicamentos, 
+                    incluyendo traducción automática de términos médicos usando DeepL API.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+sequenceDiagram
+    participant D as Doctor
+    participant FE as Frontend
+    participant API as API
+    participant AI as HuggingFace AI
+    participant TRANS as DeepL Translation
+    participant CIE10 as CIE-10 Service
+    participant WHO as WHO API
+    participant DB as Database
+    
+    Note over D,DB: Flujo de Sugerencia de Diagnósticos
+    D->>FE: Escribe síntomas
+    FE->>API: POST /ai-assistant/suggest-diagnosis
+    API->>AI: Analizar síntomas
+    AI->>API: Códigos CIE-10 sugeridos
+    
+    API->>CIE10: Buscar descripciones
+    CIE10->>DB: Query diagnoses
+    DB->>CIE10: Diagnósticos en inglés
+    
+    API->>TRANS: Traducir a español
+    TRANS->>API: Diagnósticos traducidos
+    API->>FE: Lista de sugerencias
+    FE->>D: Mostrar diagnósticos
+    
+    Note over D,DB: Flujo de Sugerencia de Medicamentos
+    D->>FE: Selecciona diagnóstico
+    FE->>API: POST /ai-assistant/suggest-medications
+    API->>AI: Analizar diagnóstico
+    AI->>API: Medicamentos sugeridos
+    
+    API->>WHO: Buscar medicamentos
+    WHO->>API: Datos de medicamentos
+    
+    API->>TRANS: Traducir nombres
+    TRANS->>API: Nombres traducidos
+    
+    API->>DB: Verificar interacciones
+    DB->>API: Interacciones encontradas
+    
+    API->>FE: Medicamentos + Interacciones
+    FE->>D: Mostrar con alertas
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 14: Integración WHO API y Translation Service -->
+            <div id="who-integration" class="diagram-section">
+                <h2>14. Integración WHO API y Translation Service <span class="badge">Servicios Externos</span></h2>
+                <p>
+                    Arquitectura de integración con WHO API para sincronización de catálogos (medicamentos y CIE-10) 
+                    y DeepL para traducción automática de contenido médico.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+graph TB
+    subgraph "Backend Services"
+        WHO_SVC[WHO API Service]
+        TRANS_SVC[Translation Service]
+        CIE10_SVC[CIE-10 Catalog Service]
+        BG_SYNC[Background Sync Service<br/>Scheduled Job]
+    end
+    
+    subgraph "External APIs"
+        WHO_API[WHO API<br/>api.who.int]
+        DEEPL_API[DeepL API<br/>api.deepl.com]
+    end
+    
+    subgraph "Database"
+        MED_TABLE[(Medications Table)]
+        CIE10_TABLE[(Diagnoses Table<br/>CIE-10)]
+        TRANS_CACHE[(Translation Cache)]
+    end
+    
+    subgraph "Controllers"
+        WHO_CTRL[WHO Controller]
+        AI_CTRL[AI Assistant Controller]
+        CIE10_CTRL[CIE-10 Controller]
+    end
+    
+    BG_SYNC -->|Fetch Medications| WHO_SVC
+    BG_SYNC -->|Fetch CIE-10| WHO_SVC
+    
+    WHO_SVC -->|HTTP GET| WHO_API
+    WHO_API -->|JSON Response| WHO_SVC
+    
+    WHO_SVC -->|Translate Names| TRANS_SVC
+    TRANS_SVC -->|HTTP POST| DEEPL_API
+    DEEPL_API -->|Translated Text| TRANS_SVC
+    
+    TRANS_SVC -->|Cache| TRANS_CACHE
+    WHO_SVC -->|Save| MED_TABLE
+    WHO_SVC -->|Save| CIE10_TABLE
+    
+    WHO_CTRL -->|Query| WHO_SVC
+    AI_CTRL -->|Query| WHO_SVC
+    AI_CTRL -->|Translate| TRANS_SVC
+    CIE10_CTRL -->|Query| CIE10_SVC
+    CIE10_SVC -->|Read| CIE10_TABLE
+    
+    style BG_SYNC fill:#fff3e0
+    style WHO_SVC fill:#e1f5ff
+    style TRANS_SVC fill:#e1f5ff
+    style WHO_API fill:#fce4ec
+    style DEEPL_API fill:#fce4ec
+    style MED_TABLE fill:#e8f5e9
+    style CIE10_TABLE fill:#e8f5e9
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama 15: Sincronización WHO Background Service -->
+            <div id="who-sync" class="diagram-section">
+                <h2>15. Proceso de Sincronización WHO (Background Service) <span class="badge">Scheduled Job</span></h2>
+                <p>
+                    Detalle del proceso de sincronización automática que se ejecuta diariamente para mantener 
+                    actualizados los catálogos de medicamentos y diagnósticos CIE-10 desde WHO API.
+                </p>
+                <div class="diagram-container">
+                    <div class="mermaid">
+sequenceDiagram
+    participant SCHED as Scheduler<br/>(1:00 AM Daily)
+    participant BG as Background Service
+    participant WHO_SVC as WHO Service
+    participant WHO_API as WHO API
+    participant TRANS as Translation Service
+    participant DEEPL as DeepL API
+    participant DB as Database
+    participant LOG as Logger
+    
+    SCHED->>BG: Trigger Sync Job
+    BG->>LOG: Log: Sync Started
+    
+    Note over BG,DB: Fase 1: Sincronizar Medicamentos
+    BG->>WHO_SVC: SyncMedications()
+    WHO_SVC->>WHO_API: GET /medications
+    WHO_API->>WHO_SVC: Medications List (EN)
+    
+    loop For each medication
+        WHO_SVC->>TRANS: Translate(name, EN->ES)
+        TRANS->>DEEPL: POST /translate
+        DEEPL->>TRANS: Translated name
+        WHO_SVC->>DB: UPSERT medication
+    end
+    
+    WHO_SVC->>BG: Sync Complete (Count)
+    BG->>LOG: Log: Medications Synced
+    
+    Note over BG,DB: Fase 2: Sincronizar CIE-10
+    BG->>WHO_SVC: SyncDiagnoses()
+    WHO_SVC->>WHO_API: GET /icd-10
+    WHO_API->>WHO_SVC: CIE-10 Codes (EN)
+    
+    loop For each diagnosis
+        WHO_SVC->>TRANS: Translate(description, EN->ES)
+        TRANS->>DEEPL: POST /translate
+        DEEPL->>TRANS: Translated description
+        WHO_SVC->>DB: UPSERT diagnosis
+    end
+    
+    WHO_SVC->>BG: Sync Complete (Count)
+    BG->>LOG: Log: CIE-10 Synced
+    
+    Note over BG,DB: Fase 3: Cleanup
+    BG->>DB: Mark obsolete records
+    BG->>LOG: Log: Sync Completed Successfully
+    BG->>SCHED: Job Finished
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <footer>
+            <h3>📊 Resumen de Tecnologías</h3>
+            <p style="margin: 20px 0;">
+                <strong>Frontend:</strong> Angular 18 | 
+                <strong>Backend:</strong> .NET 8 | 
+                <strong>Database:</strong> Oracle 21c | 
+                <strong>Auth:</strong> Keycloak 23 | 
+                <strong>ORM:</strong> EF Core 8 | 
+                <strong>Containers:</strong> Docker
+            </p>
+            <p style="margin: 10px 0; font-size: 1.1em;">
+                <strong>Integraciones:</strong> WHO API (Medicamentos + CIE-10) | DeepL (Traducción) | HuggingFace (AI Assistant)
+            </p>
+            <p style="opacity: 0.8;">
+                Sistema ePrescription - 15 Diagramas de Arquitectura Completos<br/>
+                Documentación generada automáticamente - © 2024
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        // Inicializar Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#764ba2',
+                lineColor: '#667eea',
+                secondaryColor: '#e1f5ff',
+                tertiaryColor: '#fff3e0'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35
+            }
+        });
+        
+        // Smooth scroll para navegación
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        });
+        
+        // Imprimir diagrama específico
+        function printDiagram(id) {
+            const section = document.getElementById(id);
+            const printWindow = window.open('', '', 'height=800,width=1200');
+            printWindow.document.write('<html><head><title>Diagrama - ' + id + '</title>');
+            printWindow.document.write('<style>body{font-family:Arial;padding:20px;}</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(section.innerHTML);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+    </script>
+</body>
+</html>

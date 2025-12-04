@@ -1,0 +1,12 @@
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\bin\Debug\net8.0\EPrescription.Domain.deps.json
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\bin\Debug\net8.0\EPrescription.Domain.dll
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\bin\Debug\net8.0\EPrescription.Domain.pdb
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\obj\Debug\net8.0\EPrescription.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\obj\Debug\net8.0\EPrescription.Domain.AssemblyInfoInputs.cache
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\obj\Debug\net8.0\EPrescription.Domain.AssemblyInfo.cs
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\obj\Debug\net8.0\EPrescription.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\obj\Debug\net8.0\EPrescription.Domain.sourcelink.json
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\obj\Debug\net8.0\EPrescription.Domain.dll
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\obj\Debug\net8.0\refint\EPrescription.Domain.dll
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\obj\Debug\net8.0\EPrescription.Domain.pdb
+C:\Users\Carlos\Desktop\Solutech\Proyecto-01 Eprescription\ePrescription\eprescription-API\src\ePrescription.Domain\obj\Debug\net8.0\ref\EPrescription.Domain.dll

@@ -1,0 +1,693 @@
+{
+	"info": {
+		"_postman_id": "doctors-api-tests-12-8",
+		"name": "Task 12.8 - Doctors API Tests",
+		"description": "Colección de pruebas para los endpoints de Doctors API\n\nEndpoints incluidos:\n- POST /api/doctors - Crear médico\n- GET /api/doctors/{id} - Obtener médico por ID\n- PUT /api/doctors/{id} - Actualizar información de contacto\n- DELETE /api/doctors/{id} - Eliminar médico\n- GET /api/doctors - Búsqueda con filtros y paginación\n\nPruebas de validación:\n- License number requerido\n- Email válido\n- Specialty válida\n\nConfiguración:\n- Base URL: http://localhost:8000\n- Sin autenticación (temporalmente deshabilitada)\n- Variables de entorno para IDs dinámicos",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Setup",
+			"item": [
+				{
+					"name": "Get Specialties (Setup)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Set specialty ID for other tests', function () {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.items && responseJson.items.length > 0) {",
+									"        pm.environment.set('specialtyId', responseJson.items[0].id);",
+									"        console.log('Set specialtyId:', responseJson.items[0].id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/specialties?pageNumber=1&pageSize=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"specialties"
+							],
+							"query": [
+								{
+									"key": "pageNumber",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CRUD Operations",
+			"item": [
+				{
+					"name": "1. Create Doctor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has doctor data', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('id');",
+									"    pm.expect(responseJson).to.have.property('licenseNumber');",
+									"    pm.expect(responseJson).to.have.property('firstName');",
+									"    pm.expect(responseJson).to.have.property('lastName');",
+									"    pm.expect(responseJson).to.have.property('specialty');",
+									"    pm.expect(responseJson.isActive).to.be.true;",
+									"    ",
+									"    // Store doctor ID for subsequent tests",
+									"    pm.environment.set('doctorId', responseJson.id);",
+									"    pm.environment.set('doctorLicenseNumber', responseJson.licenseNumber);",
+									"});",
+									"",
+									"pm.test('Doctor has specialty information', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.specialty).to.have.property('name');",
+									"    pm.expect(responseJson.specialty).to.have.property('description');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"licenseNumber\": \"DOC-TEST-{{$randomInt}}\",\n  \"firstName\": \"Dr. Juan\",\n  \"lastName\": \"Pérez\",\n  \"specialtyId\": \"{{specialtyId}}\",\n  \"phone\": \"+506-8888-9999\",\n  \"email\": \"dr.juan.perez@hospital.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Doctor by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains doctor details', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.id).to.equal(pm.environment.get('doctorId'));",
+									"    pm.expect(responseJson).to.have.property('firstName');",
+									"    pm.expect(responseJson).to.have.property('lastName');",
+									"    pm.expect(responseJson).to.have.property('fullName');",
+									"    pm.expect(responseJson).to.have.property('specialty');",
+									"    pm.expect(responseJson).to.have.property('createdAt');",
+									"});",
+									"",
+									"pm.test('Full name is correctly formatted', function () {",
+									"    const responseJson = pm.response.json();",
+									"    const expectedFullName = responseJson.firstName + ' ' + responseJson.lastName;",
+									"    pm.expect(responseJson.fullName).to.equal(expectedFullName);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors/{{doctorId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctorId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Update Doctor Contact Info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Contact info was updated', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.phone).to.equal('+506-7777-8888');",
+									"    pm.expect(responseJson.email).to.equal('dr.juan.updated@hospital.com');",
+									"    pm.expect(responseJson).to.have.property('updatedAt');",
+									"});",
+									"",
+									"pm.test('Other fields remain unchanged', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.id).to.equal(pm.environment.get('doctorId'));",
+									"    pm.expect(responseJson.licenseNumber).to.equal(pm.environment.get('doctorLicenseNumber'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"+506-7777-8888\",\n  \"email\": \"dr.juan.updated@hospital.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors/{{doctorId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctorId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Delete Doctor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"pm.test('Response body is empty', function () {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors/{{doctorId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctorId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5. Verify Doctor Deletion",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Error message indicates doctor not found', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('message');",
+									"    pm.expect(responseJson.message.toLowerCase()).to.include('not found');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors/{{doctorId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctorId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Search & Filters",
+			"item": [
+				{
+					"name": "Search All Doctors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has pagination structure', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('items');",
+									"    pm.expect(responseJson).to.have.property('totalCount');",
+									"    pm.expect(responseJson).to.have.property('page');",
+									"    pm.expect(responseJson).to.have.property('pageSize');",
+									"    pm.expect(responseJson.items).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('Doctors have required fields', function () {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.items.length > 0) {",
+									"        const doctor = responseJson.items[0];",
+									"        pm.expect(doctor).to.have.property('id');",
+									"        pm.expect(doctor).to.have.property('fullName');",
+									"        pm.expect(doctor).to.have.property('licenseNumber');",
+									"        pm.expect(doctor).to.have.property('specialtyName');",
+									"        pm.expect(doctor).to.have.property('isActive');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors?pageNumber=1&pageSize=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors"
+							],
+							"query": [
+								{
+									"key": "pageNumber",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Doctors by Specialty",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Filtered results by specialty', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('items');",
+									"    // All returned doctors should have Cardiología specialty",
+									"    responseJson.items.forEach(doctor => {",
+									"        pm.expect(doctor.specialtyName.toLowerCase()).to.include('cardiolog');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors?specialty=Cardiología&pageNumber=1&pageSize=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors"
+							],
+							"query": [
+								{
+									"key": "specialty",
+									"value": "Cardiología"
+								},
+								{
+									"key": "pageNumber",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Doctors by Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Search results contain search term', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('items');",
+									"    // Results should contain doctors with 'Juan' in their name",
+									"    if (responseJson.items.length > 0) {",
+									"        const hasJuan = responseJson.items.some(doctor => ",
+									"            doctor.fullName.toLowerCase().includes('juan')",
+									"        );",
+									"        pm.expect(hasJuan).to.be.true;",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors?searchTerm=Juan&pageNumber=1&pageSize=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors"
+							],
+							"query": [
+								{
+									"key": "searchTerm",
+									"value": "Juan"
+								},
+								{
+									"key": "pageNumber",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Active Doctors Only",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('All returned doctors are active', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('items');",
+									"    responseJson.items.forEach(doctor => {",
+									"        pm.expect(doctor.isActive).to.be.true;",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors?isActive=true&pageNumber=1&pageSize=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors"
+							],
+							"query": [
+								{
+									"key": "isActive",
+									"value": "true"
+								},
+								{
+									"key": "pageNumber",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Validation Tests",
+			"item": [
+				{
+					"name": "Validation - Empty License Number",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Validation error for license number', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('message');",
+									"    pm.expect(responseJson.message.toLowerCase()).to.include('validation');",
+									"    pm.expect(responseJson).to.have.property('errors');",
+									"    ",
+									"    const hasLicenseError = responseJson.errors.some(error => ",
+									"        error.property.toLowerCase().includes('license')",
+									"    );",
+									"    pm.expect(hasLicenseError).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"licenseNumber\": \"\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"Doctor\",\n  \"specialtyId\": \"{{specialtyId}}\",\n  \"phone\": \"+506-8888-9999\",\n  \"email\": \"test@test.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validation - Invalid Email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Validation error for email', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('message');",
+									"    pm.expect(responseJson.message.toLowerCase()).to.include('validation');",
+									"    pm.expect(responseJson).to.have.property('errors');",
+									"    ",
+									"    const hasEmailError = responseJson.errors.some(error => ",
+									"        error.property.toLowerCase().includes('email')",
+									"    );",
+									"    pm.expect(hasEmailError).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"licenseNumber\": \"DOC-INVALID-{{$randomInt}}\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"Doctor\",\n  \"specialtyId\": \"{{specialtyId}}\",\n  \"phone\": \"+506-8888-9999\",\n  \"email\": \"invalid-email\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/doctors",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"doctors"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Set base URL if not already set",
+					"if (!pm.environment.get('baseUrl')) {",
+					"    pm.environment.set('baseUrl', 'http://localhost:8000');",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test to log response time",
+					"pm.test('Response time is acceptable', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "doctorId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "doctorLicenseNumber",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "specialtyId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

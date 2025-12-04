@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ePrescription</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2b6cb0;
+            --primary-dark: #2c5282;
+            --success: #48bb78;
+            --danger: #e53e3e;
+            --warning: #ed8936;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-container {
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            opacity: 0.9;
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+
+        .tabs {
+            margin-bottom: 1.5rem;
+        }
+
+        .tabs-list {
+            display: flex;
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 0.25rem;
+        }
+
+        .tab-trigger {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-trigger.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #718096;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.875rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 0.875rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-warning {
+            background: #feebc8;
+            color: #7c2d12;
+            border-left: 4px solid var(--warning);
+        }
+
+        .info-box {
+            background: #ebf8ff;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: #2c5282;
+            margin-bottom: 1rem;
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 1rem 0;
+            color: #718096;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <a href="../index.html" class="back-link">
+            ← Volver al índice
+        </a>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="logo">⚕️</div>
+                <h1 class="card-title">ePrescription</h1>
+                <p class="card-description">Sistema Hospitalario Profesional</p>
+            </div>
+
+            <div class="card-content">
+                <!-- Alertas -->
+                <div id="errorAlert" class="alert alert-error">
+                    <strong>Error:</strong> <span id="errorMessage"></span>
+                </div>
+                <div id="successAlert" class="alert alert-success">
+                    <strong>✓</strong> <span id="successMessage"></span>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div class="tabs-list">
+                        <button class="tab-trigger active" onclick="switchTab('password')">
+                            🔑 Usuario y Contraseña
+                        </button>
+                        <button class="tab-trigger" onclick="switchTab('gaudi')">
+                            ✍️ Firma Digital GAUDI
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab: Password Login -->
+                <div id="passwordTab" class="tab-content active">
+                    <form onsubmit="handlePasswordLogin(event)">
+                        <div class="form-group">
+                            <label class="form-label">Usuario</label>
+                            <input 
+                                type="text" 
+                                class="form-input" 
+                                id="username"
+                                placeholder="usuario@ejemplo.com"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Contraseña</label>
+                            <div class="input-wrapper">
+                                <input 
+                                    type="password" 
+                                    class="form-input" 
+                                    id="password"
+                                    placeholder="••••••••"
+                                    onkeydown="checkCapsLock(event)"
+                                    required
+                                >
+                                <button type="button" class="password-toggle" onclick="togglePassword()">
+                                    <span id="eyeIcon">👁️</span>
+                                </button>
+                            </div>
+                            <div id="capsLockWarning" class="alert alert-warning" style="margin-top: 0.5rem; font-size: 0.875rem;">
+                                ⚠️ Bloq Mayús activado
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="rememberMe">
+                            <label for="rememberMe">Recordar mi sesión</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="loginBtn">
+                            Iniciar Sesión
+                        </button>
+                    </form>
+
+                    <div class="info-box">
+                        <strong>💡 Usuario de prueba:</strong><br>
+                        <strong>Usuario:</strong> dr.juan.perez@hospitalcentral.cr<br>
+                        <strong>Contraseña:</strong> SecurePassword2025!
+                    </div>
+                </div>
+
+                <!-- Tab: GAUDI Login -->
+                <div id="gaudiTab" class="tab-content">
+                    <div class="info-box">
+                        <strong>🔒 Firma Digital GAUDI</strong><br>
+                        Sistema oficial del Banco Central de Costa Rica para autenticación con certificados digitales.
+                    </div>
+
+                    <form onsubmit="handleGaudiLogin(event)">
+                        <div class="form-group">
+                            <label class="form-label">Cédula</label>
+                            <input 
+                                type="text" 
+                                class="form-input" 
+                                id="cedula"
+                                placeholder="0-0000-0000"
+                                pattern="\d-\d{4}-\d{4}"
+                                required
+                            >
+                            <small style="color: #718096;">Formato: 1-2345-6789</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="gaudiBtn">
+                            Firmar con GAUDI
+                        </button>
+                    </form>
+
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>ℹ️ Cédula de prueba:</strong> 1-2345-6789
+                    </div>
+                </div>
+
+                <!-- Enlaces -->
+                <div class="links">
+                    <a href="#" class="link" onclick="showMessage('Contacta al administrador del sistema', 'info')">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                    <div class="divider">o</div>
+                    <a href="#" class="link" onclick="showMessage('Contacta al administrador para registro', 'info')">
+                        Registrar nuevo usuario
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem; color: white;">
+            <p><strong>ePrescription</strong> v2.0.0</p>
+            <p style="margin-top: 0.5rem; opacity: 0.9;">
+                🔒 Conexión segura | ✅ Cumple HL7 FHIR | 🏥 Certificado OMS
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'password';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-trigger').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tab + 'Tab').classList.add('active');
+            
+            hideAlerts();
+        }
+
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.textContent = '👁���';
+            }
+        }
+
+        function checkCapsLock(event) {
+            const capsLockWarning = document.getElementById('capsLockWarning');
+            if (event.getModifierState('CapsLock')) {
+                capsLockWarning.classList.add('show');
+            } else {
+                capsLockWarning.classList.remove('show');
+            }
+        }
+
+        function showError(message) {
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorAlert.classList.add('show');
+            
+            setTimeout(() => {
+                errorAlert.classList.remove('show');
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successAlert = document.getElementById('successAlert');
+            const successMessage = document.getElementById('successMessage');
+            successMessage.textContent = message;
+            successAlert.classList.add('show');
+            
+            setTimeout(() => {
+                successAlert.classList.remove('show');
+            }, 3000);
+        }
+
+        function showMessage(message, type) {
+            if (type === 'error') showError(message);
+            else if (type === 'success') showSuccess(message);
+            else showSuccess(message);
+        }
+
+        function hideAlerts() {
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.classList.remove('show');
+            });
+        }
+
+        async function handlePasswordLogin(event) {
+            event.preventDefault();
+            hideAlerts();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            // Validar usuario de prueba
+            if (username === 'dr.juan.perez@hospitalcentral.cr' && password === 'SecurePassword2025!') {
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<span class="spinner"></span> Verificando...';
+                
+                setTimeout(() => {
+                    showSuccess('¡Inicio de sesión exitoso! Redirigiendo...');
+                    setTimeout(() => {
+                        alert('Login exitoso con usuario: Dr. Juan Pérez');
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Iniciar Sesión';
+                    }, 1500);
+                }, 1000);
+            } else {
+                showError('Usuario o contraseña incorrectos. Usa las credenciales de prueba.');
+            }
+        }
+
+        async function handleGaudiLogin(event) {
+            event.preventDefault();
+            hideAlerts();
+            
+            const cedula = document.getElementById('cedula').value;
+            const gaudiBtn = document.getElementById('gaudiBtn');
+            
+            // Validar formato
+            if (!/^\d-\d{4}-\d{4}$/.test(cedula)) {
+                showError('Formato de cédula inválido. Use: 0-0000-0000');
+                return;
+            }
+            
+            gaudiBtn.disabled = true;
+            gaudiBtn.innerHTML = '<span class="spinner"></span> Verificando firma...';
+            
+            setTimeout(() => {
+                showSuccess('Firma digital verificada exitosamente. Redirigiendo...');
+                setTimeout(() => {
+                    alert(`Login exitoso con GAUDI. Cédula: ${cedula}`);
+                    gaudiBtn.disabled = false;
+                    gaudiBtn.textContent = 'Firmar con GAUDI';
+                }, 1500);
+            }, 2000);
+        }
+
+        console.log('LoginPage de ePrescription cargado');
+        console.log('Usuario de prueba: dr.juan.perez@hospitalcentral.cr');
+        console.log('Contraseña: SecurePassword2025!');
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+-- =====================================================
+-- Script: fix-schema.sql
+-- Description: Add missing columns and tables to existing schema
+-- Date: 2024-11-12
+-- =====================================================
+
+SET SERVEROUTPUT ON;
+
+PROMPT ========================================
+PROMPT Fixing Database Schema
+PROMPT ========================================
+
+-- 1. Add missing column to PHARMACIES
+PROMPT 
+PROMPT [1/4] Adding CITY column to PHARMACIES...
+ALTER TABLE PHARMACIES ADD (
+    CITY VARCHAR2(100)
+);
+
+-- 2. Add missing column to MEDICATIONS
+PROMPT 
+PROMPT [2/4] Adding ADMINISTRATION_ROUTE_ID to MEDICATIONS...
+-- First, we need to ensure ADMINISTRATION_ROUTES table exists
+-- (it should already exist based on your table list)
+
+ALTER TABLE MEDICATIONS ADD (
+    ADMINISTRATION_ROUTE_ID RAW(16)
+);
+
+-- Add FK constraint (will be NULL for existing records, we'll update them later)
+ALTER TABLE MEDICATIONS ADD CONSTRAINT fk_medication_route 
+    FOREIGN KEY (ADMINISTRATION_ROUTE_ID) 
+    REFERENCES ADMINISTRATION_ROUTES(ROUTE_ID);
+
+-- 3. Create CIE10_CATALOG table
+PROMPT 
+PROMPT [3/4] Creating CIE10_CATALOG table...
+CREATE TABLE CIE10_CATALOG (
+    CIE10_ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
+    CODE VARCHAR2(10) UNIQUE NOT NULL,
+    DESCRIPTION_ES VARCHAR2(500) NOT NULL,
+    DESCRIPTION_EN VARCHAR2(500),
+    CATEGORY VARCHAR2(100),
+    CHAPTER VARCHAR2(200),
+    IS_ACTIVE NUMBER(1) DEFAULT 1 CHECK (IS_ACTIVE IN (0, 1)),
+    SOURCE VARCHAR2(20) DEFAULT 'MANUAL' CHECK (SOURCE IN ('MANUAL', 'WHO_API')),
+    LAST_UPDATED TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    CREATED_AT TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_cie10_code ON CIE10_CATALOG(CODE);
+CREATE INDEX idx_cie10_description_es ON CIE10_CATALOG(UPPER(DESCRIPTION_ES));
+CREATE INDEX idx_cie10_category ON CIE10_CATALOG(CATEGORY);
+
+-- 4. Create PRESCRIPTION_DIAGNOSES table
+PROMPT 
+PROMPT [4/4] Creating PRESCRIPTION_DIAGNOSES table...
+CREATE TABLE PRESCRIPTION_DIAGNOSES (
+    DIAGNOSIS_ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
+    PRESCRIPTION_ID RAW(16) NOT NULL,
+    CIE10_CODE VARCHAR2(10) NOT NULL,
+    IS_PRIMARY NUMBER(1) DEFAULT 0 CHECK (IS_PRIMARY IN (0, 1)),
+    NOTES VARCHAR2(1000),
+    CREATED_AT TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_presc_diag_prescription FOREIGN KEY (PRESCRIPTION_ID) 
+        REFERENCES PRESCRIPTIONS(PRESCRIPTION_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_presc_diag_cie10 FOREIGN KEY (CIE10_CODE) 
+        REFERENCES CIE10_CATALOG(CODE)
+);
+
+CREATE INDEX idx_presc_diag_prescription ON PRESCRIPTION_DIAGNOSES(PRESCRIPTION_ID);
+CREATE INDEX idx_presc_diag_cie10 ON PRESCRIPTION_DIAGNOSES(CIE10_CODE);
+
+COMMIT;
+
+PROMPT 
+PROMPT ========================================
+PROMPT Schema Fix Completed Successfully!
+PROMPT ========================================
+PROMPT 
+PROMPT Summary:
+PROMPT - Added CITY to PHARMACIES
+PROMPT - Added ADMINISTRATION_ROUTE_ID to MEDICATIONS
+PROMPT - Created CIE10_CATALOG table
+PROMPT - Created PRESCRIPTION_DIAGNOSES table
+PROMPT 
+PROMPT Next steps:
+PROMPT 1. Verify tables with: SELECT table_name FROM user_tables ORDER BY table_name;
+PROMPT 2. Insert data into new tables
+PROMPT 

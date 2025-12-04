@@ -1,0 +1,522 @@
+<!-- Breadcrumbs -->
+<app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
+
+<div class="space-y-6">
+  
+  <!-- Header visual -->
+  <div class="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-700 rounded-lg shadow-lg">
+    <div class="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]"></div>
+    <div class="relative p-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center space-x-3 mb-2">
+            <div class="p-3 bg-white/20 backdrop-blur-sm rounded-lg">
+              <lucide-icon [img]="shieldCheckIcon" class="w-8 h-8 text-white"></lucide-icon>
+            </div>
+            <div>
+              <h1 class="text-white text-2xl font-bold">Verificar Receta</h1>
+              <p class="text-emerald-100 text-sm">
+                Validación de autenticidad mediante QR o Token
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-4">
+          <div class="p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+            <p class="text-emerald-100 text-xs mb-1">Verificaciones hoy</p>
+            <p class="text-white font-semibold text-3xl">{{ recentVerifications().length }}</p>
+          </div>
+          
+          <!-- Botón de ejemplo para cambio de rol -->
+          <button 
+            (click)="changeToPharmacistRole()"
+            class="px-4 py-2 bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-lg hover:bg-white/30 transition-colors flex items-center gap-2 text-sm font-medium"
+            title="Cambiar a rol de Farmacéutico para dispensar medicamentos"
+          >
+            <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
+            Cambiar a Farmacéutico
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banner informativo de seguridad -->
+  <div class="bg-emerald-50 border border-emerald-200 rounded-lg">
+    <div class="p-6">
+      <div class="flex items-start space-x-3">
+        <lucide-icon [img]="shieldCheckIcon" class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0"></lucide-icon>
+        <div>
+          <h4 class="font-medium text-emerald-900 mb-2">Sistema de verificación segura</h4>
+          <div class="text-sm text-emerald-800 space-y-2">
+            <p>
+              Antes de dispensar medicamentos, verifica la autenticidad de la receta para garantizar la seguridad del paciente y el cumplimiento normativo.
+            </p>
+            <ul class="list-disc list-inside space-y-1 ml-2">
+              <li>Validación de firma digital del médico prescriptor</li>
+              <li>Verificación de vigencia y estado de la receta</li>
+              <li>Detección de recetas duplicadas o anuladas</li>
+              <li>Trazabilidad completa del proceso de dispensación</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Métodos de verificación -->
+  <div class="bg-white rounded-lg shadow border border-gray-200">
+    <!-- Tabs -->
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex">
+        <button
+          (click)="setVerificationMethod('qr')"
+          [class]="verificationMethod() === 'qr' 
+            ? 'border-emerald-500 text-emerald-600 bg-emerald-50 w-1/2 py-4 px-6 text-center border-b-2 font-medium text-sm transition-colors'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 w-1/2 py-4 px-6 text-center border-b-2 font-medium text-sm transition-colors'"
+        >
+          <div class="flex items-center justify-center gap-2">
+            <lucide-icon [img]="qrCodeIcon" class="w-4 h-4"></lucide-icon>
+            Escanear QR
+          </div>
+        </button>
+        <button
+          (click)="setVerificationMethod('token')"
+          [class]="verificationMethod() === 'token' 
+            ? 'border-emerald-500 text-emerald-600 bg-emerald-50 w-1/2 py-4 px-6 text-center border-b-2 font-medium text-sm transition-colors'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 w-1/2 py-4 px-6 text-center border-b-2 font-medium text-sm transition-colors'"
+        >
+          <div class="flex items-center justify-center gap-2">
+            <lucide-icon [img]="keyIcon" class="w-4 h-4"></lucide-icon>
+            Buscar por Token
+          </div>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Contenido de tabs -->
+    <div class="p-6">
+      <!-- Verificación por QR -->
+      <div *ngIf="verificationMethod() === 'qr'" class="space-y-6">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Verificación por Código QR</h3>
+          <p class="text-sm text-gray-600">
+            Escanea el código QR impreso en la receta física o ingresa el código manualmente
+          </p>
+        </div>
+
+        <!-- Escáner QR -->
+        <div class="p-8 bg-gradient-to-br from-emerald-50 to-green-50 rounded-lg border-2 border-dashed border-emerald-300">
+          <div class="text-center">
+            <div *ngIf="isScanning(); else notScanning" class="space-y-4">
+              <div class="w-24 h-24 mx-auto bg-emerald-100 rounded-lg flex items-center justify-center animate-pulse">
+                <lucide-icon [img]="cameraIcon" class="w-12 h-12 text-emerald-600"></lucide-icon>
+              </div>
+              <p class="font-medium text-emerald-900">Cámara activada</p>
+              <p class="text-sm text-emerald-700">Enfoca el código QR de la receta...</p>
+              <button 
+                (click)="stopScanning()"
+                class="mt-4 px-4 py-2 border border-emerald-300 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors"
+              >
+                Cancelar escaneo
+              </button>
+            </div>
+            <ng-template #notScanning>
+              <div class="space-y-4">
+                <div class="w-24 h-24 mx-auto bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <lucide-icon [img]="scanIcon" class="w-12 h-12 text-emerald-600"></lucide-icon>
+                </div>
+                <div>
+                  <p class="font-medium text-emerald-900 mb-1">Escanear código QR</p>
+                  <p class="text-sm text-emerald-700">
+                    Activa la cámara para escanear el código QR de la receta
+                  </p>
+                </div>
+                <button 
+                  (click)="startQRScan()"
+                  class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 mx-auto transition-colors"
+                >
+                  <lucide-icon [img]="cameraIcon" class="w-4 h-4"></lucide-icon>
+                  Activar cámara
+                </button>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+
+        <!-- Input manual de QR -->
+        <div class="space-y-3">
+          <label class="text-sm font-medium text-gray-700">O ingresa el código QR manualmente</label>
+          <div class="flex gap-3">
+            <div class="flex-1 relative">
+              <lucide-icon [img]="qrCodeIcon" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></lucide-icon>
+              <input
+                type="text"
+                placeholder="Ejemplo: QR-9847-A3F2"
+                [(ngModel)]="qrInput"
+                (keydown.enter)="verifyByQR()"
+                class="pl-11 h-12 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+            <button 
+              (click)="verifyByQR()"
+              class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            >
+              <lucide-icon [img]="shieldCheckIcon" class="w-4 h-4"></lucide-icon>
+              Verificar
+            </button>
+          </div>
+          <p class="text-xs text-gray-600">
+            💡 El código QR está impreso en la esquina superior derecha de la receta
+          </p>
+        </div>
+      </div>
+
+      <!-- Verificación por Token -->
+      <div *ngIf="verificationMethod() === 'token'" class="space-y-6">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Verificación por Token</h3>
+          <p class="text-sm text-gray-600">
+            Ingresa el token de verificación único de la receta
+          </p>
+        </div>
+
+        <!-- Input de token -->
+        <div class="space-y-3">
+          <label class="text-sm font-medium text-gray-700">Token de verificación</label>
+          <div class="flex gap-3">
+            <div class="flex-1 relative">
+              <lucide-icon [img]="hashIcon" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></lucide-icon>
+              <input
+                type="text"
+                placeholder="Ejemplo: VRF-2025-9847-X8K4"
+                [(ngModel)]="tokenInput"
+                (input)="onTokenInput($event)"
+                (keydown.enter)="verifyByToken()"
+                class="pl-11 h-12 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-mono"
+              />
+            </div>
+            <button 
+              (click)="verifyByToken()"
+              class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            >
+              <lucide-icon [img]="shieldCheckIcon" class="w-4 h-4"></lucide-icon>
+              Verificar
+            </button>
+          </div>
+        </div>
+
+        <!-- Información sobre tokens -->
+        <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div class="flex items-start space-x-3">
+            <lucide-icon [img]="keyIcon" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"></lucide-icon>
+            <div>
+              <h4 class="font-medium text-blue-900 mb-1">¿Dónde encontrar el token?</h4>
+              <ul class="text-sm text-blue-800 space-y-1">
+                <li>• El token está impreso en la parte inferior de la receta</li>
+                <li>• También puede ser proporcionado verbalmente por el paciente</li>
+                <li>• Formato: VRF-AAAA-NNNN-XXXX (año-número-código)</li>
+                <li>• Cada token es único y de un solo uso</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tokens de ejemplo eliminados - ahora se usan datos reales del backend -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Verificaciones recientes -->
+  <div *ngIf="recentVerifications().length > 0" class="bg-white rounded-lg shadow-lg">
+    <div class="p-6 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-900 mb-1">Verificaciones Recientes</h3>
+      <p class="text-sm text-gray-600">
+        Últimas verificaciones realizadas en esta sesión
+      </p>
+    </div>
+    <div class="p-6">
+      <div class="space-y-2">
+        <button
+          *ngFor="let verification of recentVerifications(); let i = index"
+          (click)="viewRecentVerification(verification)"
+          class="w-full p-4 text-left bg-gradient-to-r from-gray-50 to-white hover:from-emerald-50 hover:to-white rounded-lg border border-gray-200 hover:border-emerald-200 transition-all"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <lucide-icon [img]="shieldCheckIcon" class="w-4 h-4 text-emerald-600"></lucide-icon>
+                <span class="font-medium text-gray-900">{{ verification.prescriptionNumber }}</span>
+              </div>
+              <p class="text-sm text-gray-600">{{ verification.patientName }}</p>
+              <p class="text-xs text-gray-500 mt-1">Verificado: {{ verification.verifiedAt }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span [class]="getStatusBadgeClass(verification.verificationStatus)" class="px-2 py-1 text-xs font-medium rounded-md border">
+                {{ getStatusLabel(verification.verificationStatus) }}
+              </span>
+              <lucide-icon 
+                *ngIf="verification.verificationStatus === 'valid'" 
+                [img]="checkCircle2Icon" 
+                class="w-5 h-5 text-green-600"
+              ></lucide-icon>
+            </div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información de seguridad -->
+  <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+    <div class="p-6">
+      <div class="flex items-start space-x-3">
+        <lucide-icon [img]="alertTriangleIcon" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"></lucide-icon>
+        <div>
+          <h4 class="font-medium text-blue-900 mb-2">Importante - Protocolo de verificación</h4>
+          <ul class="text-sm text-blue-800 space-y-1">
+            <li>✓ Siempre verifica la identidad del paciente antes de dispensar</li>
+            <li>✓ Confirma que los datos de la receta coinciden con el documento del paciente</li>
+            <li>✓ En caso de duda, contacta al médico prescriptor</li>
+            <li>✓ No dispensar medicamentos controlados sin verificación exitosa</li>
+            <li>✓ Registra cualquier anomalía en el sistema de auditoría</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal lateral derecho para resultado de verificación -->
+<div 
+  *ngIf="isResultOpen()" 
+  class="fixed inset-0 z-50 overflow-hidden"
+  (click)="closeResult()"
+>
+  <!-- Overlay -->
+  <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+  
+  <!-- Panel lateral -->
+  <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl transform transition-transform duration-300 ease-in-out flex flex-col modal-slide-in"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Header del modal -->
+    <div *ngIf="verificationResult() as result" 
+         [class]="getStatusHeaderClass(result.verificationStatus)" 
+         class="px-6 py-4 text-white flex-shrink-0">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <lucide-icon [img]="shieldCheckIcon" class="w-5 h-5"></lucide-icon>
+            <h2 class="text-lg font-semibold">Resultado de Verificación</h2>
+          </div>
+          <p [class]="getStatusHeaderTextClass(result.verificationStatus)" class="text-sm mt-1">{{ result.prescriptionNumber }}</p>
+        </div>
+        <button 
+          (click)="closeResult()"
+          class="p-2 hover:bg-white/20 rounded-lg transition-colors"
+        >
+          <lucide-icon [img]="xIcon" class="w-5 h-5"></lucide-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido del modal con scroll -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-6 space-y-6">
+
+        <div *ngIf="verificationResult() as result" class="space-y-6">
+          <!-- Estado de verificación -->
+          <div [class]="getStatusContainerClass(result.verificationStatus)" class="flex items-start justify-between p-4 rounded-lg border">
+            <div class="flex items-start space-x-3 flex-1">
+              <lucide-icon [img]="getStatusIcon(result.verificationStatus)" [class]="getStatusIconClass(result.verificationStatus)" class="w-6 h-6 mt-0.5 flex-shrink-0"></lucide-icon>
+              <div>
+                <p [class]="getStatusTextClass(result.verificationStatus)" class="font-semibold">{{ getStatusLabel(result.verificationStatus) }}</p>
+                <p [class]="getStatusDescriptionClass(result.verificationStatus)" class="text-sm mt-1">
+                  {{ getStatusDescription(result.verificationStatus) }}
+                </p>
+              </div>
+            </div>
+            <span [class]="getStatusBadgeClass(result.verificationStatus)" class="px-2 py-1 text-xs font-medium rounded-md border">
+              {{ getStatusLabel(result.verificationStatus) }}
+            </span>
+          </div>
+
+          <!-- Información de verificación -->
+          <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div class="flex items-center space-x-2 mb-3">
+              <lucide-icon [img]="shieldCheckIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
+              <h4 class="font-medium text-blue-900">Datos de verificación</h4>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div *ngIf="result.qrCode">
+                <p class="text-blue-600 font-medium">Código QR</p>
+                <p class="text-blue-800 font-mono">{{ result.qrCode }}</p>
+              </div>
+              <div *ngIf="result.token">
+                <p class="text-blue-600 font-medium">Token</p>
+                <p class="text-blue-800 font-mono">{{ result.token }}</p>
+              </div>
+              <div>
+                <p class="text-blue-600 font-medium">Fecha de verificación</p>
+                <p class="text-blue-800">{{ getCurrentDate() }}</p>
+              </div>
+              <div>
+                <p class="text-blue-600 font-medium">Hora</p>
+                <p class="text-blue-800">{{ getCurrentTime() }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información del paciente -->
+          <div>
+            <h4 class="font-medium text-gray-900 mb-3 flex items-center gap-2">
+              <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
+              Información del Paciente
+            </h4>
+            <div class="space-y-2 p-4 bg-gradient-to-r from-blue-50 to-white rounded-lg border border-blue-100">
+              <div>
+                <p class="text-sm text-gray-600">Nombre completo</p>
+                <p class="font-medium text-gray-900">{{ result.patientName }}</p>
+              </div>
+              <div class="grid grid-cols-3 gap-4 mt-3">
+                <div>
+                  <p class="text-xs text-gray-600">Identificación</p>
+                  <p class="text-sm font-medium">{{ result.patientId }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-600">Edad</p>
+                  <p class="text-sm font-medium">{{ result.age }} años</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-600">Sexo</p>
+                  <p class="text-sm font-medium">{{ result.gender === 'M' ? 'Masculino' : 'Femenino' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Médico prescriptor -->
+          <div>
+            <h4 class="font-medium text-gray-900 mb-3 flex items-center gap-2">
+              <lucide-icon [img]="shieldCheckIcon" class="w-4 h-4"></lucide-icon>
+              Médico Prescriptor
+            </h4>
+            <div class="p-3 bg-gray-50 rounded-lg">
+              <p class="text-sm font-medium text-gray-900">{{ result.doctorName }}</p>
+              <div class="flex items-center gap-2 mt-2">
+                <lucide-icon [img]="checkCircle2Icon" class="w-4 h-4 text-green-600"></lucide-icon>
+                <p class="text-xs text-gray-600">Firma digital verificada</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Medicamentos prescritos -->
+          <div>
+            <h4 class="font-medium text-gray-900 mb-3 flex items-center gap-2">
+              <lucide-icon [img]="pillIcon" class="w-4 h-4"></lucide-icon>
+              Medicamentos prescritos ({{ result.medicinesCount }})
+            </h4>
+            <div class="space-y-2">
+              <div 
+                *ngFor="let medicine of getMedicines(result)"
+                [class]="medicine.dispensed 
+                  ? 'p-3 rounded-lg border bg-gradient-to-r from-green-50 to-white border-green-200' 
+                  : 'p-3 rounded-lg border bg-gradient-to-r from-gray-50 to-white border-gray-200'"
+              >
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <p class="font-medium text-gray-900">{{ medicine.name }}</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      {{ medicine.dose }} • {{ medicine.quantity }}
+                    </p>
+                  </div>
+                  <span 
+                    *ngIf="medicine.dispensed" 
+                    class="bg-green-100 text-green-700 border-green-300 text-xs px-2 py-1 rounded-md border flex items-center gap-1"
+                  >
+                    <lucide-icon [img]="checkCircle2Icon" class="w-3 h-3"></lucide-icon>
+                    Dispensado
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información de fechas -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center space-x-2 text-gray-600 mb-1">
+                <lucide-icon [img]="calendarIcon" class="w-4 h-4"></lucide-icon>
+                <p class="text-xs">Fecha de emisión</p>
+              </div>
+              <p class="text-sm font-medium text-gray-900">{{ result.emittedDate }}</p>
+            </div>
+            <div [class]="result.verificationStatus === 'expired' ? 'p-3 rounded-lg bg-red-50' : 'p-3 rounded-lg bg-gray-50'">
+              <div class="flex items-center space-x-2 text-gray-600 mb-1">
+                <lucide-icon [img]="clockIcon" class="w-4 h-4"></lucide-icon>
+                <p class="text-xs">Válida hasta</p>
+              </div>
+              <p [class]="result.verificationStatus === 'expired' ? 'text-sm font-medium text-red-900' : 'text-sm font-medium text-gray-900'">
+                {{ result.validUntil }}
+              </p>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="bg-gray-50 px-6 py-4 flex-shrink-0">
+        <div *ngIf="verificationResult() as result" class="space-y-3">
+          <div *ngIf="canDispense(result); else cannotDispense">
+            <button 
+              (click)="proceedToDispensation(result.prescriptionNumber)"
+              class="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+            >
+              <lucide-icon [img]="arrowRightIcon" class="w-4 h-4"></lucide-icon>
+              Proceder a dispensación
+            </button>
+            
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <button 
+                (click)="printPrescription(result.prescriptionNumber)"
+                class="flex items-center justify-center gap-2 border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors"
+              >
+                <lucide-icon [img]="printerIcon" class="w-4 h-4"></lucide-icon>
+                Imprimir
+              </button>
+              
+              <button 
+                class="flex items-center justify-center gap-2 border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors"
+              >
+                <lucide-icon [img]="downloadIcon" class="w-4 h-4"></lucide-icon>
+                Exportar
+              </button>
+            </div>
+          </div>
+          
+          <ng-template #cannotDispense>
+            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div class="flex items-start gap-2">
+                <lucide-icon [img]="alertTriangleIcon" class="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"></lucide-icon>
+                <div>
+                  <p class="font-medium text-yellow-900">No se puede dispensar</p>
+                  <p class="text-sm text-yellow-800 mt-1">
+                    {{ getCannotDispenseReason(result.verificationStatus) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+  </div>
+</div>
+
+<!-- Modal de sugerencia de rol -->
+<app-role-suggestion-modal
+  [isOpen]="showRoleSuggestionModal()"
+  (dismiss)="onRoleSuggestionDismiss()"
+  (roleChanged)="onRoleChanged()"
+></app-role-suggestion-modal>

@@ -1,0 +1,355 @@
+# Database Schema Reference - FUENTE DE VERDAD
+
+**Este documento es la FUENTE DE VERDAD para la estructura de la base de datos Oracle.**
+
+**Ubicación original:** `eprescription-Database/DATABASE-SCHEMA-REFERENCE.md`
+
+## Tablas Críticas para MVP
+
+### PRESCRIPTIONS
+```
+PRESCRIPTION_ID (RAW(16)) - PK
+PRESCRIPTION_NUMBER (VARCHAR2(50)) - UNIQUE
+PATIENT_ID (RAW(16)) - FK → PATIENTS
+DOCTOR_ID (RAW(16)) - FK → DOCTORS
+MEDICAL_CENTER_ID (RAW(16)) - FK → MEDICAL_CENTERS
+PRESCRIPTION_DATE (TIMESTAMP(6))
+EXPIRATION_DATE (TIMESTAMP(6))
+STATUS (VARCHAR2(20)) - draft/issued/dispensed/cancelled/expired
+NOTES (CLOB)
+CREATED_AT (TIMESTAMP(6))
+UPDATED_AT (TIMESTAMP(6))
+```
+
+### PRESCRIPTION_PAD_TYPES (NUEVA TABLA - CATÁLOGO)
+```
+PAD_TYPE_ID (RAW(16)) - PK
+PAD_TYPE_NAME (VARCHAR2(100)) - Nombre del tipo (Libre/Normal, Antimicrobianos, Psicotrópicos, Estupefacientes)
+PAD_TYPE_CODE (VARCHAR2(20)) - Código único (LIBRE, ANTIMICRO, PSICO, ESTUP)
+DEFAULT_QUANTITY (NUMBER(5,0)) - Cantidad por defecto (default: 50)
+DESCRIPTION (VARCHAR2(500)) - Descripción
+IS_ACTIVE (NUMBER(1,0)) - Activo (1) o inactivo (0)
+CREATED_AT (TIMESTAMP(6)) - Fecha de creación
+UPDATED_AT (TIMESTAMP(6)) - Última actualización
+
+UNIQUE CONSTRAINT: PAD_TYPE_CODE
+```
+
+**SQL para crear tabla:**
+```sql
+CREATE TABLE PRESCRIPTION_PAD_TYPES (
+    PAD_TYPE_ID RAW(16) PRIMARY KEY,
+    PAD_TYPE_NAME VARCHAR2(100) NOT NULL,
+    PAD_TYPE_CODE VARCHAR2(20) NOT NULL UNIQUE,
+    DEFAULT_QUANTITY NUMBER(5,0) DEFAULT 50,
+    DESCRIPTION VARCHAR2(500),
+    IS_ACTIVE NUMBER(1,0) DEFAULT 1,
+    CREATED_AT TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    UPDATED_AT TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insertar tipos de talonarios
+INSERT INTO PRESCRIPTION_PAD_TYPES VALUES (SYS_GUID(), 'Libre/Normal', 'LIBRE', 50, 'Talonario para medicamentos de venta libre', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO PRESCRIPTION_PAD_TYPES VALUES (SYS_GUID(), 'Antimicrobianos', 'ANTIMICRO', 50, 'Talonario para medicamentos antimicrobianos', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO PRESCRIPTION_PAD_TYPES VALUES (SYS_GUID(), 'Psicotrópicos', 'PSICO', 50, 'Talonario para medicamentos psicotrópicos', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO PRESCRIPTION_PAD_TYPES VALUES (SYS_GUID(), 'Estupefacientes', 'ESTUP', 50, 'Talonario para medicamentos estupefacientes', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+```
+
+---
+
+### PRESCRIPTION_PADS (NUEVA TABLA - CRÍTICA PARA MVP)
+```
+PRESCRIPTION_PAD_ID (RAW(16)) - PK
+DOCTOR_ID (RAW(16)) - FK → DOCTORS (NOT NULL)
+PAD_TYPE_ID (RAW(16)) - FK → PRESCRIPTION_PAD_TYPES (NOT NULL)
+PAD_NUMBER (VARCHAR2(50)) - Número de serie del talonario
+AVAILABLE_COUNT (NUMBER(5,0)) - Cantidad disponible
+TOTAL_COUNT (NUMBER(5,0)) - Cantidad total
+EXPIRATION_DATE (DATE) - Fecha de vencimiento
+IS_ACTIVE (NUMBER(1,0)) - Activo (1) o inactivo (0)
+CREATED_AT (TIMESTAMP(6)) - Fecha de creación
+UPDATED_AT (TIMESTAMP(6)) - Última actualización
+
+UNIQUE CONSTRAINT: (DOCTOR_ID, PAD_TYPE_ID, PAD_NUMBER)
+CHECK CONSTRAINT: AVAILABLE_COUNT <= TOTAL_COUNT
+```
+
+**SQL para crear tabla:**
+```sql
+CREATE TABLE PRESCRIPTION_PADS (
+    PRESCRIPTION_PAD_ID RAW(16) PRIMARY KEY,
+    DOCTOR_ID RAW(16) NOT NULL,
+    PAD_TYPE_ID RAW(16) NOT NULL,
+    PAD_NUMBER VARCHAR2(50) NOT NULL,
+    AVAILABLE_COUNT NUMBER(5,0) NOT NULL,
+    TOTAL_COUNT NUMBER(5,0) NOT NULL,
+    EXPIRATION_DATE DATE NOT NULL,
+    IS_ACTIVE NUMBER(1,0) DEFAULT 1,
+    CREATED_AT TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    UPDATED_AT TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FK_PAD_DOCTOR FOREIGN KEY (DOCTOR_ID) REFERENCES DOCTORS(DOCTOR_ID),
+    CONSTRAINT FK_PAD_TYPE FOREIGN KEY (PAD_TYPE_ID) REFERENCES PRESCRIPTION_PAD_TYPES(PAD_TYPE_ID),
+    CONSTRAINT UK_PAD_DOCTOR_TYPE_NUMBER UNIQUE (DOCTOR_ID, PAD_TYPE_ID, PAD_NUMBER),
+    CONSTRAINT CHK_PAD_COUNT CHECK (AVAILABLE_COUNT <= TOTAL_COUNT)
+);
+```
+
+---
+
+### PRESCRIPTION_SLIPS (NUEVA TABLA - BOLETAS INDIVIDUALES)
+```
+SLIP_ID (RAW(16)) - PK - ID único de la boleta
+PRESCRIPTION_PAD_ID (RAW(16)) - FK → PRESCRIPTION_PADS (NOT NULL)
+SLIP_NUMBER (NUMBER(5,0)) - Número secuencial dentro del talonario (1-50)
+STATUS (VARCHAR2(20)) - Estado: available/used/cancelled
+USED_BY_PRESCRIPTION_ID (RAW(16)) - FK → PRESCRIPTIONS (NULLABLE)
+USED_AT (TIMESTAMP(6)) - Fecha de uso (NULLABLE)
+CREATED_AT (TIMESTAMP(6)) - Fecha de creación
+UPDATED_AT (TIMESTAMP(6)) - Última actualización
+
+UNIQUE CONSTRAINT: (PRESCRIPTION_PAD_ID, SLIP_NUMBER)
+```
+
+**SQL para crear tabla:**
+```sql
+CREATE TABLE PRESCRIPTION_SLIPS (
+    SLIP_ID RAW(16) PRIMARY KEY,
+    PRESCRIPTION_PAD_ID RAW(16) NOT NULL,
+    SLIP_NUMBER NUMBER(5,0) NOT NULL,
+    STATUS VARCHAR2(20) DEFAULT 'available',
+    USED_BY_PRESCRIPTION_ID RAW(16),
+    USED_AT TIMESTAMP(6),
+    CREATED_AT TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    UPDATED_AT TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FK_SLIP_PAD FOREIGN KEY (PRESCRIPTION_PAD_ID) REFERENCES PRESCRIPTION_PADS(PRESCRIPTION_PAD_ID),
+    CONSTRAINT FK_SLIP_PRESCRIPTION FOREIGN KEY (USED_BY_PRESCRIPTION_ID) REFERENCES PRESCRIPTIONS(PRESCRIPTION_ID),
+    CONSTRAINT UK_SLIP_PAD_NUMBER UNIQUE (PRESCRIPTION_PAD_ID, SLIP_NUMBER)
+);
+```
+
+---
+
+### MEDICATIONS (ACTUALIZACIÓN - AGREGAR COLUMNA)
+```
+Agregar columna:
+PAD_TYPE_ID (RAW(16)) - FK → PRESCRIPTION_PAD_TYPES (NULLABLE)
+  - Si es NULL: medicamento puede usarse con cualquier talonario
+  - Si tiene valor: medicamento requiere ese tipo específico de talonario
+```
+
+**SQL para actualizar tabla:**
+```sql
+ALTER TABLE MEDICATIONS ADD (
+    PAD_TYPE_ID RAW(16),
+    CONSTRAINT FK_MED_PAD_TYPE FOREIGN KEY (PAD_TYPE_ID) REFERENCES PRESCRIPTION_PAD_TYPES(PAD_TYPE_ID)
+);
+```
+
+### PATIENTS
+```
+PATIENT_ID (RAW(16)) - PK
+IDENTIFICATION_NUMBER (VARCHAR2(50)) - UNIQUE
+FIRST_NAME (VARCHAR2(100))
+LAST_NAME (VARCHAR2(100))
+DATE_OF_BIRTH (DATE)
+GENDER (VARCHAR2(10))
+BLOOD_TYPE (VARCHAR2(5))
+CREATED_AT (TIMESTAMP(6))
+UPDATED_AT (TIMESTAMP(6))
+```
+
+### DOCTORS
+```
+DOCTOR_ID (RAW(16)) - PK
+IDENTIFICATION_NUMBER (VARCHAR2(50)) - UNIQUE
+FIRST_NAME (VARCHAR2(100))
+LAST_NAME (VARCHAR2(100))
+SPECIALTY_ID (RAW(16)) - FK → SPECIALTIES
+LICENSE_NUMBER (VARCHAR2(50)) - UNIQUE
+EMAIL (VARCHAR2(200))
+PHONE (VARCHAR2(20))
+IS_ACTIVE (NUMBER(1,0))
+CREATED_AT (TIMESTAMP(6))
+UPDATED_AT (TIMESTAMP(6))
+```
+
+### MEDICATIONS
+```
+MEDICATION_ID (RAW(16)) - PK
+MEDICATION_CODE (VARCHAR2(50)) - UNIQUE
+COMMERCIAL_NAME (VARCHAR2(200))
+GENERIC_NAME (VARCHAR2(200))
+ACTIVE_INGREDIENT (VARCHAR2(200))
+PRESENTATION (VARCHAR2(100))
+CONCENTRATION (VARCHAR2(100))
+REQUIRES_PRESCRIPTION (NUMBER(1,0))
+IS_ACTIVE (NUMBER(1,0))
+ADMINISTRATION_ROUTE_ID (RAW(16)) - FK → ADMINISTRATION_ROUTES
+CREATED_AT (TIMESTAMP(6))
+UPDATED_AT (TIMESTAMP(6))
+```
+
+### PRESCRIPTION_MEDICATIONS
+```
+PRESCRIPTION_MEDICATION_ID (RAW(16)) - PK
+PRESCRIPTION_ID (RAW(16)) - FK → PRESCRIPTIONS
+MEDICATION_ID (RAW(16)) - FK → MEDICATIONS
+DOSAGE (VARCHAR2(100))
+FREQUENCY (VARCHAR2(100))
+DURATION_DAYS (NUMBER(5,0))
+ADMINISTRATION_ROUTE_ID (RAW(16)) - FK → ADMINISTRATION_ROUTES
+QUANTITY (NUMBER(10,2))
+INSTRUCTIONS (CLOB)
+AI_SUGGESTED (NUMBER(1,0))
+CREATED_AT (TIMESTAMP(6))
+```
+
+### PHARMACIES
+```
+PHARMACY_ID (RAW(16)) - PK
+PHARMACY_NAME (VARCHAR2(200))
+LICENSE_NUMBER (VARCHAR2(50)) - UNIQUE
+ADDRESS_ID (RAW(16)) - FK → ADDRESSES
+PHONE (VARCHAR2(20))
+EMAIL (VARCHAR2(200))
+IS_ACTIVE (NUMBER(1,0))
+CITY (VARCHAR2(100))
+CREATED_AT (TIMESTAMP(6))
+UPDATED_AT (TIMESTAMP(6))
+```
+
+### DISPENSATIONS
+```
+DISPENSATION_ID (RAW(16)) - PK
+PRESCRIPTION_ID (RAW(16)) - FK → PRESCRIPTIONS
+PHARMACY_ID (RAW(16)) - FK → PHARMACIES
+PHARMACIST_ID (RAW(16)) - FK → USERS
+DISPENSATION_DATE (TIMESTAMP(6))
+STATUS (VARCHAR2(20)) - pending/verified/completed/rejected
+NOTES (CLOB)
+CREATED_AT (TIMESTAMP(6))
+UPDATED_AT (TIMESTAMP(6))
+```
+
+### AUDIT_LOGS
+```
+AUDIT_ID (RAW(16)) - PK
+TIMESTAMP (TIMESTAMP(6))
+USER_ID (RAW(16)) - FK → USERS
+USERNAME (VARCHAR2(100))
+IP_ADDRESS (VARCHAR2(50))
+ACTION_TYPE (VARCHAR2(100))
+ENTITY_TYPE (VARCHAR2(100))
+ENTITY_ID (VARCHAR2(100))
+BEFORE_VALUE (CLOB) - JSON
+AFTER_VALUE (CLOB) - JSON
+METADATA (CLOB) - JSON
+SESSION_ID (VARCHAR2(100))
+CREATED_AT (TIMESTAMP(6))
+```
+
+## Validaciones Críticas
+
+1. **IDs son GUID (RAW(16))**
+   - Generar con `SYS_GUID()`
+   - Nunca usar strings
+
+2. **Fechas en UTC**
+   - Usar `TIMESTAMP(6)` para precisión
+   - Convertir a UTC en backend
+
+3. **Estados de Receta**
+   - `draft` - Borrador no emitido
+   - `issued` - Emitida y válida
+   - `dispensed` - Dispensada en farmacia
+   - `cancelled` - Anulada
+   - `expired` - Vencida
+
+4. **Talonarios**
+   - Validar `AVAILABLE_COUNT > 0`
+   - Validar `EXPIRATION_DATE >= TODAY`
+   - Decrementar `AVAILABLE_COUNT` al emitir
+
+5. **Foreign Keys**
+   - Verificar que existan antes de insertar
+   - Usar transacciones para integridad
+
+## Orden de Dependencias
+
+1. Tablas base (sin FK): SPECIALTIES, ADMINISTRATION_ROUTES, ADDRESSES
+2. Entidades principales: PATIENTS, DOCTORS, MEDICATIONS, PHARMACIES
+3. Relaciones: PRESCRIPTIONS, PRESCRIPTION_MEDICATIONS
+4. Operaciones: DISPENSATIONS, AUDIT_LOGS
+
+## Prevención de Errores EF Core
+
+**Problemas comunes:**
+- Shadow properties no mapeadas
+- Nombres de columnas incorrectos
+- Tipos de datos incompatibles
+- Foreign keys no validadas
+
+**Solución:**
+- Usar SQL directo para operaciones complejas
+- Validar esquema antes de mapear
+- Incluir migraciones explícitas
+- Testear con datos reales
+
+## Cómo Generar/Validar Este Documento
+
+**Desde Docker (RECOMENDADO):**
+
+```powershell
+# 1. Conectar a Oracle en Docker
+docker exec -it eprescription-db sqlplus eprescription_user/password@XE
+
+# 2. Ejecutar queries para validar tablas
+SELECT TABLE_NAME FROM USER_TABLES ORDER BY TABLE_NAME;
+
+# 3. Ver estructura de tabla específica
+DESC PRESCRIPTIONS;
+DESC PRESCRIPTION_PADS;
+
+# 4. Ver constraints
+SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE FROM USER_CONSTRAINTS 
+WHERE TABLE_NAME = 'PRESCRIPTIONS';
+
+# 5. Ver foreign keys
+SELECT CONSTRAINT_NAME, TABLE_NAME, R_TABLE_NAME 
+FROM USER_CONSTRAINTS WHERE CONSTRAINT_TYPE = 'R';
+```
+
+**Script PowerShell para validar:**
+
+```powershell
+# Validar que PRESCRIPTION_PADS existe
+docker exec eprescription-db sqlplus -s eprescription_user/password@XE <<EOF
+SET HEADING OFF FEEDBACK OFF PAGESIZE 0 LINESIZE 1000 ECHO OFF
+SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME = 'PRESCRIPTION_PADS';
+EXIT;
+EOF
+
+# Validar estructura
+docker exec eprescription-db sqlplus -s eprescription_user/password@XE <<EOF
+SET HEADING OFF FEEDBACK OFF PAGESIZE 0 LINESIZE 1000 ECHO OFF
+DESC PRESCRIPTION_PADS;
+EXIT;
+EOF
+```
+
+**Workflow Docker para MVP:**
+
+1. **Desarrollo local:** Editar código en IDE
+2. **Compilación:** `dotnet build` en local
+3. **Build Docker:** `docker-compose build eprescription-api`
+4. **Iniciar:** `docker-compose up -d eprescription-api`
+5. **Validar BD:** Conectar a Oracle en Docker
+6. **Probar endpoints:** Swagger en `http://localhost:8000/swagger`
+
+## Referencias
+
+- Documento completo: `eprescription-Database/DATABASE-SCHEMA-REFERENCE.md`
+- Migraciones: `eprescription-API/src/ePrescription.Infrastructure/Persistence/Migrations/`
+- Modelos: `eprescription-API/src/ePrescription.Domain/Entities/`
+- Docker Compose: `docker-compose.yml`
+- Workflow: Ver `docker-development-workflow.md` en steering

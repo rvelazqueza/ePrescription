@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ePrescription</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2b6cb0;
+            --primary-dark: #2c5282;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #e53e3e;
+            --gray-50: #f7fafc;
+            --gray-100: #edf2f7;
+            --gray-200: #e2e8f0;
+            --gray-500: #718096;
+            --gray-600: #4a5568;
+            --gray-700: #2d3748;
+            --gray-800: #1a202c;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--gray-700);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .space-y-6 > * + * {
+            margin-top: 1.5rem;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        /* Grid Layouts */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, 1fr);
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-cols-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        @media (max-width: 1024px) {
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-3,
+            .grid-cols-4 {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+
+        /* System Banner */
+        .system-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Medical Header */
+        .medical-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .medical-header h1 {
+            color: var(--gray-800);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .medical-header p {
+            color: var(--gray-600);
+        }
+
+        /* Quick Action Cards */
+        .quick-action-card {
+            padding: 1.5rem;
+            border: 2px solid;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .quick-action-card.primary {
+            border-color: rgba(43, 108, 176, 0.3);
+            background: rgba(43, 108, 176, 0.05);
+        }
+
+        .quick-action-card.primary:hover {
+            border-color: rgba(43, 108, 176, 0.6);
+        }
+
+        .quick-action-card.success {
+            border-color: rgba(72, 187, 120, 0.3);
+            background: rgba(72, 187, 120, 0.05);
+        }
+
+        .quick-action-card.success:hover {
+            border-color: rgba(72, 187, 120, 0.6);
+        }
+
+        .quick-action-card.purple {
+            border-color: rgba(128, 90, 213, 0.3);
+            background: rgba(128, 90, 213, 0.05);
+        }
+
+        .quick-action-card.purple:hover {
+            border-color: rgba(128, 90, 213, 0.6);
+        }
+
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-icon.primary {
+            background: rgba(43, 108, 176, 0.1);
+            color: var(--primary);
+        }
+
+        .action-icon.success {
+            background: rgba(72, 187, 120, 0.1);
+            color: var(--success);
+        }
+
+        .action-icon.purple {
+            background: rgba(128, 90, 213, 0.1);
+            color: #805ad5;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card.blue {
+            background: linear-gradient(135deg, #ebf8ff 0%, white 100%);
+            border: 1px solid #bee3f8;
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #f0fff4 0%, white 100%);
+            border: 1px solid #c6f6d5;
+        }
+
+        .stat-card.purple {
+            background: linear-gradient(135deg, #faf5ff 0%, white 100%);
+            border: 1px solid #e9d8fd;
+        }
+
+        .stat-card.orange {
+            background: linear-gradient(135deg, #fffaf0 0%, white 100%);
+            border: 1px solid #feebc8;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .stat-number.blue { color: var(--primary); }
+        .stat-number.green { color: var(--success); }
+        .stat-number.purple { color: #805ad5; }
+        .stat-number.orange { color: var(--warning); }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon.blue {
+            background: #bee3f8;
+            color: var(--primary);
+        }
+
+        .stat-icon.green {
+            background: #c6f6d5;
+            color: var(--success);
+        }
+
+        .stat-icon.purple {
+            background: #e9d8fd;
+            color: #805ad5;
+        }
+
+        .stat-icon.orange {
+            background: #feebc8;
+            color: var(--warning);
+        }
+
+        /* Recent Activity */
+        .activity-item {
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge.warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        /* Icons (SVG) */
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .icon-lg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.success {
+            background: var(--success);
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-xs {
+            font-size: 0.75rem;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .text-gray-600 {
+            color: var(--gray-600);
+        }
+
+        .text-gray-900 {
+            color: var(--gray-800);
+        }
+
+        .text-green-600 {
+            color: var(--success);
+        }
+
+        .mt-1 {
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../index.html" class="back-link">
+            ← Volver al índice
+        </a>
+
+        <div class="space-y-6">
+            <!-- System Banner -->
+            <div class="system-banner">
+                <div>
+                    <strong>ePrescription</strong> - Sistema Hospitalario Profesional
+                </div>
+                <div class="text-sm">
+                    🔒 Conexión Segura | ✅ Cumple HL7 FHIR
+                </div>
+            </div>
+
+            <!-- Medical Header -->
+            <div class="medical-header">
+                <h1>Dashboard Médico</h1>
+                <p>Bienvenido Dr. Juan Pérez - Sistema de Prescripción Electrónica</p>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                        Acciones Rápidas
+                    </h2>
+                </div>
+                <div class="card-content">
+                    <div class="grid grid-cols-3">
+                        <div class="quick-action-card primary" onclick="alert('Nueva Prescripción')">
+                            <div class="action-icon primary">
+                                <svg class="icon-lg" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Nueva Prescripción</h3>
+                                <p class="text-sm text-gray-600">Crear receta médica</p>
+                            </div>
+                        </div>
+
+                        <div class="quick-action-card success" onclick="alert('Buscar Paciente')">
+                            <div class="action-icon success">
+                                <svg class="icon-lg" viewBox="0 0 24 24">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Buscar Paciente</h3>
+                                <p class="text-sm text-gray-600">Historial médico</p>
+                            </div>
+                        </div>
+
+                        <div class="quick-action-card purple" onclick="alert('Inventario')">
+                            <div class="action-icon purple">
+                                <svg class="icon-lg" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <circle cx="12" cy="12" r="6"></circle>
+                                    <circle cx="12" cy="12" r="2"></circle>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Inventario</h3>
+                                <p class="text-sm text-gray-600">Medicamentos disponibles</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Grid -->
+            <div class="grid grid-cols-4">
+                <div class="stat-card blue">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Prescripciones Hoy</p>
+                            <p class="stat-number blue">127</p>
+                            <p class="text-xs text-green-600 mt-1">+12% vs ayer</p>
+                        </div>
+                        <div class="stat-icon blue">
+                            <svg class="icon-lg" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card green">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Pacientes Atendidos</p>
+                            <p class="stat-number green">89</p>
+                            <p class="text-xs text-green-600 mt-1">+8% vs ayer</p>
+                        </div>
+                        <div class="stat-icon green">
+                            <svg class="icon-lg" viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card purple">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Medicamentos</p>
+                            <p class="stat-number purple">234</p>
+                            <p class="text-xs text-green-600 mt-1">+5% vs ayer</p>
+                        </div>
+                        <div class="stat-icon purple">
+                            <svg class="icon-lg" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="6"></circle>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card orange">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Alertas Pendientes</p>
+                            <p class="stat-number orange">3</p>
+                            <p class="text-xs" style="color: var(--warning);">Requiere atención</p>
+                        </div>
+                        <div class="stat-icon orange">
+                            <svg class="icon-lg" viewBox="0 0 24 24">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="grid grid-cols-1" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Prescripciones Recientes
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="space-y-6">
+                            <div class="activity-item">
+                                <div>
+                                    <p class="font-medium text-gray-900">María Elena González</p>
+                                    <p class="text-sm text-gray-600">RX-2025-009847</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="badge success">
+                                        <svg class="icon" style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                        Completada
+                                    </span>
+                                    <p class="text-xs text-gray-500 mt-1">10:32 AM</p>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div>
+                                    <p class="font-medium text-gray-900">Carlos Rodríguez López</p>
+                                    <p class="text-sm text-gray-600">RX-2025-009846</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="badge warning">
+                                        <svg class="icon" style="width: 12px; height: 12px;" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        Borrador
+                                    </span>
+                                    <p class="text-xs text-gray-500 mt-1">09:15 AM</p>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div>
+                                    <p class="font-medium text-gray-900">Ana Sofía Martínez</p>
+                                    <p class="text-sm text-gray-600">RX-2025-009845</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="badge success">
+                                        <svg class="icon" style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                        Completada
+                                    </span>
+                                    <p class="text-xs text-gray-500 mt-1">08:45 AM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                <polyline points="17 6 23 6 23 12"></polyline>
+                            </svg>
+                            Rendimiento del Sistema
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Tiempo de respuesta</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="status-dot success"></div>
+                                    <span class="text-sm font-medium">< 100ms</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Disponibilidad</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="status-dot success"></div>
+                                    <span class="text-sm font-medium">99.9%</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Usuarios activos</span>
+                                <span class="text-sm font-medium">342</span>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Almacenamiento usado</span>
+                                <span class="text-sm font-medium">45.2 GB / 100 GB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Dashboard de ePrescription cargado');
+
+        // Simulación de actualización de datos en tiempo real
+        setInterval(() => {
+            const now = new Date();
+            console.log(`Dashboard actualizado: ${now.toLocaleTimeString()}`);
+        }, 30000); // Cada 30 segundos
+
+        // Interactividad para las tarjetas de acciones rápidas
+        document.querySelectorAll('.quick-action-card').forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>

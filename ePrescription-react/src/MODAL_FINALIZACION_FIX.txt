@@ -1,0 +1,173 @@
+      {/* Diálogo de confirmación de finalización */}
+      <Dialog open={showFinalizationDialog} onOpenChange={setShowFinalizationDialog}>
+        <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto p-0">
+          <div className="p-6 pb-0">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-green-600">
+                <Award className="w-6 h-6 text-green-600 flex-shrink-0" />
+                <span className="break-words">Prescripción Finalizada y Firmada</span>
+              </DialogTitle>
+              <DialogDescription className="break-words">
+                La receta ha sido emitida exitosamente y está lista para ser dispensada.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          <div className="space-y-4 px-6 py-4 overflow-y-auto">
+            {/* Información principal */}
+            <div className="p-3 sm:p-4 bg-green-50 border-2 border-green-200 rounded-lg space-y-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pb-2 border-b border-green-200">
+                <span className="text-sm font-medium text-gray-700">Número de Receta:</span>
+                <Badge className="bg-green-600 text-white text-sm px-2 py-1 w-fit">
+                  {finalizedPrescriptionNumber}
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">Paciente:</span>
+                  <p className="text-sm text-gray-900 font-medium break-words">
+                    {prescription.patientName} {prescription.patientFirstLastName}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">ID Paciente:</span>
+                  <p className="text-sm text-gray-600 break-words">{prescription.patientId}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">Médico:</span>
+                  <p className="text-sm text-gray-600 break-words">{prescription.doctorName}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-gray-700">Medicamentos:</span>
+                  <p className="text-sm text-gray-600">{medicines.length}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pt-2 border-t border-green-200">
+                <span className="text-sm font-medium text-gray-700">Fecha y Hora:</span>
+                <span className="text-sm text-gray-600 break-words">
+                  {new Date().toLocaleDateString('es-ES')} - {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            </div>
+
+            {/* Información del Talonario y Boleta */}
+            {finalizedBookletInfo && (
+              <div className="p-3 sm:p-4 bg-purple-50 border-2 border-purple-200 rounded-lg space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-purple-200">
+                  <Package className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                  <span className="font-medium text-purple-900 text-sm sm:text-base">Control de Talonarios</span>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <span className="text-sm font-medium text-gray-700">Número de Talonario:</span>
+                    <p className="text-sm text-gray-900 font-mono font-medium break-all">
+                      {finalizedBookletInfo.bookletNumber}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm font-medium text-gray-700">Número de Boleta:</span>
+                    <p className="text-sm text-gray-900 font-mono font-medium break-all">
+                      {finalizedBookletInfo.slipNumber}
+                    </p>
+                  </div>
+                  <div className="col-span-1 sm:col-span-2 space-y-1">
+                    <span className="text-sm font-medium text-gray-700">Código Completo:</span>
+                    <div className="break-all">
+                      <Badge variant="outline" className="font-mono text-xs bg-purple-100 text-purple-800 border-purple-300 inline-block">
+                        {finalizedBookletInfo.fullSlipNumber}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Detalles de firma digital */}
+            <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+              <div className="flex items-center gap-2 mb-2">
+                <Award className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                <span className="font-medium text-blue-900 text-sm sm:text-base">Firma Digital Aplicada</span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <span className="text-gray-600">Token de firma:</span>
+                  <span className="font-mono text-gray-900 text-xs break-all">SIG-{new Date().getFullYear()}-XXXXXX</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <span className="text-gray-600">Código QR:</span>
+                  <span className="font-mono text-gray-900 text-xs break-all">QR-{finalizedPrescriptionNumber}</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                  <span className="text-gray-600">Estado:</span>
+                  <Badge className="bg-green-100 text-green-800 border-green-300 w-fit">Emitida</Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* Información adicional */}
+            <div className="text-sm text-muted-foreground space-y-2 bg-gray-50 p-3 rounded-lg">
+              <p className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                <span className="break-words">La receta ha sido registrada en el sistema de recetas emitidas</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <FileText className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <span className="break-words">Puede imprimir o enviar la receta al paciente</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <Award className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
+                <span className="break-words">La firma digital garantiza la autenticidad de la prescripción</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="p-6 pt-0">
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowFinalizationDialog(false);
+                  if (onNavigateToEmitted) {
+                    onNavigateToEmitted();
+                  } else if (onBack) {
+                    onBack();
+                  } else {
+                    toast.info('Navegación no disponible');
+                  }
+                }}
+                className="w-full sm:w-auto"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Ver Recetas Emitidas
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  handleExportPDF();
+                }}
+                className="w-full sm:w-auto"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimir Receta
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowFinalizationDialog(false);
+                  setMedicines([]);
+                  setSelectedMedicine(null);
+                  setPrescription({...mockPrescription, prescriptionNumber: `DRAFT-${Date.now()}`});
+                  setCurrentDraftId(undefined);
+                  setHasUnsavedChanges(false);
+                  toast.success('Listo para nueva prescripción');
+                }}
+                className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+              >
+                Nueva Prescripción
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
