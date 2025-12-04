@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Building, Plus, Search, Download, Eye, Edit, CheckCircle, XCircle, MapPin, DollarSign, Phone, Mail, Filter, Users, AlertCircle, ChevronLeft, ChevronRight, Trash2 } from 'lucide-angular';
 import { Subject, takeUntil } from 'rxjs';
-import { PharmacyMockService } from '../../../services/pharmacy-mock.service';
+import { PharmacyService } from '../../../services/pharmacy.service';
 import { Pharmacy } from '../../../interfaces/pharmacy.interface';
 import { BreadcrumbsComponent, BreadcrumbItem } from '../../../components/breadcrumbs/breadcrumbs.component';
 
@@ -87,7 +87,7 @@ export class FarmaciasListaComponent implements OnInit, OnDestroy {
   itemsPerPage = 10;
   paginatedPharmacies: Pharmacy[] = [];
 
-  constructor(private pharmacyService: PharmacyMockService) {}
+  constructor(private pharmacyService: PharmacyService) {}
 
   ngOnInit(): void {
     console.log('⚠️ COMPONENTE DEPRECATED - NO SE USA EN LA APLICACIÓN');
@@ -105,7 +105,7 @@ export class FarmaciasListaComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.pharmacyService.getPharmacies()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(pharmacies => {
+      .subscribe((pharmacies: Pharmacy[]) => {
         this.pharmacies = pharmacies;
         this.applyFilters();
         this.isLoading = false;
@@ -248,7 +248,7 @@ export class FarmaciasListaComponent implements OnInit, OnDestroy {
         ...formData,
         fechaRegistro: this.selectedPharmacy.fechaRegistro
       }).pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
+      .subscribe((response: Pharmacy) => {
         this.loadPharmacies();
         this.onCloseFormModal();
         // TODO: Show success message
@@ -260,7 +260,7 @@ export class FarmaciasListaComponent implements OnInit, OnDestroy {
         ...formData,
         fechaRegistro: new Date().toISOString().split('T')[0]
       }).pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
+      .subscribe((response: Pharmacy) => {
         this.loadPharmacies();
         this.onCloseFormModal();
         // TODO: Show success message

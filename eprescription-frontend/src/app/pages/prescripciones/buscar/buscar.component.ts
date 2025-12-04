@@ -8,9 +8,11 @@ import { PageHeaderComponent } from '../../../components/page-header/page-header
 import { RoleSuggestionModalComponent } from '../../../components/role-suggestion-modal/role-suggestion-modal.component';
 import { RoleDemoService } from '../../../services/role-demo.service';
 import { RoleSuggestionService } from '../../../services/role-suggestion.service';
+import { PrescripcionesService, PrescriptionDto, SearchPrescriptionsParams } from '../../../services/prescripciones.service';
 
 interface Receta {
-  id: string;
+  id: string; // Número de receta (para mostrar)
+  idReal: string; // ID GUID real (para operaciones backend)
   paciente: {
     nombre: string;
     cedula: string;
@@ -876,242 +878,8 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
     { label: 'Buscar Receta' }
   ];
 
-  // Datos de ejemplo (combinando borradores y recetas emitidas)
-  todasLasRecetas: Receta[] = [
-    // Borradores
-    {
-      id: 'RX-2025-009847',
-      paciente: {
-        nombre: 'María Elena González Rodríguez',
-        cedula: 'CC-52.841.963',
-        edad: 45,
-        genero: 'F'
-      },
-      medico: {
-        nombre: 'Dr. Carlos Alberto Mendoza Herrera',
-        especialidad: 'Medicina Interna',
-        codigoMedico: 'MED-001',
-        firmaDigital: false
-      },
-      diagnostico: 'Hipertensión arterial esencial (I10)',
-      fecha: '27/09/2025',
-      fechaVencimiento: '',
-      estado: 'borrador',
-      medicamentos: [
-        {
-          nombre: 'Losartán 50mg',
-          dosis: '50mg',
-          cantidad: 30,
-          frecuencia: 'Cada 12 horas',
-          duracion: '30 días'
-        },
-        {
-          nombre: 'Amlodipino 5mg',
-          dosis: '5mg',
-          cantidad: 30,
-          frecuencia: 'Una vez al día',
-          duracion: '30 días'
-        },
-        {
-          nombre: 'Hidroclorotiazida 25mg',
-          dosis: '25mg',
-          cantidad: 30,
-          frecuencia: 'Una vez al día',
-          duracion: '30 días'
-        }
-      ],
-      fechaModificacion: '27/09/2025'
-    },
-    {
-      id: 'RX-2025-009846',
-      paciente: {
-        nombre: 'Juan Carlos Martínez López',
-        cedula: 'CC-43.729.541',
-        edad: 38,
-        genero: 'M'
-      },
-      medico: {
-        nombre: 'Dr. Carlos Alberto Mendoza Herrera',
-        especialidad: 'Medicina Interna',
-        codigoMedico: 'MED-001',
-        firmaDigital: false
-      },
-      diagnostico: 'Diabetes mellitus tipo 2 (E11.9)',
-      fecha: '27/09/2025',
-      fechaVencimiento: '',
-      estado: 'borrador',
-      medicamentos: [
-        {
-          nombre: 'Metformina 850mg',
-          dosis: '850mg',
-          cantidad: 60,
-          frecuencia: 'Cada 12 horas',
-          duracion: '30 días'
-        },
-        {
-          nombre: 'Glibenclamida 5mg',
-          dosis: '5mg',
-          cantidad: 30,
-          frecuencia: 'Una vez al día',
-          duracion: '30 días'
-        }
-      ],
-      fechaModificacion: '27/09/2025'
-    },
-    // Recetas emitidas
-    {
-      id: 'RX-2025-009842',
-      paciente: {
-        nombre: 'Carlos Andrés Pérez Gutiérrez',
-        cedula: 'CC-41.523.789',
-        edad: 52,
-        genero: 'M'
-      },
-      medico: {
-        nombre: 'Dr. Carlos Andrés Martínez López',
-        especialidad: 'Cardiología',
-        codigoMedico: 'MED-002',
-        firmaDigital: true
-      },
-      diagnostico: 'Hipertensión arterial esencial (I10)',
-      fecha: '01/10/2025',
-      fechaVencimiento: '15/10/2025',
-      estado: 'emitida',
-      medicamentos: [
-        {
-          nombre: 'Enalapril 10mg',
-          dosis: '10mg',
-          cantidad: 30,
-          frecuencia: 'Cada 12 horas',
-          duracion: '30 días',
-          estado: 'pendiente'
-        },
-        {
-          nombre: 'Atenolol 50mg',
-          dosis: '50mg',
-          cantidad: 30,
-          frecuencia: 'Una vez al día',
-          duracion: '30 días',
-          estado: 'pendiente'
-        },
-        {
-          nombre: 'Aspirina 100mg',
-          dosis: '100mg',
-          cantidad: 30,
-          frecuencia: 'Una vez al día',
-          duracion: '30 días',
-          estado: 'pendiente'
-        }
-      ]
-    },
-    {
-      id: 'RX-2025-009841',
-      paciente: {
-        nombre: 'Sandra Milena Torres Vargas',
-        cedula: 'CC-38.947.256',
-        edad: 41,
-        genero: 'F'
-      },
-      medico: {
-        nombre: 'Dra. María Elena Rodríguez Silva',
-        especialidad: 'Medicina General',
-        codigoMedico: 'MED-003',
-        firmaDigital: true
-      },
-      diagnostico: 'Infección del tracto urinario (N39.0)',
-      fecha: '01/10/2025',
-      fechaVencimiento: '15/10/2025',
-      estado: 'parcialmente-dispensada',
-      medicamentos: [
-        {
-          nombre: 'Ciprofloxacina 500mg',
-          dosis: '500mg',
-          cantidad: 14,
-          frecuencia: 'Cada 12 horas',
-          duracion: '7 días',
-          estado: 'dispensado'
-        },
-        {
-          nombre: 'Fenazopiridina 200mg',
-          dosis: '200mg',
-          cantidad: 21,
-          frecuencia: 'Cada 8 horas',
-          duracion: '7 días',
-          estado: 'pendiente'
-        },
-        {
-          nombre: 'Ibuprofeno 400mg',
-          dosis: '400mg',
-          cantidad: 20,
-          frecuencia: 'Cada 8 horas',
-          duracion: '5 días',
-          estado: 'pendiente'
-        }
-      ],
-      farmacia: 'Farmacia San José',
-      fechaDispensacion: '02/10/2025'
-    },
-    {
-      id: 'RX-2025-009840',
-      paciente: {
-        nombre: 'Roberto José Sánchez Mora',
-        cedula: 'CC-29.847.563',
-        edad: 35,
-        genero: 'M'
-      },
-      medico: {
-        nombre: 'Dr. Carlos Alberto Mendoza Herrera',
-        especialidad: 'Medicina Interna',
-        codigoMedico: 'MED-001',
-        firmaDigital: true
-      },
-      diagnostico: 'Gastritis aguda (K29.0)',
-      fecha: '30/09/2025',
-      fechaVencimiento: '14/10/2025',
-      estado: 'dispensada',
-      medicamentos: [
-        {
-          nombre: 'Omeprazol 20mg',
-          dosis: '20mg',
-          cantidad: 30,
-          frecuencia: 'Una vez al día',
-          duracion: '30 días',
-          estado: 'dispensado'
-        }
-      ],
-      farmacia: 'Farmacia Central',
-      fechaDispensacion: '01/10/2025'
-    },
-    {
-      id: 'RX-2025-009839',
-      paciente: {
-        nombre: 'Laura Sofía Díaz Ramírez',
-        cedula: 'CC-47.258.963',
-        edad: 28,
-        genero: 'F'
-      },
-      medico: {
-        nombre: 'Dra. Ana Patricia Morales Vega',
-        especialidad: 'Ginecología',
-        codigoMedico: 'MED-004',
-        firmaDigital: true
-      },
-      diagnostico: 'Infección vaginal por hongos (B37.3)',
-      fecha: '29/09/2025',
-      fechaVencimiento: '13/10/2025',
-      estado: 'vencida',
-      medicamentos: [
-        {
-          nombre: 'Fluconazol 150mg',
-          dosis: '150mg',
-          cantidad: 1,
-          frecuencia: 'Dosis única',
-          duracion: '1 día',
-          estado: 'pendiente'
-        }
-      ]
-    }
-  ];
+  // Datos cargados del backend
+  todasLasRecetas: Receta[] = [];
 
   get totalPrescripciones(): number {
     return this.todasLasRecetas.length;
@@ -1125,7 +893,8 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
 
   constructor(
     private roleDemoService: RoleDemoService,
-    private roleSuggestionService: RoleSuggestionService
+    private roleSuggestionService: RoleSuggestionService,
+    private prescripcionesService: PrescripcionesService
   ) {
     this.calcularPaginacion();
   }
@@ -1143,6 +912,97 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
     });
     
     this.subscriptions.add(roleSubscription);
+
+    // Cargar todas las prescripciones del backend
+    this.cargarTodasLasPrescripciones();
+  }
+
+  /**
+   * Cargar todas las prescripciones del backend
+   */
+  private cargarTodasLasPrescripciones() {
+    const params: SearchPrescriptionsParams = {
+      pageSize: 100 // Máximo permitido por el backend
+    };
+
+    this.prescripcionesService.getPrescripciones(params).subscribe({
+      next: async (response) => {
+        if (response.items && response.items.length > 0) {
+          await this.mapPrescriptionsToRecetas(response.items);
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando prescripciones:', error);
+        this.mostrarNotificacion('Error al cargar las recetas', 'error');
+      }
+    });
+  }
+
+  /**
+   * Mapear prescripciones del backend a la interfaz local
+   */
+  private async mapPrescriptionsToRecetas(prescriptions: PrescriptionDto[]) {
+    const recetas: Receta[] = [];
+
+    for (const p of prescriptions) {
+      try {
+        const receta: Receta = {
+          id: p.prescriptionNumber || p.id,
+          idReal: p.id, // Guardar el ID real para operaciones backend
+          paciente: {
+            nombre: p.patientName || 'Paciente no encontrado',
+            cedula: p.patientIdNumber || 'N/A',
+            edad: p.patientAge || 0,
+            genero: (p.patientGender === 'M' || p.patientGender === 'Male') ? 'M' : 'F'
+          },
+          diagnostico: p.diagnoses && p.diagnoses.length > 0 
+            ? `${p.diagnoses[0].description} (${p.diagnoses[0].cie10Code})`
+            : 'Sin diagnóstico',
+          medicamentos: p.medications && p.medications.length > 0 
+            ? p.medications.map(m => ({
+                nombre: m.medication?.name || `Medicamento ${m.medicationId.substring(0, 8)}`,
+                dosis: m.dosage,
+                cantidad: m.quantity,
+                frecuencia: m.frequency,
+                duracion: `${m.durationDays} días`,
+                estado: 'pendiente' as const
+              }))
+            : [],
+          medico: {
+            nombre: p.doctorName || 'Médico',
+            especialidad: p.doctorSpecialty || 'N/A',
+            codigoMedico: p.doctorLicenseNumber || p.doctorId || 'N/A',
+            firmaDigital: true
+          },
+          fecha: p.prescriptionDate,
+          fechaVencimiento: p.expirationDate || '',
+          estado: this.mapStatus(p.status),
+          fechaModificacion: p.updatedAt || p.prescriptionDate
+        };
+
+        recetas.push(receta);
+      } catch (error) {
+        console.error(`Error mapeando prescripción ${p.id}:`, error);
+      }
+    }
+
+    this.todasLasRecetas = recetas;
+    this.calcularPaginacion();
+  }
+
+  /**
+   * Mapear estado del backend al frontend
+   */
+  private mapStatus(backendStatus: string): 'borrador' | 'emitida' | 'dispensada' | 'parcialmente-dispensada' | 'vencida' | 'anulada' {
+    const statusMap: { [key: string]: 'borrador' | 'emitida' | 'dispensada' | 'parcialmente-dispensada' | 'vencida' | 'anulada' } = {
+      'draft': 'borrador',
+      'active': 'emitida',
+      'dispensed': 'dispensada',
+      'expired': 'vencida',
+      'cancelled': 'anulada'
+    };
+
+    return statusMap[backendStatus] || 'emitida';
   }
 
   ngOnDestroy() {
@@ -1188,6 +1048,7 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
   }
 
   realizarBusquedaAvanzada() {
+    // Filtrar datos locales (ya cargados del backend)
     this.recetasFiltradas = this.todasLasRecetas.filter(receta => {
       const cumpleNumero = !this.filtrosAvanzados.numeroReceta || 
         receta.id.toLowerCase().includes(this.filtrosAvanzados.numeroReceta.toLowerCase());
@@ -1206,10 +1067,11 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
       const cumpleMedicamento = !this.filtrosAvanzados.medicamento || 
         receta.medicamentos.some(med => med.nombre.toLowerCase().includes(this.filtrosAvanzados.medicamento.toLowerCase()));
 
-      // Filtros de fecha (simplificado para el ejemplo)
-      const cumpleFecha = true;
+      // Filtros de fecha
+      const cumpleFechaDesde = !this.filtrosAvanzados.fechaDesde || receta.fecha >= this.filtrosAvanzados.fechaDesde;
+      const cumpleFechaHasta = !this.filtrosAvanzados.fechaHasta || receta.fecha <= this.filtrosAvanzados.fechaHasta;
 
-      return cumpleNumero && cumpleEstado && cumpleNombrePaciente && cumpleCedulaPaciente && cumpleMedico && cumpleMedicamento && cumpleFecha;
+      return cumpleNumero && cumpleEstado && cumpleNombrePaciente && cumpleCedulaPaciente && cumpleMedico && cumpleMedicamento && cumpleFechaDesde && cumpleFechaHasta;
     });
 
     this.mostrarResultados = true;
@@ -1298,100 +1160,161 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
   }
 
   reimprimirReceta(receta: Receta) {
-    // Abrir nueva pestaña con la vista de impresión (sin layout)
+    // Guardar los datos de la receta en sessionStorage para que el componente de impresión los use
+    sessionStorage.setItem('recetaParaImprimir', JSON.stringify({
+      id: receta.id,
+      paciente: receta.paciente,
+      medicamentos: receta.medicamentos,
+      medico: receta.medico,
+      diagnostico: receta.diagnostico,
+      fecha: receta.fecha,
+      fechaVencimiento: receta.fechaVencimiento
+    }));
+    
+    // Abrir nueva pestaña con la vista de impresión
     const url = `/prescripciones/imprimir/${receta.id}`;
     window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
   }
 
   duplicarReceta(receta: Receta) {
-    // Generar nuevo ID
-    const timestamp = Date.now();
-    const nuevoId = `RX-2025-${timestamp.toString().slice(-6)}`;
-    
-    // Crear nueva receta como borrador
-    const nuevaReceta: Receta = {
-      id: nuevoId,
-      paciente: { ...receta.paciente },
-      medico: { 
-        ...receta.medico, 
-        firmaDigital: false 
+    this.prescripcionesService.duplicarPrescripcion(receta.idReal).subscribe({
+      next: (response) => {
+        // Mapear la respuesta del backend a la interfaz local
+        const nuevaReceta: Receta = {
+          id: response.prescriptionNumber || response.id,
+          idReal: response.id,
+          paciente: {
+            nombre: response.patientName || 'Paciente no encontrado',
+            cedula: response.patientIdNumber || 'N/A',
+            edad: response.patientAge || 0,
+            genero: (response.patientGender === 'M' || response.patientGender === 'Male') ? 'M' : 'F'
+          },
+          diagnostico: response.diagnoses && response.diagnoses.length > 0 
+            ? `${response.diagnoses[0].description} (${response.diagnoses[0].cie10Code})`
+            : 'Sin diagnóstico',
+          medicamentos: response.medications && response.medications.length > 0 
+            ? response.medications.map(m => ({
+                nombre: m.medication?.name || `Medicamento ${m.medicationId.substring(0, 8)}`,
+                dosis: m.dosage,
+                cantidad: m.quantity,
+                frecuencia: m.frequency,
+                duracion: `${m.durationDays} días`,
+                estado: 'pendiente' as const
+              }))
+            : [],
+          medico: {
+            nombre: response.doctorName || 'Médico',
+            especialidad: response.doctorSpecialty || 'N/A',
+            codigoMedico: response.doctorLicenseNumber || response.doctorId || 'N/A',
+            firmaDigital: false
+          },
+          fecha: response.prescriptionDate,
+          fechaVencimiento: response.expirationDate || '',
+          estado: this.mapStatus(response.status),
+          fechaModificacion: response.updatedAt || response.prescriptionDate
+        };
+
+        // Agregar a las listas
+        this.todasLasRecetas.unshift(nuevaReceta);
+        
+        if (this.mostrarResultados) {
+          this.recetasFiltradas.unshift(nuevaReceta);
+          this.paginaActual = 1;
+          this.calcularPaginacion();
+        }
+
+        console.log('Nueva receta creada:', nuevaReceta.id);
+        this.mostrarNotificacion(`Receta duplicada exitosamente: ${nuevaReceta.id}`, 'success');
+        
+        // Recargar todas las prescripciones para asegurar que los datos estén sincronizados
+        setTimeout(() => {
+          this.cargarTodasLasPrescripciones();
+        }, 500);
+        
+        this.cerrarModalDetalles();
       },
-      diagnostico: receta.diagnostico,
-      fecha: new Date().toLocaleDateString('es-ES'),
-      fechaVencimiento: '',
-      estado: 'borrador',
-      medicamentos: receta.medicamentos.map(med => ({
-        nombre: med.nombre,
-        dosis: med.dosis,
-        cantidad: med.cantidad,
-        frecuencia: med.frecuencia,
-        duracion: med.duracion
-      })),
-      fechaModificacion: new Date().toLocaleDateString('es-ES')
-    };
-
-    // Agregar a las listas
-    this.todasLasRecetas.unshift(nuevaReceta);
-    
-    if (this.mostrarResultados) {
-      this.recetasFiltradas.unshift(nuevaReceta);
-      this.paginaActual = 1;
-      this.calcularPaginacion();
-    }
-
-    console.log('Nueva receta creada:', nuevoId);
-    this.mostrarNotificacion(`Receta duplicada exitosamente: ${nuevoId}`, 'success');
-    this.cerrarModalDetalles();
+      error: (error) => {
+        console.error('Error duplicando receta:', error);
+        this.mostrarNotificacion('Error al duplicar la receta. Intenta nuevamente.', 'error');
+      }
+    });
   }
 
   eliminarBorrador(receta: Receta) {
     if (confirm(`¿Estás seguro de que deseas eliminar el borrador ${receta.id}?\n\nEsta acción no se puede deshacer.`)) {
-      // Eliminar de la lista principal
-      const indiceGeneral = this.todasLasRecetas.findIndex(r => r.id === receta.id);
-      if (indiceGeneral > -1) {
-        this.todasLasRecetas.splice(indiceGeneral, 1);
-      }
+      this.prescripcionesService.eliminarBorrador(receta.idReal).subscribe({
+        next: () => {
+          // Eliminar de la lista principal
+          const indiceGeneral = this.todasLasRecetas.findIndex(r => r.id === receta.id);
+          if (indiceGeneral > -1) {
+            this.todasLasRecetas.splice(indiceGeneral, 1);
+          }
 
-      // Eliminar de los resultados filtrados si existe
-      if (this.mostrarResultados) {
-        const indiceFiltrado = this.recetasFiltradas.findIndex(r => r.id === receta.id);
-        if (indiceFiltrado > -1) {
-          this.recetasFiltradas.splice(indiceFiltrado, 1);
-          this.calcularPaginacion();
+          // Eliminar de los resultados filtrados si existe
+          if (this.mostrarResultados) {
+            const indiceFiltrado = this.recetasFiltradas.findIndex(r => r.id === receta.id);
+            if (indiceFiltrado > -1) {
+              this.recetasFiltradas.splice(indiceFiltrado, 1);
+              this.calcularPaginacion();
+            }
+          }
+
+          console.log('Borrador eliminado:', receta.id);
+          this.mostrarNotificacion(`Borrador ${receta.id} eliminado correctamente`, 'success');
+          this.cerrarModalDetalles();
+        },
+        error: (error) => {
+          console.error('Error eliminando borrador:', error);
+          this.mostrarNotificacion('Error al eliminar el borrador. Intenta nuevamente.', 'error');
         }
-      }
-
-      console.log('Borrador eliminado:', receta.id);
-      this.mostrarNotificacion(`Borrador ${receta.id} eliminado correctamente`, 'error');
-      this.cerrarModalDetalles();
+      });
     }
   }
 
   exportarPDF(receta: Receta) {
-    // Abrir nueva pestaña con auto-impresión (sin layout)
+    // Guardar los datos de la receta en sessionStorage para que el componente de impresión los use
+    sessionStorage.setItem('recetaParaImprimir', JSON.stringify({
+      id: receta.id,
+      paciente: receta.paciente,
+      medicamentos: receta.medicamentos,
+      medico: receta.medico,
+      diagnostico: receta.diagnostico,
+      fecha: receta.fecha,
+      fechaVencimiento: receta.fechaVencimiento
+    }));
+    
+    // Abrir nueva pestaña con auto-impresión
     const url = `/prescripciones/imprimir/${receta.id}?autoprint=true`;
     window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
   }
 
   anularReceta(receta: Receta) {
     if (confirm(`¿Estás seguro de que deseas anular la receta ${receta.id}?\n\nEsta acción cambiará el estado de la receta a "anulada" y no podrá ser dispensada.`)) {
-      // Actualizar estado en la lista principal
-      const indiceGeneral = this.todasLasRecetas.findIndex(r => r.id === receta.id);
-      if (indiceGeneral > -1) {
-        this.todasLasRecetas[indiceGeneral].estado = 'anulada';
-      }
+      this.prescripcionesService.anularPrescripcion(receta.idReal).subscribe({
+        next: () => {
+          // Actualizar estado en la lista principal
+          const indiceGeneral = this.todasLasRecetas.findIndex(r => r.id === receta.id);
+          if (indiceGeneral > -1) {
+            this.todasLasRecetas[indiceGeneral].estado = 'anulada';
+          }
 
-      // Actualizar en los resultados filtrados si existe
-      if (this.mostrarResultados) {
-        const indiceFiltrado = this.recetasFiltradas.findIndex(r => r.id === receta.id);
-        if (indiceFiltrado > -1) {
-          this.recetasFiltradas[indiceFiltrado].estado = 'anulada';
+          // Actualizar en los resultados filtrados si existe
+          if (this.mostrarResultados) {
+            const indiceFiltrado = this.recetasFiltradas.findIndex(r => r.id === receta.id);
+            if (indiceFiltrado > -1) {
+              this.recetasFiltradas[indiceFiltrado].estado = 'anulada';
+            }
+          }
+
+          console.log('Receta anulada:', receta.id);
+          this.mostrarNotificacion(`Receta ${receta.id} anulada correctamente`, 'success');
+          this.cerrarModalDetalles();
+        },
+        error: (error) => {
+          console.error('Error anulando receta:', error);
+          this.mostrarNotificacion('Error al anular la receta. Intenta nuevamente.', 'error');
         }
-      }
-
-      console.log('Receta anulada:', receta.id);
-      this.mostrarNotificacion(`Receta ${receta.id} anulada correctamente`, 'error');
-      this.cerrarModalDetalles();
+      });
     }
   }
 
@@ -1503,3 +1426,4 @@ export class BuscarPrescripcionComponent implements OnInit, OnDestroy {
     }
   }
 }
+

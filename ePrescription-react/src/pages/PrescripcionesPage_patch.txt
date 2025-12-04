@@ -1,0 +1,7 @@
+Después de la línea 1001 (emittedDate: data.prescription.issueDate,), agregar:
+        emittedTime: data.prescription.issueTime,
+
+Después de la línea 1007 (qrCode: data.prescription.qrCode || "",), agregar:
+        token: data.prescription.signatureToken || "",
+        age: data.prescription.patientAge,
+        gender: data.prescription.patientGender,

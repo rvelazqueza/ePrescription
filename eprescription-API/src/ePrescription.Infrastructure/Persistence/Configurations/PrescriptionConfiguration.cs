@@ -15,22 +15,34 @@ public class PrescriptionConfiguration : IEntityTypeConfiguration<Prescription>
         builder.Property(p => p.Id)
             .HasColumnName("PRESCRIPTION_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Foreign Keys
         builder.Property(p => p.PatientId)
             .HasColumnName("PATIENT_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         builder.Property(p => p.DoctorId)
             .HasColumnName("DOCTOR_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         builder.Property(p => p.MedicalCenterId)
             .HasColumnName("MEDICAL_CENTER_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Properties

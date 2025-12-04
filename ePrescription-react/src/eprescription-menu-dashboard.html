@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ePrescription - Sistema Hospitalario de Prescripción Electrónica</title>
+    
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Variables CSS - Paleta Hospitalaria */
+        :root {
+            --primary: #2b6cb0;
+            --primary-dark: #1e4976;
+            --primary-light: #e6f3ff;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --warning: #d97706;
+            --warning-light: #fef3c7;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --purple: #7c3aed;
+            --purple-light: #ede9fe;
+            --background: #fafbfc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text-primary: #1a202c;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --sidebar-bg: #f8fafc;
+            --sidebar-hover: #e6f3ff;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Layout Principal */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        /* Logo Header */
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 80px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .logo-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        /* Navegación */
+        .nav {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 4px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            gap: 12px;
+        }
+
+        .nav-link:hover {
+            background-color: var(--sidebar-hover);
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .nav-text {
+            flex: 1;
+        }
+
+        .nav-chevron {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .nav-link.expanded .nav-chevron {
+            transform: rotate(90deg);
+        }
+
+        .sidebar.collapsed .nav-text,
+        .sidebar.collapsed .nav-chevron {
+            display: none;
+        }
+
+        /* Submenú */
+        .submenu {
+            display: none;
+            list-style: none;
+            margin-left: 32px;
+            margin-top: 4px;
+            padding-left: 12px;
+            border-left: 2px solid var(--border);
+        }
+
+        .submenu.expanded {
+            display: block;
+        }
+
+        .sidebar.collapsed .submenu {
+            display: none !important;
+        }
+
+        .submenu-link {
+            display: block;
+            padding: 8px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .submenu-link:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .submenu-link.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Footer del Sidebar */
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .compliance-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .sidebar.collapsed .compliance-badges {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .badge {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-footer {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Contenido Principal */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background-color: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--success));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Contenido de la Página */
+        .page-content {
+            padding: 24px;
+        }
+
+        /* Banner Hero */
+        .hero-banner {
+            background: linear-gradient(135deg, #2563eb, #4f46e5, #7c3aed);
+            border-radius: 12px;
+            padding: 40px;
+            color: white;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .hero-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+
+        .hero-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .hero-badge {
+            padding: 6px 14px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Grid System */
+        .grid {
+            display: grid;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+        /* Quick Actions */
+        .quick-action {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background-color: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .quick-action.primary:hover {
+            border-color: var(--primary);
+        }
+
+        .quick-action.success:hover {
+            border-color: var(--success);
+        }
+
+        .quick-action.purple:hover {
+            border-color: var(--purple);
+        }
+
+        .action-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .action-icon.primary {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .action-icon.success {
+            background-color: var(--success-light);
+            color: var(--success);
+        }
+
+        .action-icon.purple {
+            background-color: var(--purple-light);
+            color: var(--purple);
+        }
+
+        .action-content h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .action-content p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-gradient-from), var(--card));
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card.primary {
+            --card-gradient-from: #eff6ff;
+            --card-border: rgba(43, 108, 176, 0.2);
+        }
+
+        .stat-card.success {
+            --card-gradient-from: #f0fdf4;
+            --card-border: rgba(5, 150, 105, 0.2);
+        }
+
+        .stat-card.purple {
+            --card-gradient-from: #faf5ff;
+            --card-border: rgba(124, 58, 237, 0.2);
+        }
+
+        .stat-card.warning {
+            --card-gradient-from: #fffbeb;
+            --card-border: rgba(217, 119, 6, 0.2);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .stat-info p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-value.primary { color: var(--primary); }
+        .stat-value.success { color: var(--success); }
+        .stat-value.purple { color: var(--purple); }
+        .stat-value.warning { color: var(--warning); }
+
+        .stat-trend {
+            font-size: 12px;
+            color: var(--success);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon.primary {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .stat-icon.success {
+            background-color: var(--success-light);
+            color: var(--success);
+        }
+
+        .stat-icon.purple {
+            background-color: var(--purple-light);
+            color: var(--purple);
+        }
+
+        .stat-icon.warning {
+            background-color: var(--warning-light);
+            color: var(--warning);
+        }
+
+        /* Recent Activity */
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px;
+            background-color: rgba(0, 0, 0, 0.02);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .activity-item:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+
+        .activity-info h4 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .activity-info p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .activity-status {
+            text-align: right;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .status-badge.success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .status-badge.warning {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* System Status */
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px;
+            background-color: rgba(5, 150, 105, 0.05);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-left svg {
+            color: var(--success);
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+        }
+
+        .status-text {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Icons (usando símbolos SVG simplificados) */
+        .icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .icon.sm {
+            width: 20px;
+            height: 20px;
+        }
+
+        .icon.lg {
+            width: 32px;
+            height: 32px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                z-index: 1000;
+                height: 100vh;
+            }
+
+            .sidebar.mobile-open {
+                left: 0;
+            }
+
+            .grid-cols-2,
+            .grid-cols-3,
+            .grid-cols-4 {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-banner {
+                padding: 24px;
+            }
+
+            .hero-title {
+                font-size: 24px;
+            }
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--background);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Header con Logo -->
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">eRx</div>
+                    <div class="logo-text">
+                        <div class="logo-title">ePrescription</div>
+                        <div class="logo-subtitle">Sistema Hospitalario</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navegación -->
+            <nav class="nav">
+                <ul class="nav-list">
+                    <!-- Dashboard -->
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+
+                    <!-- Prescripciones -->
+                    <li class="nav-item">
+                        <a class="nav-link expanded" onclick="toggleSubmenu(event, 'prescripciones')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            <span class="nav-text">Prescripciones</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu expanded" id="submenu-prescripciones">
+                            <li><a class="submenu-link" href="#nueva-receta">Nueva receta</a></li>
+                            <li><a class="submenu-link" href="#borradores">Mis borradores</a></li>
+                            <li><a class="submenu-link" href="#emitidas">Recetas emitidas</a></li>
+                            <li><a class="submenu-link" href="#buscar">Buscar receta</a></li>
+                            <li><a class="submenu-link" href="#duplicar">Duplicar receta</a></li>
+                            <li><a class="submenu-link" href="#centros">Centros médicos</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Dispensación -->
+                    <li class="nav-item">
+                        <a class="nav-link expanded" onclick="toggleSubmenu(event, 'dispensacion')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M10.5 20.5 10 16l-2.5-4.5 3-3L11 5l-4 4.5L7 4"></path>
+                                <path d="m13.5 20.5 1-5 2-4-3-3-1-4 4 4-1 5"></path>
+                                <path d="M16 8h-1"></path>
+                            </svg>
+                            <span class="nav-text">Dispensación</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu expanded" id="submenu-dispensacion">
+                            <li><a class="submenu-link" href="#verificar">Verificar receta (QR/Token)</a></li>
+                            <li><a class="submenu-link" href="#registrar">Registrar dispensación</a></li>
+                            <li><a class="submenu-link" href="#rechazos">Rechazos y motivos</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Pacientes -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'pacientes')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span class="nav-text">Pacientes</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-pacientes">
+                            <li><a class="submenu-link" href="#pacientes-lista">Listado de pacientes</a></li>
+                            <li><a class="submenu-link" href="#pacientes-perfil">Perfil del paciente</a></li>
+                            <li><a class="submenu-link" href="#pacientes-recetas">Recetas del paciente</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Médicos -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'medicos')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path>
+                                <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path>
+                                <circle cx="20" cy="10" r="2"></circle>
+                            </svg>
+                            <span class="nav-text">Médicos</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-medicos">
+                            <li><a class="submenu-link" href="#medicos-lista">Listado de médicos</a></li>
+                            <li><a class="submenu-link" href="#medicos-editar">Alta/Edición de médico</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Farmacia e Inventario -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'inventario')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                                <path d="m3.3 7 8.7 5 8.7-5"></path>
+                                <path d="M12 22V12"></path>
+                            </svg>
+                            <span class="nav-text">Farmacia e Inventario</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-inventario">
+                            <li><a class="submenu-link" href="#stock">Stock de medicamentos</a></li>
+                            <li><a class="submenu-link" href="#farmacias">Farmacias registradas</a></li>
+                            <li><a class="submenu-link" href="#consulta">Consulta de inventario</a></li>
+                            <li><a class="submenu-link" href="#alertas-stock">Alertas de stock bajo</a></li>
+                            <li><a class="submenu-link" href="#ajustes">Ajustes de stock</a></li>
+                            <li><a class="submenu-link" href="#lotes">Lotes y vencimientos</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Talonarios -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'talonarios')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>
+                                <path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"></path>
+                            </svg>
+                            <span class="nav-text">Talonarios</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-talonarios">
+                            <li><a class="submenu-link" href="#comprar-talonarios">Comprar talonarios</a></li>
+                            <li><a class="submenu-link" href="#mis-talonarios">Mis talonarios</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Alertas clínicas (CDS) -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'alertas')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            <span class="nav-text">Alertas clínicas (CDS)</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-alertas">
+                            <li><a class="submenu-link" href="#bandeja">Bandeja de alertas</a></li>
+                            <li><a class="submenu-link" href="#reglas">Reglas e interacciones</a></li>
+                            <li><a class="submenu-link" href="#tipos">Tipos de alertas</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Firma y verificación -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'firma')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                <path d="m9 12 2 2 4-4"></path>
+                            </svg>
+                            <span class="nav-text">Firma y verificación</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-firma">
+                            <li><a class="submenu-link" href="#firmar">Firmar receta</a></li>
+                            <li><a class="submenu-link" href="#qr">Generar/Ver QR</a></li>
+                            <li><a class="submenu-link" href="#verificar-firma">Verificación de QR/Token</a></li>
+                            <li><a class="submenu-link" href="#trazabilidad">Trazabilidad de firmas</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Reportes y analítica -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'reportes')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <line x1="12" y1="20" x2="12" y2="10"></line>
+                                <line x1="18" y1="20" x2="18" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="16"></line>
+                            </svg>
+                            <span class="nav-text">Reportes y analítica</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-reportes">
+                            <li><a class="submenu-link" href="#actividad-medico">Actividad por médico</a></li>
+                            <li><a class="submenu-link" href="#actividad-farmacia">Actividad de farmacia</a></li>
+                            <li><a class="submenu-link" href="#exportar">Exportaciones (CSV/Excel)</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Interoperabilidad -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'interop')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="2"></circle>
+                                <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path>
+                            </svg>
+                            <span class="nav-text">Interoperabilidad</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-interop">
+                            <li><a class="submenu-link" href="#fhir-ids">IDs FHIR</a></li>
+                            <li><a class="submenu-link" href="#exportar-fhir">Exportar receta (FHIR)</a></li>
+                            <li><a class="submenu-link" href="#importar">Importar datos externos</a></li>
+                            <li><a class="submenu-link" href="#eventos">Registro HL7 eventos</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Seguridad y usuarios -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'seguridad')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span class="nav-text">Seguridad y usuarios</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-seguridad">
+                            <li><a class="submenu-link" href="#usuarios">Usuarios</a></li>
+                            <li><a class="submenu-link" href="#registro">Registro de usuarios</a></li>
+                            <li><a class="submenu-link" href="#aprobaciones">Aprobación de usuarios</a></li>
+                            <li><a class="submenu-link" href="#roles">Roles y permisos</a></li>
+                            <li><a class="submenu-link" href="#parametros">Parámetros de seguridad</a></li>
+                            <li><a class="submenu-link" href="#bloqueos">Bloqueos/Desbloqueos</a></li>
+                            <li><a class="submenu-link" href="#sesiones">Sesiones de usuario</a></li>
+                            <li><a class="submenu-link" href="#mis-sesiones">Mis sesiones activas</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Auditoría y cumplimiento -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'auditoria')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <path d="M10 12.3 11.2 14 14 10"></path>
+                            </svg>
+                            <span class="nav-text">Auditoría y cumplimiento</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-auditoria">
+                            <li><a class="submenu-link" href="#log">Log auditoría</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Catálogos clínicos -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'catalogos')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
+                            <span class="nav-text">Catálogos clínicos</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-catalogos">
+                            <li><a class="submenu-link" href="#medicamentos">Medicamentos</a></li>
+                            <li><a class="submenu-link" href="#vias">Vías de administración</a></li>
+                            <li><a class="submenu-link" href="#especialidades">Especialidades</a></li>
+                            <li><a class="submenu-link" href="#unidades">Unidades médicas</a></li>
+                            <li><a class="submenu-link" href="#interacciones">Interacciones</a></li>
+                            <li><a class="submenu-link" href="#tipos-alertas">Tipos de alertas</a></li>
+                            <li><a class="submenu-link" href="#paises">Países</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Notificaciones -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'notificaciones')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span class="nav-text">Notificaciones</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-notificaciones">
+                            <li><a class="submenu-link" href="#lista-notificaciones">Listado de notificaciones</a></li>
+                            <li><a class="submenu-link" href="#nueva-notificacion">Nueva notificación</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Configuración -->
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="toggleSubmenu(event, 'config')">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <span class="nav-text">Configuración</span>
+                            <svg class="nav-chevron icon" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="submenu" id="submenu-config">
+                            <li><a class="submenu-link" href="#politicas">Políticas de recetas</a></li>
+                            <li><a class="submenu-link" href="#auxiliares">Catálogos auxiliares</a></li>
+                            <li><a class="submenu-link" href="#numeracion">Numeración de recetas</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Footer con badges de cumplimiento -->
+            <div class="sidebar-footer">
+                <div class="compliance-badges">
+                    <span class="badge">HL7</span>
+                    <span class="badge">FDA</span>
+                    <span class="badge">OMS</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div>
+                    <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 2px;">Dashboard</h1>
+                    <p style="font-size: 14px; color: var(--text-muted);">Miércoles, 8 de octubre de 2025</p>
+                </div>
+                <div class="user-info">
+                    <div class="user-details">
+                        <div class="user-name">Dr. Juan Pérez</div>
+                        <div class="user-role">Médico General • Rol activo</div>
+                    </div>
+                    <div class="user-avatar">JP</div>
+                </div>
+            </header>
+
+            <!-- Contenido de la Página -->
+            <div class="page-content">
+                <!-- Hero Banner -->
+                <div class="hero-banner">
+                    <h1 class="hero-title">Dashboard - ePrescription</h1>
+                    <p class="hero-subtitle">Sistema Hospitalario de Prescripción Electrónica</p>
+                    <div class="hero-badges">
+                        <span class="hero-badge">HL7 FHIR</span>
+                        <span class="hero-badge">FDA Compliant</span>
+                        <span class="hero-badge">OMS Standards</span>
+                        <span class="hero-badge">HIPAA Secure</span>
+                    </div>
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h2 class="card-title">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        Acciones Rápidas
+                    </h2>
+                    <div class="grid grid-cols-3">
+                        <div class="quick-action primary">
+                            <div class="action-icon primary">
+                                <svg class="icon lg" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                </svg>
+                            </div>
+                            <div class="action-content">
+                                <h3>Nueva Prescripción</h3>
+                                <p>Crear receta médica</p>
+                            </div>
+                        </div>
+
+                        <div class="quick-action success">
+                            <div class="action-icon success">
+                                <svg class="icon lg" viewBox="0 0 24 24">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </div>
+                            <div class="action-content">
+                                <h3>Buscar Paciente</h3>
+                                <p>Historial médico</p>
+                            </div>
+                        </div>
+
+                        <div class="quick-action purple">
+                            <div class="action-icon purple">
+                                <svg class="icon lg" viewBox="0 0 24 24">
+                                    <path d="M10.5 20.5 10 16l-2.5-4.5 3-3L11 5l-4 4.5L7 4"></path>
+                                    <path d="m13.5 20.5 1-5 2-4-3-3-1-4 4 4-1 5"></path>
+                                </svg>
+                            </div>
+                            <div class="action-content">
+                                <h3>Inventario</h3>
+                                <p>Medicamentos disponibles</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas del día -->
+                <div class="grid grid-cols-4" style="margin-bottom: 24px;">
+                    <div class="stat-card primary">
+                        <div class="stat-header">
+                            <div class="stat-info">
+                                <p>Prescripciones Hoy</p>
+                                <div class="stat-value primary">127</div>
+                                <div class="stat-trend">+12% vs ayer</div>
+                            </div>
+                            <div class="stat-icon primary">
+                                <svg class="icon lg" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-header">
+                            <div class="stat-info">
+                                <p>Pacientes Atendidos</p>
+                                <div class="stat-value success">89</div>
+                                <div class="stat-trend">+8% vs ayer</div>
+                            </div>
+                            <div class="stat-icon success">
+                                <svg class="icon lg" viewBox="0 0 24 24">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card purple">
+                        <div class="stat-header">
+                            <div class="stat-info">
+                                <p>Medicamentos</p>
+                                <div class="stat-value purple">234</div>
+                                <div class="stat-trend">+5% vs ayer</div>
+                            </div>
+                            <div class="stat-icon purple">
+                                <svg class="icon lg" viewBox="0 0 24 24">
+                                    <path d="M10.5 20.5 10 16l-2.5-4.5 3-3L11 5l-4 4.5L7 4"></path>
+                                    <path d="m13.5 20.5 1-5 2-4-3-3-1-4 4 4-1 5"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-header">
+                            <div class="stat-info">
+                                <p>Alertas Pendientes</p>
+                                <div class="stat-value warning">3</div>
+                                <div class="stat-trend" style="color: var(--warning);">Requiere atención</div>
+                            </div>
+                            <div class="stat-icon warning">
+                                <svg class="icon lg" viewBox="0 0 24 24">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actividad Reciente y Estado del Sistema -->
+                <div class="grid grid-cols-2">
+                    <!-- Prescripciones Recientes -->
+                    <div class="card">
+                        <h2 class="card-title">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Prescripciones Recientes
+                        </h2>
+                        <div>
+                            <div class="activity-item">
+                                <div class="activity-info">
+                                    <h4>María Elena González</h4>
+                                    <p>RX-2025-009847</p>
+                                </div>
+                                <div class="activity-status">
+                                    <span class="status-badge success">
+                                        <svg class="icon sm" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                        Completada
+                                    </span>
+                                    <div class="activity-time">10:32 AM</div>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="activity-info">
+                                    <h4>Carlos Rodríguez López</h4>
+                                    <p>RX-2025-009846</p>
+                                </div>
+                                <div class="activity-status">
+                                    <span class="status-badge warning">
+                                        <svg class="icon sm" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        Borrador
+                                    </span>
+                                    <div class="activity-time">09:15 AM</div>
+                                </div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="activity-info">
+                                    <h4>Ana Sofía Martínez</h4>
+                                    <p>RX-2025-009845</p>
+                                </div>
+                                <div class="activity-status">
+                                    <span class="status-badge success">
+                                        <svg class="icon sm" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                        Completada
+                                    </span>
+                                    <div class="activity-time">08:45 AM</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estado del Sistema -->
+                    <div class="card">
+                        <h2 class="card-title">
+                            <svg class="icon" viewBox="0 0 24 24" style="color: var(--success);">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                            Estado del Sistema
+                        </h2>
+                        <div>
+                            <div class="status-item">
+                                <div class="status-left">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                                    </svg>
+                                    <span class="status-text">Base de datos</span>
+                                </div>
+                                <div class="status-right">
+                                    <div class="status-indicator"></div>
+                                    <span class="status-text">Operativa</span>
+                                </div>
+                            </div>
+
+                            <div class="status-item">
+                                <div class="status-left">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                        <path d="m9 12 2 2 4-4"></path>
+                                    </svg>
+                                    <span class="status-text">Sincronización HL7</span>
+                                </div>
+                                <div class="status-right">
+                                    <div class="status-indicator"></div>
+                                    <span class="status-text">Activa</span>
+                                </div>
+                            </div>
+
+                            <div class="status-item">
+                                <div class="status-left">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                        <polyline points="17 6 23 6 23 12"></polyline>
+                                    </svg>
+                                    <span class="status-text">Disponibilidad</span>
+                                </div>
+                                <div class="status-right">
+                                    <div class="status-indicator"></div>
+                                    <span class="status-text">99.9%</span>
+                                </div>
+                            </div>
+
+                            <div class="status-item">
+                                <div class="status-left">
+                                    <svg class="icon" viewBox="0 0 24 24">
+                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                    </svg>
+                                    <span class="status-text">Tiempo de respuesta</span>
+                                </div>
+                                <div class="status-right">
+                                    <div class="status-indicator"></div>
+                                    <span class="status-text">< 100ms</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Toggle de submenú
+        function toggleSubmenu(event, menuId) {
+            event.preventDefault();
+            const link = event.currentTarget;
+            const submenu = document.getElementById('submenu-' + menuId);
+            
+            if (submenu) {
+                submenu.classList.toggle('expanded');
+                link.classList.toggle('expanded');
+            }
+        }
+
+        // Toggle del sidebar (para versión móvil)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Cerrar submenús cuando se colapsa el sidebar
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === 'class') {
+                        const isCollapsed = sidebar.classList.contains('collapsed');
+                        if (isCollapsed) {
+                            document.querySelectorAll('.submenu').forEach(sub => {
+                                sub.classList.remove('expanded');
+                            });
+                        }
+                    }
+                });
+            });
+            
+            observer.observe(sidebar, { attributes: true });
+        }
+
+        // Destacar el enlace activo en la navegación
+        document.querySelectorAll('.nav-link, .submenu-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Remover active de todos los enlaces del mismo tipo
+                const isSub = this.classList.contains('submenu-link');
+                if (!isSub) {
+                    document.querySelectorAll('.nav-link').forEach(l => {
+                        if (l !== this && !l.onclick) {
+                            l.classList.remove('active');
+                        }
+                    });
+                } else {
+                    document.querySelectorAll('.submenu-link').forEach(l => {
+                        l.classList.remove('active');
+                    });
+                }
+                
+                // Solo añadir active si no tiene onclick (no es un toggle)
+                if (!this.onclick) {
+                    this.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

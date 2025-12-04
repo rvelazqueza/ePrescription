@@ -13,7 +13,10 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
         builder.HasKey(d => d.Id);
         builder.Property(d => d.Id)
             .HasColumnName("DOCTOR_ID")
-            .HasColumnType("RAW(16)");
+            .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes));
 
         builder.Property(d => d.IdentificationNumber)
             .HasColumnName("IDENTIFICATION_NUMBER")
@@ -39,6 +42,9 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
         builder.Property(d => d.SpecialtyId)
             .HasColumnName("SPECIALTY_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         builder.Property(d => d.Email)

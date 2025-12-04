@@ -15,22 +15,34 @@ public class PrescriptionMedicationConfiguration : IEntityTypeConfiguration<Pres
         builder.Property(pm => pm.Id)
             .HasColumnName("PRESCRIPTION_MEDICATION_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Foreign Keys
         builder.Property(pm => pm.PrescriptionId)
             .HasColumnName("PRESCRIPTION_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         builder.Property(pm => pm.MedicationId)
             .HasColumnName("MEDICATION_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         builder.Property(pm => pm.AdministrationRouteId)
             .HasColumnName("ADMINISTRATION_ROUTE_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Properties
@@ -69,11 +81,9 @@ public class PrescriptionMedicationConfiguration : IEntityTypeConfiguration<Pres
         // IMPORTANT: UpdatedAt does NOT exist in Oracle table
         builder.Ignore(pm => pm.UpdatedAt);
 
-        // Ignore navigation properties that don't have FK columns
+        // Ignore navigation properties - load separately if needed
         builder.Ignore(pm => pm.Medication);
         builder.Ignore(pm => pm.AdministrationRoute);
         builder.Ignore(pm => pm.DispensationItems);
-        
-        // Relationships - already configured from PrescriptionConfiguration
     }
 }

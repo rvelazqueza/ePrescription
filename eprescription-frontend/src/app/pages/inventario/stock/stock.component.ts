@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Package, Search, Filter, Eye, Edit, Trash2, AlertTriangle, CheckCircle, XCircle, Clock, TrendingUp } from 'lucide-angular';
 import { Subject, takeUntil, Subscription } from 'rxjs';
-import { InventoryMockService } from '../../../services/inventory-mock.service';
+import { InventoryService } from '../../../services/inventory.service';
 import { InventoryItem } from '../../../interfaces/inventory.interface';
 import { BreadcrumbItem } from '../../../components/breadcrumbs/breadcrumbs.component';
 import { PageLayoutComponent } from '../../../components/page-layout/page-layout.component';
@@ -113,7 +113,7 @@ export class StockComponent implements OnInit, OnDestroy {
   private roleSubscriptions = new Subscription();
 
   constructor(
-    private inventoryService: InventoryMockService,
+    private inventoryService: InventoryService,
     private roleDemoService: RoleDemoService
   ) {}
 
@@ -155,9 +155,9 @@ export class StockComponent implements OnInit, OnDestroy {
 
 
   private loadInventoryData(): void {
-    this.inventoryService.getInventoryItems()
+    this.inventoryService.getStockItems()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(items => {
+      .subscribe((items: any) => {
         this.inventoryItems.set(items);
       });
   }

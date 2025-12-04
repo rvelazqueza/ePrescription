@@ -84,15 +84,39 @@ public class PrescriptionListDto
 {
     public Guid Id { get; set; }
     public string PrescriptionNumber { get; set; } = string.Empty;
+    
+    // IDs necesarios para el frontend
+    public Guid PatientId { get; set; }
+    public Guid DoctorId { get; set; }
+    
+    // Nombres para mostrar (opcional)
     public string PatientName { get; set; } = string.Empty;
     public string DoctorName { get; set; } = string.Empty;
     public string MedicalCenterName { get; set; } = string.Empty;
+    
+    // Datos del paciente
+    public string PatientIdNumber { get; set; } = string.Empty;
+    public int PatientAge { get; set; }
+    public string PatientGender { get; set; } = string.Empty;
+    
+    // Datos del médico
+    public string DoctorSpecialty { get; set; } = string.Empty;
+    public string DoctorLicenseNumber { get; set; } = string.Empty;
+    
     public DateTime PrescriptionDate { get; set; }
     public DateTime? ExpirationDate { get; set; }
     public string Status { get; set; } = string.Empty;
+    
+    // Arrays completos de medicamentos y diagnósticos
+    public List<PrescriptionMedicationDto> Medications { get; set; } = new();
+    public List<PrescriptionDiagnosisDto> Diagnoses { get; set; } = new();
+    
+    // Contadores (opcional, para compatibilidad)
     public int MedicationCount { get; set; }
     public int DiagnosisCount { get; set; }
+    
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }
 
 /// <summary>
@@ -266,4 +290,35 @@ public class DispensationSummaryDto
     public string PharmacyName { get; set; } = string.Empty;
     public DateTime DispensationDate { get; set; }
     public string Status { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// DTO for creating a draft prescription
+/// </summary>
+public class CreateDraftDto
+{
+    [Required(ErrorMessage = "Patient ID is required")]
+    public Guid PatientId { get; set; }
+    
+    [Required(ErrorMessage = "Doctor ID is required")]
+    public Guid DoctorId { get; set; }
+    
+    [Required(ErrorMessage = "Medical Center ID is required")]
+    public Guid MedicalCenterId { get; set; }
+    
+    public List<CreatePrescriptionDiagnosisDto>? Diagnoses { get; set; }
+    
+    public List<CreatePrescriptionMedicationDto>? Medications { get; set; }
+    
+    [MaxLength(2000, ErrorMessage = "Notes cannot exceed 2000 characters")]
+    public string? Notes { get; set; }
+}
+
+/// <summary>
+/// DTO for cancelling a prescription
+/// </summary>
+public class CancelPrescriptionDto
+{
+    [MaxLength(500, ErrorMessage = "Reason cannot exceed 500 characters")]
+    public string? Reason { get; set; }
 }

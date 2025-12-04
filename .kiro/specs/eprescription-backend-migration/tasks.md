@@ -812,22 +812,56 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Note: Todos los servicios se comunican dentro de la red Docker usando nombres de servicio_
 
 - [ ] 15. Integrar frontend Angular con backend API
-  - [ ] 15.1 Actualizar environment.ts con URL del backend API (http://localhost:8000)
-  - [ ] 15.2 Crear HTTP interceptor para agregar JWT token a requests (auth.interceptor.ts)
-  - [ ] 15.3 Crear HTTP interceptor para manejo de errores global (error.interceptor.ts)
-  - [ ] 15.4 Actualizar AuthService para llamar endpoints de autenticación del backend
-  - [ ] 15.5 Implementar lógica de refresh token en AuthService
-  - [ ] 15.6 Actualizar guards para usar nuevo AuthService
-  - [ ] 15.7 Actualizar PrescriptionService para llamar endpoints REST de prescripciones
-  - [ ] 15.8 Actualizar PatientService para llamar endpoints REST de pacientes
-  - [ ] 15.9 Actualizar DoctorService para llamar endpoints REST de médicos
-  - [ ] 15.10 Actualizar PharmacyService para llamar endpoints REST de farmacias
+  - [x] 15.1 Actualizar environment.ts con URL del backend API (http://localhost:8000)
+
+
+
+  - [x] 15.2 Crear HTTP interceptor para agregar JWT token a requests (auth.interceptor.ts)
+
+
+  - [x] 15.3 Crear HTTP interceptor para manejo de errores global (error.interceptor.ts)
+
+  - [x] 15.4 Actualizar AuthService para llamar endpoints de autenticación del backend
+
+
+
+  - [x] 15.5 Implementar lógica de refresh token en AuthService
+
+  - [x] 15.6 Actualizar guards para usar nuevo AuthService
+
+
+  - [x] 15.7 Actualizar PrescriptionService para llamar endpoints REST de prescripciones
+
+
+  - [x] 15.8 Actualizar PatientService para llamar endpoints REST de pacientes
+
+
+  - [x] 15.9 Actualizar DoctorService para llamar endpoints REST de médicos
+
+
+  - [x] 15.10 Actualizar PharmacyService para llamar endpoints REST de farmacias
+
+
+
+
   - [ ] 15.11 Actualizar InventoryService para llamar endpoints REST de inventario
-  - [ ] 15.12 Actualizar DispensationService para llamar endpoints REST de dispensación
+  - [x] 15.12 Actualizar DispensationService para llamar endpoints REST de dispensación
+
   - [ ] 15.13 Migrar componentes del asistente de IA para llamar endpoints del backend
-  - [ ] 15.14 Eliminar API key de Hugging Face del frontend (si existe)
+  - [x] 15.14 Eliminar API key de Hugging Face del frontend (si existe)
+
+
   - [ ] 15.15 Actualizar manejo de estados de carga y errores en componentes
-  - [ ] 15.16 Eliminar servicios mock del frontend
+  - [x] 15.16 Eliminar servicios mock del frontend
+
+
+
+
+
+
+
+
+
   - [ ] 15.17 Probar flujos principales end-to-end (login, crear prescripción, dispensar)
   - [ ] 15.18 Realizar pruebas de integración frontend-backend
   - [ ] 15.19 Commit y push de integración frontend
@@ -894,18 +928,9 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - _Commit strategy: Push después de mappers (17.7), después de endpoints (17.10), y después de documentación (17.14)_
   - _Estimated time: 14-16 hours_
 
-- [ ] 18. Crear documentación y diagramas de arquitectura
-  - [ ] 18.1 Crear diagrama de arquitectura de alto nivel del sistema completo
-  - [ ] 18.2 Crear diagrama ERD (Entity Relationship Diagram) de la base de datos
-  - [ ] 18.3 Crear diagrama de componentes mostrando capas de Clean Architecture
-  - [ ] 18.4 Crear diagrama de despliegue con Docker containers
-  - [ ] 18.5 Crear diagrama de secuencia para flujo de creación de prescripción
-  - [ ] 18.6 Crear diagrama de secuencia para flujo de análisis de IA con traducción
-  - [ ] 18.7 Crear diagrama de secuencia para flujo de dispensación
-  - [ ] 18.8 Crear diagrama de integración con WHO API y Translation Service
-  - [ ] 18.9 Configurar Swagger/OpenAPI en backend API
   - [ ] 18.10 Agregar comentarios XML a controllers y DTOs para Swagger
   - [ ] 18.11 Crear README.md principal del proyecto con overview completo
+
   - [ ] 18.12 Actualizar README.md de eprescription-API con guía de desarrollo
   - [ ] 18.13 Actualizar README.md de eprescription-Database con guía de scripts
   - [ ] 18.14 Actualizar README.md de eprescription-frontend con guía de integración
@@ -915,6 +940,7 @@ Este plan desglosa el proyecto en 17 tareas principales con subtareas específic
   - [ ] 18.18 Documentar estrategia de branching en docs/BRANCHING_STRATEGY.md
   - [ ] 18.19 Crear guía de seguridad y compliance (docs/SECURITY_COMPLIANCE.md)
   - [ ] 18.20 Documentar integración con WHO API (docs/WHO_API_INTEGRATION.md)
+
   - [ ] 18.21 Documentar servicio de traducción (docs/TRANSLATION_SERVICE.md)
   - [ ] 18.22 Exportar diagramas en formatos PNG, SVG y PDF
   - [ ] 18.23 Organizar diagramas en carpeta docs/architecture-diagrams/

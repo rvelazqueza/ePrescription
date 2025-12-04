@@ -159,6 +159,16 @@ namespace EPrescription.Infrastructure.Authentication
         {
             try
             {
+                // First try to extract user info directly from JWT token (more efficient)
+                var userInfoFromToken = ExtractUserInfoFromToken(token);
+                if (userInfoFromToken != null)
+                {
+                    _logger.LogInformation("User info extracted from JWT token successfully");
+                    return userInfoFromToken;
+                }
+
+                // Fallback: try to get user info from Keycloak API
+                _logger.LogInformation("Attempting to get user info from Keycloak API");
                 var userInfoEndpoint = $"{_keycloakUrl}/realms/{_realm}/protocol/openid-connect/userinfo";
 
                 var request = new HttpRequestMessage(HttpMethod.Get, userInfoEndpoint);
@@ -168,7 +178,7 @@ namespace EPrescription.Infrastructure.Authentication
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Failed to get user info");
+                    _logger.LogWarning("Failed to get user info from Keycloak API. Status: {StatusCode}", response.StatusCode);
                     return null;
                 }
 
@@ -192,6 +202,72 @@ namespace EPrescription.Infrastructure.Authentication
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting user info");
+                return null;
+            }
+        }
+
+        private UserInfo ExtractUserInfoFromToken(string token)
+        {
+            try
+            {
+                _logger.LogInformation("Attempting to extract user info from JWT token");
+                
+                // Decode JWT token
+                var parts = token.Split('.');
+                if (parts.Length != 3)
+                {
+                    _logger.LogWarning("Invalid JWT token format - expected 3 parts, got {Count}", parts.Length);
+                    return null;
+                }
+
+                var payload = parts[1];
+                var jsonBytes = ParseBase64WithoutPadding(payload);
+                var json = System.Text.Encoding.UTF8.GetString(jsonBytes);
+                
+                _logger.LogDebug("JWT payload: {Payload}", json);
+                
+                using var document = JsonDocument.Parse(json);
+                var root = document.RootElement;
+
+                // Extract user information from JWT claims
+                var userId = root.TryGetProperty("sub", out var sub) ? sub.GetString() : null;
+                var username = root.TryGetProperty("preferred_username", out var prefUsername) ? prefUsername.GetString() : null;
+                var email = root.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+                var firstName = root.TryGetProperty("given_name", out var givenName) ? givenName.GetString() : null;
+                var lastName = root.TryGetProperty("family_name", out var familyName) ? familyName.GetString() : null;
+                var emailVerified = root.TryGetProperty("email_verified", out var emailVerifiedProp) && emailVerifiedProp.GetBoolean();
+
+                _logger.LogInformation("Extracted user info - UserId: {UserId}, Username: {Username}, Email: {Email}", 
+                    userId, username, email);
+
+                // Extract roles
+                var roles = ExtractRolesFromToken(token);
+                _logger.LogInformation("Extracted {RoleCount} roles", roles?.Count ?? 0);
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.LogWarning("Could not extract user ID from token");
+                    return null;
+                }
+
+                var userInfo = new UserInfo
+                {
+                    UserId = userId,
+                    Username = username,
+                    Email = email,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    EmailVerified = emailVerified,
+                    Roles = roles,
+                    Permissions = new List<string>() // Can be extended based on roles
+                };
+
+                _logger.LogInformation("Successfully created UserInfo object");
+                return userInfo;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to extract user info from JWT token - Exception: {Message}", ex.Message);
                 return null;
             }
         }

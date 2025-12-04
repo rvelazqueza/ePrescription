@@ -85,13 +85,15 @@ services:
       - ConnectionStrings__DefaultConnection=User Id=eprescription_user;Password=EprescriptionPass123!;Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=oracle-db)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)))
       
       # Keycloak configuration
+      - Keycloak__Url=http://keycloak:8080
+      - Keycloak__Realm=eprescription
       - Keycloak__Authority=http://keycloak:8080/realms/eprescription
       - Keycloak__Audience=eprescription-api
       - Keycloak__RequireHttpsMetadata=false
       - Keycloak__TokenUrl=http://keycloak:8080/realms/eprescription/protocol/openid-connect/token
       - Keycloak__UserInfoUrl=http://keycloak:8080/realms/eprescription/protocol/openid-connect/userinfo
       - Keycloak__ClientId=eprescription-api
-      - Keycloak__ClientSecret=your-client-secret-here
+      - Keycloak__ClientSecret=Q7frqJfqjUaU73rKni061qpE9KDrbGL0
       
       # Logging
       - Logging__LogLevel__Default=Information

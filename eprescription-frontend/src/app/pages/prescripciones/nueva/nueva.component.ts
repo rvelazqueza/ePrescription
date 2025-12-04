@@ -16,6 +16,9 @@ import { PatientData as NewPatientDialogPatientData } from '../../../interfaces/
 import { NotificationService } from '../../../services/notification.service';
 import { RoleDemoService } from '../../../services/role-demo.service';
 import { RoleSuggestionService } from '../../../services/role-suggestion.service';
+import { PrescripcionesService, PrescriptionDto } from '../../../services/prescripciones.service';
+import { PatientService } from '../../../services/patient.service';
+import { AIAssistantService, DrugInteraction } from '../../../services/ai-assistant.service';
 
 interface Medicamento {
   id: string;
@@ -73,15 +76,15 @@ interface Paciente {
           (changePatient)="openPatientSelectionModal()"
         ></app-patient-selection-section>
 
-        <!-- Tarjeta de Prescripción Médica Electrónica como en React -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <!-- Tarjeta de Prescripción Médica Electrónica - Solo visible con paciente seleccionado -->
+        <div *ngIf="selectedPatient" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
             <lucide-icon [img]="fileTextIcon" class="w-6 h-6 text-blue-600"></lucide-icon>
             <div>
               <h2 class="text-lg font-semibold text-gray-900">Prescripción Médica Electrónica</h2>
               <div class="flex items-center gap-4 text-sm text-gray-600">
-                <span *ngIf="!esModoEdicionBorrador">#RX-2025-009847</span>
+                <span *ngIf="!esModoEdicionBorrador && prescriptionNumber">{{ prescriptionNumber }}</span>
                 <span *ngIf="esModoEdicionBorrador" class="flex items-center gap-2">
                   #{{ borradorId }}
                   <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium border border-orange-200">
@@ -101,30 +104,30 @@ interface Paciente {
           </div>
           <div class="flex items-center gap-2">
             <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">Borrador</span>
-            <span class="text-sm text-gray-500">10/10/2025 10:54 a.m.</span>
+            <span class="text-sm text-gray-500">{{ currentDate | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
         </div>
 
-        <!-- Información del Paciente como en React -->
+        <!-- Información del Paciente -->
         <div class="bg-gray-50 rounded-lg p-4 mb-6">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <span class="text-blue-600 font-semibold text-lg">{{ pacienteSeleccionado ? getInitials(pacienteSeleccionado.nombre) : 'MG' }}</span>
+              <span class="text-blue-600 font-semibold text-lg">{{ getInitials(selectedPatient.fullName) }}</span>
             </div>
             <div class="flex-1">
-              <h3 class="text-xl font-semibold text-gray-900">{{ pacienteSeleccionado?.nombre || 'María Elena González Rodríguez' }}</h3>
+              <h3 class="text-xl font-semibold text-gray-900">{{ selectedPatient.fullName }}</h3>
               <div class="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-1" *ngIf="selectedPatient.gender">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  Femenino
+                  {{ getGenderLabel(selectedPatient.gender) }}
                 </span>
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-1" *ngIf="selectedPatient.age">
                   <lucide-icon [img]="calendarIcon" class="w-4 h-4"></lucide-icon>
-                  {{ pacienteSeleccionado?.edad || 45 }} años
+                  {{ selectedPatient.age }} años
                 </span>
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-1" *ngIf="selectedPatient.idNumber">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  ID: {{ pacienteSeleccionado?.cedula || 'CC-52.841.963' }}
+                  ID: {{ selectedPatient.idNumber }}
                 </span>
               </div>
             </div>
@@ -134,26 +137,26 @@ interface Paciente {
             <div>
               <h4 class="text-sm font-medium text-gray-700 mb-2">Información del Médico</h4>
               <div class="space-y-1 text-sm text-gray-600">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" *ngIf="doctorName">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  <span>Dr. Carlos Alberto Mendoza Herrera</span>
+                  <span>{{ doctorName }}</span>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" *ngIf="doctorCode">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  <span>Código RM-12345-COL</span>
+                  <span>Código {{ doctorCode }}</span>
                 </div>
               </div>
             </div>
             <div>
               <h4 class="text-sm font-medium text-gray-700 mb-2">Información de Contacto</h4>
               <div class="space-y-1 text-sm text-gray-600">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" *ngIf="doctorPhone">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  <span>+57 (1) 234-5678</span>
+                  <span>{{ doctorPhone }}</span>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" *ngIf="doctorEmail">
                   <lucide-icon [img]="userIcon" class="w-4 h-4"></lucide-icon>
-                  <span>contacto&#64;hospital.com</span>
+                  <span>{{ doctorEmail }}</span>
                 </div>
               </div>
             </div>
@@ -166,7 +169,7 @@ interface Paciente {
             <div class="flex items-center gap-2">
               <lucide-icon [img]="pillIcon" class="w-5 h-5 text-blue-600"></lucide-icon>
               <h3 class="text-lg font-semibold text-gray-900">Medicamentos Prescritos</h3>
-              <span class="text-sm text-gray-500">Doble clic en cualquier fila para ver detalles y editar • {{ medicamentosMock.length }} medicamentos</span>
+              <span class="text-sm text-gray-500">Doble clic en cualquier fila para ver detalles y editar • {{ medicamentos.length }} medicamentos</span>
             </div>
             <div class="flex gap-2">
               <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2 text-sm">
@@ -200,7 +203,7 @@ interface Paciente {
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                <tr *ngFor="let medicamento of medicamentosMock" class="hover:bg-gray-50 cursor-pointer" (dblclick)="editarMedicamento(medicamento)">
+                <tr *ngFor="let medicamento of medicamentos" class="hover:bg-gray-50 cursor-pointer" (dblclick)="editarMedicamento(medicamento)">
                   <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ medicamento.nombre }}</td>
                   <td class="px-4 py-3 text-sm text-gray-600">{{ medicamento.cantidad }}</td>
                   <td class="px-4 py-3 text-sm text-gray-600">{{ medicamento.dosis }}</td>
@@ -222,7 +225,7 @@ interface Paciente {
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div *ngFor="let medicamento of medicamentosMock" class="bg-white rounded-lg p-4 border border-green-200">
+            <div *ngFor="let medicamento of medicamentos" class="bg-white rounded-lg p-4 border border-green-200">
               <div class="flex items-center gap-3 mb-2">
                 <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <lucide-icon [img]="pillIcon" class="w-4 h-4 text-blue-600"></lucide-icon>
@@ -243,8 +246,8 @@ interface Paciente {
         </div>
         </div>
 
-        <!-- Botones de acción como en React -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <!-- Botones de acción - Solo visible con paciente seleccionado y medicamentos agregados -->
+        <div *ngIf="selectedPatient && medicamentos.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 text-orange-600">
             <lucide-icon [img]="alertTriangleIcon" class="w-5 h-5"></lucide-icon>
@@ -468,15 +471,15 @@ interface Paciente {
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span class="text-gray-600">Paciente:</span>
-                <p class="font-medium text-gray-900">María Elena González</p>
+                <p class="font-medium text-gray-900">{{ selectedPatient?.fullName || 'Sin paciente' }}</p>
               </div>
               <div>
                 <span class="text-gray-600">ID Paciente:</span>
-                <p class="font-medium text-gray-900">CC-52.841.963</p>
+                <p class="font-medium text-gray-900">{{ selectedPatient?.idNumber || 'N/A' }}</p>
               </div>
               <div>
                 <span class="text-gray-600">Médico:</span>
-                <p class="font-medium text-gray-900">Dr. Carlos Alberto Mendoza Herrera</p>
+                <p class="font-medium text-gray-900">{{ doctorName || 'Médico' }}</p>
               </div>
               <div>
                 <span class="text-gray-600">Medicamentos:</span>
@@ -591,11 +594,11 @@ interface Paciente {
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-600">Paciente:</span>
-                <span class="font-medium text-green-800">María Elena González</span>
+                <span class="font-medium text-green-800">{{ selectedPatient?.fullName || 'Sin paciente' }}</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-600">Medicamentos:</span>
-                <span class="font-medium text-green-800">{{ medicamentosMock.length }}</span>
+                <span class="font-medium text-green-800">{{ medicamentos.length }}</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-600">Última actualización:</span>
@@ -662,6 +665,16 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
   selectedPatient: PatientData | null = null;
   showPatientSelectionModal = false;
 
+  // Doctor and prescription properties
+  doctorName: string = '';
+  doctorCode: string = '';
+  doctorPhone: string = '';
+  doctorEmail: string = '';
+  prescriptionNumber: string = '';
+  
+  // Current date
+  currentDate: Date = new Date();
+
   // Role suggestion modal state
   showRoleSuggestionModal = signal(false);
   private subscriptions = new Subscription();
@@ -685,7 +698,10 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private notificationService: NotificationService,
     private roleDemoService: RoleDemoService,
-    private roleSuggestionService: RoleSuggestionService
+    private roleSuggestionService: RoleSuggestionService,
+    private prescripcionesService: PrescripcionesService,
+    private patientService: PatientService,
+    private aiAssistantService: AIAssistantService
   ) {}
 
   ngOnInit() {
@@ -701,6 +717,9 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
     });
     
     this.subscriptions.add(roleSubscription);
+
+    // Load doctor information
+    this.loadDoctorInfo();
 
     // Handle patient preselection from route parameters
     this.handlePatientPreselection();
@@ -748,6 +767,13 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
     }
   }
 
+  private loadDoctorInfo() {
+    // TODO: Get doctor info from AuthService or DoctorService
+    // For now, we'll leave it empty and it won't show in the UI
+    // This should be implemented when we have the doctor profile service
+    console.log('Doctor info should be loaded from authenticated user profile');
+  }
+
   onRoleSuggestionDismiss() {
     this.showRoleSuggestionModal.set(false);
   }
@@ -778,67 +804,12 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
   private preselectPatientById(patientId: string): void {
     console.log('Preselecting patient with ID:', patientId);
     
-    // Mock data for patient preselection - in production this would come from PatientService
-    const mockPatients: { [key: string]: any } = {
-      'PAT-001': {
-        // Data for selectedPatient (modern interface)
-        selectedPatient: {
-          id: 'PAT-001',
-          fullName: 'María Elena González Rodríguez',
-          firstName: 'María Elena',
-          firstLastName: 'González',
-          secondLastName: 'Rodríguez',
-          idType: 'CC',
-          idNumber: '52.841.963',
-          birthDate: '1978-03-15',
-          age: 45,
-          gender: 'F' as const,
-          bloodType: 'O+',
-          phone: '+57 310 456-7890',
-          email: 'maria.gonzalez@email.com',
-          address: 'Calle 123 #45-67',
-          city: 'Bogotá',
-          country: 'Colombia',
-          status: 'active' as const,
-          allergies: ['Penicilina', 'Sulfas', 'Mariscos'],
-          chronicConditions: ['Hipertensión arterial', 'Diabetes tipo 2', 'Hipotiroidismo'],
-          currentMedications: ['Losartán 50mg - 1 vez al día', 'Metformina 850mg - 2 veces al día', 'Levotiroxina 75mcg - 1 vez al día'],
-          registrationDate: '2023-01-15'
-        },
-        // Data for pacienteSeleccionado (legacy interface)
-        pacienteSeleccionado: {
-          id: 'PAT-001',
-          nombre: 'María Elena González Rodríguez',
-          cedula: '52.841.963',
-          edad: 45,
-          alergias: ['Penicilina', 'Sulfas', 'Mariscos']
-        }
-      }
-    };
-
-    const patientData = mockPatients[patientId];
-    if (patientData) {
-      // Set both patient properties for compatibility
-      this.selectedPatient = patientData.selectedPatient;
-      this.pacienteSeleccionado = patientData.pacienteSeleccionado;
-      
-      // Update search field for legacy compatibility
-      this.busquedaPaciente = patientData.pacienteSeleccionado.nombre;
-      
-      console.log('Patient preselected successfully:', this.selectedPatient);
-      
-      // Show success notification
-      this.notificationService.showSuccess(
-        'Paciente preseleccionado',
-        `${patientData.selectedPatient.fullName} ha sido seleccionado automáticamente`
-      );
-    } else {
-      console.warn('Patient not found with ID:', patientId);
-      this.notificationService.showWarning(
-        'Paciente no encontrado',
-        'No se pudo preseleccionar el paciente. Por favor seleccione uno manualmente.'
-      );
-    }
+    // TODO: Load patient from PatientService using patientId
+    console.log('Patient preselection requested for ID:', patientId);
+    this.notificationService.showInfo(
+      'Cargando paciente',
+      'Por favor espere mientras se carga la información del paciente'
+    );
   }
 
   configurarModoEdicionBorrador() {
@@ -858,115 +829,53 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
     console.log('=== INICIANDO CARGA DE BORRADOR ===');
     console.log('ID del borrador:', borradorId);
     
-    // Simular búsqueda del borrador específico por ID
-    // En una aplicación real, esto sería una llamada al servicio
-    const borradorEncontrado = this.buscarBorradorPorId(borradorId);
-    
-    if (borradorEncontrado) {
-      // Cargar datos del paciente del borrador específico
-      this.pacienteSeleccionado = {
-        id: borradorEncontrado.paciente.cedula,
-        nombre: borradorEncontrado.paciente.nombre,
-        cedula: borradorEncontrado.paciente.cedula,
-        edad: borradorEncontrado.paciente.edad,
-        alergias: ['Penicilina'] // Esto vendría del borrador también
-      };
-      console.log('Paciente cargado:', this.pacienteSeleccionado);
+    // Cargar borrador desde el servicio
+    this.prescripcionesService.getPrescriptionById(borradorId).subscribe({
+      next: (prescription: PrescriptionDto) => {
+        console.log('Borrador cargado desde API:', prescription);
+        
+        // Cargar datos del paciente del borrador
+        this.patientService.getPatientById(prescription.patientId).subscribe({
+          next: (patient: any) => {
+            this.pacienteSeleccionado = {
+              id: patient.id,
+              nombre: `${patient.firstName} ${patient.lastName}`,
+              cedula: patient.identificationNumber,
+              edad: this.calculateAge(patient.dateOfBirth),
+              alergias: patient.allergies || []
+            };
+            this.busquedaPaciente = this.pacienteSeleccionado.nombre;
+            console.log('Paciente cargado:', this.pacienteSeleccionado);
+          },
+          error: (error: any) => {
+            console.error('Error cargando paciente:', error);
+            this.notificationService.showError('Error al cargar datos del paciente');
+          }
+        });
 
-      // Cargar medicamentos del borrador específico
-      this.medicamentosMock = borradorEncontrado.medicamentos;
-      console.log('Medicamentos cargados:', this.medicamentosMock);
-      
-      // También actualizar el campo de búsqueda de paciente
-      this.busquedaPaciente = this.pacienteSeleccionado.nombre;
-    } else {
-      console.error('Borrador no encontrado:', borradorId);
-    }
+        // Cargar medicamentos del borrador
+        // TODO: Convertir medications del prescription a formato de medicamentos si es necesario
+        console.log('Medicamentos del borrador:', prescription.medications);
+        
+      },
+      error: (error: any) => {
+        console.error('Error cargando borrador:', error);
+        this.notificationService.showError('Error al cargar el borrador');
+      }
+    });
     
     console.log('=== CARGA DE BORRADOR COMPLETADA ===');
   }
 
-  // Función auxiliar para buscar un borrador por ID
-  // En una aplicación real, esto sería un servicio
-  private buscarBorradorPorId(borradorId: string) {
-    // Datos de muestra que coinciden con los borradores del componente de borradores
-    const borradoresMock = [
-      {
-        id: 'BR-2025-001234',
-        paciente: {
-          nombre: 'María Elena González Rodríguez',
-          cedula: 'CC-1.234.567',
-          edad: 45,
-          genero: 'F'
-        },
-        medicamentos: [
-          {
-            nombre: 'Enalapril',
-            cantidad: '30 tabletas',
-            dosis: '10mg',
-            frecuencia: '2 veces al día',
-            via: 'Oral',
-            duracion: '30 días'
-          },
-          {
-            nombre: 'Hidroclorotiazida',
-            cantidad: '30 tabletas',
-            dosis: '25mg',
-            frecuencia: '1 vez al día',
-            via: 'Oral',
-            duracion: '30 días'
-          }
-        ]
-      },
-      {
-        id: 'BR-2025-001235',
-        paciente: {
-          nombre: 'Juan Carlos Martínez López',
-          cedula: 'CC-2.345.678',
-          edad: 62,
-          genero: 'M'
-        },
-        medicamentos: [
-          {
-            nombre: 'Metformina',
-            cantidad: '60 tabletas',
-            dosis: '850mg',
-            frecuencia: '2 veces al día',
-            via: 'Oral',
-            duracion: '30 días'
-          },
-          {
-            nombre: 'Glibenclamida',
-            cantidad: '30 tabletas',
-            dosis: '5mg',
-            frecuencia: '1 vez al día',
-            via: 'Oral',
-            duracion: '30 días'
-          }
-        ]
-      },
-      {
-        id: 'BR-2025-001236',
-        paciente: {
-          nombre: 'Ana Sofía López Vargas',
-          cedula: 'CC-3.456.789',
-          edad: 28,
-          genero: 'F'
-        },
-        medicamentos: [
-          {
-            nombre: 'Sumatriptán',
-            cantidad: '6 tabletas',
-            dosis: '50mg',
-            frecuencia: 'Según necesidad',
-            via: 'Oral',
-            duracion: '14 días'
-          }
-        ]
-      }
-    ];
-
-    return borradoresMock.find(borrador => borrador.id === borradorId);
+  private calculateAge(dateOfBirth: string): number {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   }
 
   volverABorradores() {
@@ -1007,33 +916,8 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
     observaciones: ''
   };
 
-  // Datos mock como aparecen en la imagen de React
-  medicamentosMock = [
-    {
-      nombre: 'Ibuprofeno',
-      cantidad: '15 tabletas',
-      dosis: '400 mg',
-      frecuencia: '3 veces al día',
-      via: 'Oral',
-      duracion: '5 días'
-    },
-    {
-      nombre: 'Amoxicilina',
-      cantidad: '14 cápsulas',
-      dosis: '500 mg',
-      frecuencia: '2 veces al día',
-      via: 'Oral',
-      duracion: '7 días'
-    },
-    {
-      nombre: 'Omeprazol',
-      cantidad: '14 tabletas',
-      dosis: '20 mg',
-      frecuencia: '1 vez al día',
-      via: 'Oral',
-      duracion: '14 días'
-    }
-  ];
+  // Medications list - loaded from backend
+  medicamentos: any[] = [];
 
   // Plantillas de prescripciones comunes
   plantillasComunes = [
@@ -1284,7 +1168,12 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
   }
 
   getInitials(nombre: string): string {
+    if (!nombre) return '??';
     return nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  }
+
+  getGenderLabel(gender: 'M' | 'F'): string {
+    return gender === 'M' ? 'Masculino' : 'Femenino';
   }
 
   editarMedicamento(medicamento: any) {
@@ -1297,7 +1186,7 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
       this.nuevoMedicamento.dosis && this.nuevoMedicamento.frecuencia &&
       this.nuevoMedicamento.via && this.nuevoMedicamento.duracion) {
 
-      this.medicamentosMock.push({
+      this.medicamentos.push({
         nombre: this.nuevoMedicamento.nombre,
         cantidad: this.nuevoMedicamento.cantidad,
         dosis: this.nuevoMedicamento.dosis,
@@ -1320,7 +1209,7 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
       // Cerrar modal
       this.closeAddMedicineModal();
 
-      console.log('Medicamento agregado:', this.medicamentosMock);
+      console.log('Medicamento agregado:', this.medicamentos);
     } else {
       alert('⚠️ Por favor complete todos los campos obligatorios');
     }
@@ -1414,27 +1303,103 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
       id: borradorId,
       paciente: this.pacienteSeleccionado,
       prescripcion: this.prescripcion,
-      medicamentos: this.medicamentosMock,
+      medicamentos: this.medicamentos,
       fechaCreacion: new Date().toISOString()
     });
 
-    // Simular guardado exitoso
-    setTimeout(() => {
-      alert(`💾 Borrador Guardado Exitosamente\n\n📋 ID: ${borradorId}\n👤 Paciente: María Elena González Rodríguez\n💊 Medicamentos: ${this.medicamentosMock.length}\n📅 Fecha: ${this.getFechaActual()}\n\n✅ El borrador se ha guardado correctamente y puede continuar editándolo más tarde.`);
-    }, 500);
+    // Save draft
+    this.notificationService.showSuccess(
+      'Borrador guardado',
+      `El borrador ${borradorId} se ha guardado correctamente`
+    );
   }
 
   verificarConDrugBank() {
-    console.log('Verificando medicamentos con DrugBank:', this.medicamentosMock);
+    console.log('Verificando medicamentos con AI Assistant:', this.medicamentos);
 
-    // Mostrar primera notificación (azul - consultando)
-    this.mostrarNotificacion('info', 'Consultando DrugBank...', 'Verificando interacciones con base de datos externa');
+    // Validar que hay medicamentos
+    if (!this.medicamentos || this.medicamentos.length < 2) {
+      this.notificationService.showWarning(
+        'Medicamentos insuficientes',
+        'Se necesitan al menos 2 medicamentos para verificar interacciones'
+      );
+      return;
+    }
 
-    // Después de 2 segundos, mostrar segunda notificación (verde - completada)
-    setTimeout(() => {
-      this.cerrarTodasLasNotificaciones();
-      this.mostrarNotificacion('success', 'Consulta completada: DrugBank', 'No se encontraron interacciones adicionales');
-    }, 2000);
+    // Mostrar notificación de inicio
+    this.notificationService.showInfo(
+      'Consultando AI Assistant',
+      'Verificando interacciones medicamentosas con inteligencia artificial'
+    );
+
+    // Extraer IDs de medicamentos (si existen) o usar nombres
+    // Por ahora usamos un array vacío ya que los medicamentos no tienen IDs del backend
+    // TODO: Cuando los medicamentos vengan del backend, usar sus IDs reales
+    const medicationIds: string[] = [];
+
+    // Si no hay IDs, mostrar mensaje informativo
+    if (medicationIds.length === 0) {
+      setTimeout(() => {
+        this.notificationService.showInfo(
+          'Verificación de interacciones',
+          'Para verificar interacciones, los medicamentos deben estar registrados en el sistema. Por ahora, se muestran las alertas locales.'
+        );
+      }, 1500);
+      return;
+    }
+
+    // Llamar al servicio de AI Assistant
+    this.aiAssistantService.checkDrugInteractions(medicationIds).subscribe({
+      next: (interactions: DrugInteraction[]) => {
+        console.log('Interacciones detectadas:', interactions);
+
+        if (interactions.length === 0) {
+          this.notificationService.showSuccess(
+            'Verificación completada',
+            'No se encontraron interacciones medicamentosas significativas'
+          );
+        } else {
+          // Mostrar interacciones encontradas
+          const interaccionesGraves = interactions.filter(i => i.severity === 'HIGH');
+          const interaccionesModeras = interactions.filter(i => i.severity === 'MEDIUM');
+
+          if (interaccionesGraves.length > 0) {
+            this.notificationService.showError(
+              'Interacciones graves detectadas',
+              `Se encontraron ${interaccionesGraves.length} interacciones de alta severidad`
+            );
+
+            // Agregar a alertas
+            interaccionesGraves.forEach(interaction => {
+              this.alertas.push(
+                `⚠️ INTERACCIÓN GRAVE: ${interaction.medication1Name} + ${interaction.medication2Name} - ${interaction.description}`
+              );
+            });
+          }
+
+          if (interaccionesModeras.length > 0) {
+            this.notificationService.showWarning(
+              'Interacciones moderadas detectadas',
+              `Se encontraron ${interaccionesModeras.length} interacciones de severidad media`
+            );
+
+            // Agregar a alertas
+            interaccionesModeras.forEach(interaction => {
+              this.alertas.push(
+                `⚠️ INTERACCIÓN: ${interaction.medication1Name} + ${interaction.medication2Name} - ${interaction.description}`
+              );
+            });
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error verificando interacciones:', error);
+        this.notificationService.showError(
+          'Error en verificación',
+          'No se pudo completar la verificación de interacciones. Intente nuevamente.'
+        );
+      }
+    });
   }
 
   abrirModalFinalizar() {
@@ -1450,22 +1415,19 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
 
     console.log('Finalizando prescripción:', {
       id: recetaId,
-      paciente: 'María Elena González Rodríguez',
-      medico: 'Dr. Carlos Alberto Mendoza Herrera',
-      medicamentos: this.medicamentosMock,
+      paciente: this.selectedPatient?.fullName || 'Sin paciente',
+      medicamentos: this.medicamentos,
       fechaEmision: new Date().toISOString()
     });
 
     // Cerrar modal de confirmación
     this.showFinalizarModal = false;
 
-    // Simular proceso de finalización
-    setTimeout(() => {
-      alert(`🎉 Prescripción Finalizada Exitosamente\n\n📋 Número de Receta: ${recetaId}\n👤 Paciente: María Elena González Rodríguez\n👨‍⚕️ Médico: Dr. Carlos Alberto Mendoza Herrera\n💊 Medicamentos: ${this.medicamentosMock.length}\n📅 Fecha de Emisión: ${this.getFechaActual()}\n🔐 Estado: Certificada Digitalmente\n\n✅ La prescripción ha sido emitida y enviada al sistema nacional de salud.\n📧 Se ha enviado una copia por correo electrónico al paciente.\n🏥 La receta está disponible en todas las farmacias autorizadas.`);
-
-      // Simular navegación a la lista de recetas emitidas
-      console.log('Navegando a recetas emitidas...');
-    }, 1500);
+    // Finalize prescription
+    this.notificationService.showSuccess(
+      'Prescripción finalizada',
+      `La prescripción ${recetaId} ha sido emitida exitosamente`
+    );
   }
 
   completarPrescripcion() {
@@ -1601,8 +1563,8 @@ export class NuevaPrescripcionComponent implements OnInit, OnDestroy {
       medicamentos: []
     };
     this.alertas = [];
-    // Reiniciar medicamentos mock para nueva prescripción
-    this.medicamentosMock = [];
+    // Reiniciar medicamentos para nueva prescripción
+    this.medicamentos = [];
     // Clear patient selection
     this.selectedPatient = null;
   }

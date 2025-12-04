@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Calendar, Package, AlertTriangle, Search, Filter, Eye, MapPin, DollarSign } from 'lucide-angular';
 import { Subject, takeUntil, Subscription } from 'rxjs';
-import { InventoryMockService } from '../../../services/inventory-mock.service';
+import { InventoryService } from '../../../services/inventory.service';
 import { Batch } from '../../../interfaces/inventory.interface';
 import { BatchDetailModalComponent } from '../../../components/batch-detail-modal/batch-detail-modal.component';
 import { RoleSuggestionModalComponent } from '../../../components/role-suggestion-modal/role-suggestion-modal.component';
@@ -65,7 +65,7 @@ export class LotesVencimientosComponent implements OnInit, OnDestroy {
   private roleSubscriptions = new Subscription();
 
   constructor(
-    private inventoryService: InventoryMockService,
+    private inventoryService: InventoryService,
     private roleDemoService: RoleDemoService
   ) {}
 
@@ -86,7 +86,7 @@ export class LotesVencimientosComponent implements OnInit, OnDestroy {
   cargarLotes() {
     this.inventoryService.getBatches()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(lotes => {
+      .subscribe((lotes: any) => {
         this.lotes = lotes;
         this.lotesFiltrados = [...lotes];
         this.calcularEstadisticas();

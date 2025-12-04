@@ -17,4 +17,10 @@ public interface IPrescriptionRepository
         int page = 1,
         int pageSize = 10,
         CancellationToken cancellationToken = default);
+
+    Task<Dictionary<Guid, Medication>> GetMedicationsByIdsAsync(IEnumerable<Guid> medicationIds, CancellationToken cancellationToken = default);
+    Task<Dictionary<Guid, Patient>> GetPatientsByIdsAsync(IEnumerable<Guid> patientIds, CancellationToken cancellationToken = default);
+    Task<Dictionary<Guid, Doctor>> GetDoctorsByIdsAsync(IEnumerable<Guid> doctorIds, CancellationToken cancellationToken = default);
+    Task<Prescription?> DuplicatePrescriptionAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> CancelPrescriptionAsync(Guid id, string? reason = null, CancellationToken cancellationToken = default);
 }

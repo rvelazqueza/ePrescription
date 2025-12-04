@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Component - ePrescription</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f7fafc;
+            padding: 2rem;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .section-title {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        /* Logo Styles */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .logo-title {
+            font-weight: 600;
+            color: #2b6cb0;
+        }
+
+        .logo-subtitle {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+
+        /* Size variants */
+        .logo-sm .logo-title {
+            font-size: 0.875rem;
+        }
+
+        .logo-sm .logo-subtitle {
+            display: none;
+        }
+
+        .logo-md .logo-title {
+            font-size: 1rem;
+        }
+
+        .logo-lg .logo-title {
+            font-size: 1.125rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #2b6cb0;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .demo-grid {
+            display: grid;
+            gap: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <a href="../../index.html" class="back-link">
+            ← Volver al índice
+        </a>
+
+        <h1>Logo Component</h1>
+        <p class="subtitle">Logo del sistema ePrescription con variantes de tamaño</p>
+
+        <div class="demo-grid">
+            <div class="section">
+                <h2 class="section-title">Logo Completo - Small</h2>
+                <div class="logo logo-sm">
+                    <svg width="24" height="24" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="40" height="40" rx="8" fill="#2b6cb0" />
+                        <path d="M20 8L28 12V18C28 24 24 28.5 20 32C16 28.5 12 24 12 18V12L20 8Z" fill="white" opacity="0.9" />
+                        <path d="M20 14V26M14 20H26" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" />
+                    </svg>
+                    <div class="logo-text">
+                        <span class="logo-title">ePrescription</span>
+                        <span class="logo-subtitle">Sistema Hospitalario</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Logo Completo - Medium</h2>
+                <div class="logo logo-md">
+                    <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="40" height="40" rx="8" fill="#2b6cb0" />
+                        <path d="M20 8L28 12V18C28 24 24 28.5 20 32C16 28.5 12 24 12 18V12L20 8Z" fill="white" opacity="0.9" />
+                        <path d="M20 14V26M14 20H26" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" />
+                    </svg>
+                    <div class="logo-text">
+                        <span class="logo-title">ePrescription</span>
+                        <span class="logo-subtitle">Sistema Hospitalario</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Logo Completo - Large</h2>
+                <div class="logo logo-lg">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="40" height="40" rx="8" fill="#2b6cb0" />
+                        <path d="M20 8L28 12V18C28 24 24 28.5 20 32C16 28.5 12 24 12 18V12L20 8Z" fill="white" opacity="0.9" />
+                        <path d="M20 14V26M14 20H26" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" />
+                    </svg>
+                    <div class="logo-text">
+                        <span class="logo-title">ePrescription</span>
+                        <span class="logo-subtitle">Sistema Hospitalario</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Solo Icono - Small</h2>
+                <svg width="24" height="24" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="#2b6cb0" />
+                    <path d="M20 8L28 12V18C28 24 24 28.5 20 32C16 28.5 12 24 12 18V12L20 8Z" fill="white" opacity="0.9" />
+                    <path d="M20 14V26M14 20H26" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" />
+                </svg>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Solo Icono - Medium</h2>
+                <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="#2b6cb0" />
+                    <path d="M20 8L28 12V18C28 24 24 28.5 20 32C16 28.5 12 24 12 18V12L20 8Z" fill="white" opacity="0.9" />
+                    <path d="M20 14V26M14 20H26" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" />
+                </svg>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Solo Icono - Large</h2>
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="#2b6cb0" />
+                    <path d="M20 8L28 12V18C28 24 24 28.5 20 32C16 28.5 12 24 12 18V12L20 8Z" fill="white" opacity="0.9" />
+                    <path d="M20 14V26M14 20H26" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" />
+                </svg>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">En Background Oscuro</h2>
+                <div style="background: #2d3748; padding: 2rem; border-radius: 8px;">
+                    <div class="logo logo-lg">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="40" height="40" rx="8" fill="#2b6cb0" />
+                            <path d="M20 8L28 12V18C28 24 24 28.5 20 32C16 28.5 12 24 12 18V12L20 8Z" fill="white" opacity="0.9" />
+                            <path d="M20 14V26M14 20H26" stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round" />
+                        </svg>
+                        <div class="logo-text">
+                            <span class="logo-title" style="color: white;">ePrescription</span>
+                            <span class="logo-subtitle" style="color: #cbd5e0;">Sistema Hospitalario</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

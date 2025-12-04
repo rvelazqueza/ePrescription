@@ -19,6 +19,9 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.Property(r => r.Id)
             .HasColumnName("ROLE_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Properties

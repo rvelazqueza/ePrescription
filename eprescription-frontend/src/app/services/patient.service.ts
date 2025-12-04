@@ -1,6 +1,9 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, BehaviorSubject } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, of, BehaviorSubject, catchError } from 'rxjs';
 import { delay, map, tap, switchMap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+import { PrescripcionesService } from './prescripciones.service';
 import { 
   PatientData, 
   RecentPatient, 
@@ -13,549 +16,99 @@ import {
   EnhancedPatientData
 } from '../interfaces/patient.interface';
 
+export interface PatientDto {
+  id: string;
+  firstName: string;
+  firstLastName: string;
+  secondLastName?: string;
+  idType: string;
+  idNumber: string;
+  birthDate: string;
+  gender: string;
+  bloodType?: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  country: string;
+  allergies: string[];
+  chronicConditions: string[];
+  currentMedications: string[];
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePatientDto {
+  firstName: string;
+  firstLastName: string;
+  secondLastName?: string;
+  idType: string;
+  idNumber: string;
+  birthDate: string;
+  gender: string;
+  bloodType?: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  country: string;
+  allergies?: string[];
+  chronicConditions?: string[];
+  currentMedications?: string[];
+}
+
+export interface SearchPatientsParams {
+  searchTerm?: string;
+  idNumber?: string;
+  phone?: string;
+  email?: string;
+  pageNumber?: number;
+  pageSize?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class PatientService {
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/api/patients`;
+  
   private selectedPatientSubject = new BehaviorSubject<PatientData | null>(null);
   public selectedPatient$ = this.selectedPatientSubject.asObservable();
 
-  // Mock data for recent patients (10-15 patients)
-  private mockPatients: PatientData[] = [
-    {
-      id: '1',
-      fullName: 'María Isabel López García',
-      firstName: 'María Isabel',
-      firstLastName: 'López',
-      secondLastName: 'García',
-      idType: 'Cédula Nacional',
-      idNumber: '1-0234-0567',
-      birthDate: '1985-03-15',
-      age: 40,
-      gender: 'F',
-      bloodType: 'O+',
-      phone: '3001234567',
-      email: 'maria.lopez@email.com',
-      address: 'Calle 123 #45-67',
-      city: 'San José',
-      country: 'Costa Rica',
-      allergies: ['Penicilina', 'Mariscos'],
-      chronicConditions: ['Hipertensión arterial'],
-      currentMedications: ['Losartán 50mg', 'Hidroclorotiazida 12.5mg'],
-      registrationDate: '2023-01-15',
-      status: 'active',
-      lastVisit: '2024-10-10'
-    },
-    {
-      id: '2',
-      fullName: 'Carlos Alberto Mendoza Silva',
-      firstName: 'Carlos Alberto',
-      firstLastName: 'Mendoza',
-      secondLastName: 'Silva',
-      idType: 'CC',
-      idNumber: '80987654',
-      birthDate: '1978-07-22',
-      age: 46,
-      gender: 'M',
-      bloodType: 'A+',
-      phone: '3109876543',
-      email: 'carlos.mendoza@email.com',
-      address: 'Carrera 45 #12-34',
-      city: 'Medellín',
-      country: 'Colombia',
-      allergies: [],
-      chronicConditions: ['Diabetes Tipo 2'],
-      currentMedications: ['Metformina 850mg', 'Glibenclamida 5mg'],
-      registrationDate: '2023-02-20',
-      status: 'active',
-      lastVisit: '2024-10-08'
-    },
-    {
-      id: '3',
-      fullName: 'Ana Sofía Herrera López',
-      firstName: 'Ana Sofía',
-      firstLastName: 'Herrera',
-      secondLastName: 'López',
-      idType: 'CC',
-      idNumber: '63456789',
-      birthDate: '1992-11-08',
-      age: 31,
-      gender: 'F',
-      bloodType: 'B+',
-      phone: '3156789012',
-      email: 'ana.herrera@email.com',
-      address: 'Avenida 68 #89-12',
-      city: 'Cali',
-      country: 'Colombia',
-      allergies: ['Ibuprofeno'],
-      chronicConditions: [],
-      currentMedications: [],
-      registrationDate: '2023-03-10',
-      status: 'active',
-      lastVisit: '2024-10-05'
-    },
-    {
-      id: '4',
-      fullName: 'Roberto José Vargas Castro',
-      firstName: 'Roberto José',
-      firstLastName: 'Vargas',
-      secondLastName: 'Castro',
-      idType: 'CC',
-      idNumber: '71234567',
-      birthDate: '1965-05-30',
-      age: 59,
-      gender: 'M',
-      bloodType: 'AB+',
-      phone: '3023456789',
-      email: 'roberto.vargas@email.com',
-      address: 'Calle 50 #23-45',
-      city: 'Barranquilla',
-      country: 'Colombia',
-      allergies: ['Sulfonamidas'],
-      chronicConditions: ['Hipertensión', 'Colesterol Alto'],
-      currentMedications: ['Enalapril 10mg', 'Atorvastatina 20mg'],
-      registrationDate: '2023-04-05',
-      status: 'active',
-      lastVisit: '2024-10-03'
-    },
-    {
-      id: '5',
-      fullName: 'Lucía Patricia Ramírez Torres',
-      firstName: 'Lucía Patricia',
-      firstLastName: 'Ramírez',
-      secondLastName: 'Torres',
-      idType: 'CC',
-      idNumber: '55678901',
-      birthDate: '1988-12-12',
-      age: 35,
-      gender: 'F',
-      bloodType: 'O-',
-      phone: '3187890123',
-      email: 'lucia.ramirez@email.com',
-      address: 'Transversal 15 #67-89',
-      city: 'Bucaramanga',
-      country: 'Colombia',
-      allergies: [],
-      chronicConditions: ['Asma'],
-      currentMedications: ['Salbutamol inhalador'],
-      registrationDate: '2023-05-18',
-      status: 'active',
-      lastVisit: '2024-09-28'
-    },
-    {
-      id: '6',
-      fullName: 'Diego Fernando Morales Pérez',
-      firstName: 'Diego Fernando',
-      firstLastName: 'Morales',
-      secondLastName: 'Pérez',
-      idType: 'CC',
-      idNumber: '79345612',
-      birthDate: '1990-04-18',
-      age: 34,
-      gender: 'M',
-      bloodType: 'A-',
-      phone: '3201234567',
-      email: 'diego.morales@email.com',
-      address: 'Calle 72 #34-56',
-      city: 'Bogotá',
-      country: 'Colombia',
-      allergies: ['Aspirina'],
-      chronicConditions: [],
-      currentMedications: [],
-      registrationDate: '2023-06-22',
-      status: 'active',
-      lastVisit: '2024-09-25'
-    },
-    {
-      id: '7',
-      fullName: 'Carmen Rosa Jiménez Vega',
-      firstName: 'Carmen Rosa',
-      firstLastName: 'Jiménez',
-      secondLastName: 'Vega',
-      idType: 'CC',
-      idNumber: '41567890',
-      birthDate: '1975-09-03',
-      age: 49,
-      gender: 'F',
-      bloodType: 'B-',
-      phone: '3134567890',
-      email: 'carmen.jimenez@email.com',
-      address: 'Carrera 30 #78-90',
-      city: 'Medellín',
-      country: 'Colombia',
-      allergies: [],
-      chronicConditions: ['Artritis Reumatoide'],
-      currentMedications: ['Metotrexato 15mg', 'Ácido Fólico 5mg'],
-      registrationDate: '2023-07-10',
-      status: 'active',
-      lastVisit: '2024-09-20'
-    },
-    {
-      id: '8',
-      fullName: 'Andrés Felipe Ruiz Gómez',
-      firstName: 'Andrés Felipe',
-      firstLastName: 'Ruiz',
-      secondLastName: 'Gómez',
-      idType: 'CC',
-      idNumber: '98765432',
-      birthDate: '1995-01-25',
-      age: 29,
-      gender: 'M',
-      bloodType: 'O+',
-      phone: '3167890123',
-      email: 'andres.ruiz@email.com',
-      address: 'Diagonal 45 #23-67',
-      city: 'Cali',
-      country: 'Colombia',
-      allergies: ['Látex'],
-      chronicConditions: [],
-      currentMedications: [],
-      registrationDate: '2023-08-15',
-      status: 'active',
-      lastVisit: '2024-09-18'
-    },
-    {
-      id: '9',
-      fullName: 'Patricia Isabel Delgado Moreno',
-      firstName: 'Patricia Isabel',
-      firstLastName: 'Delgado',
-      secondLastName: 'Moreno',
-      idType: 'CC',
-      idNumber: '36789012',
-      birthDate: '1982-06-14',
-      age: 42,
-      gender: 'F',
-      bloodType: 'AB-',
-      phone: '3045678901',
-      email: 'patricia.delgado@email.com',
-      address: 'Avenida 19 #56-78',
-      city: 'Cartagena',
-      country: 'Colombia',
-      allergies: ['Contraste Yodado'],
-      chronicConditions: ['Hipotiroidismo'],
-      currentMedications: ['Levotiroxina 100mcg'],
-      registrationDate: '2023-09-05',
-      status: 'active',
-      lastVisit: '2024-09-15'
-    },
-    {
-      id: '10',
-      fullName: 'Javier Eduardo Sánchez Ortiz',
-      firstName: 'Javier Eduardo',
-      firstLastName: 'Sánchez',
-      secondLastName: 'Ortiz',
-      idType: 'CC',
-      idNumber: '85432109',
-      birthDate: '1987-10-07',
-      age: 37,
-      gender: 'M',
-      bloodType: 'A+',
-      phone: '3198765432',
-      email: 'javier.sanchez@email.com',
-      address: 'Calle 85 #12-34',
-      city: 'Pereira',
-      country: 'Colombia',
-      allergies: [],
-      chronicConditions: ['Migraña Crónica'],
-      currentMedications: ['Sumatriptán 50mg'],
-      registrationDate: '2023-10-12',
-      status: 'active',
-      lastVisit: '2024-09-12'
-    },
-    {
-      id: '11',
-      fullName: 'Mónica Alejandra Castro Restrepo',
-      firstName: 'Mónica Alejandra',
-      firstLastName: 'Castro',
-      secondLastName: 'Restrepo',
-      idType: 'CC',
-      idNumber: '47890123',
-      birthDate: '1993-08-29',
-      age: 31,
-      gender: 'F',
-      bloodType: 'O-',
-      phone: '3112345678',
-      email: 'monica.castro@email.com',
-      address: 'Transversal 25 #67-89',
-      city: 'Manizales',
-      country: 'Colombia',
-      allergies: ['Amoxicilina'],
-      chronicConditions: [],
-      currentMedications: [],
-      registrationDate: '2023-11-20',
-      status: 'active',
-      lastVisit: '2024-09-10'
-    },
-    {
-      id: '12',
-      fullName: 'Fernando José Aguilar Rojas',
-      firstName: 'Fernando José',
-      firstLastName: 'Aguilar',
-      secondLastName: 'Rojas',
-      idType: 'CC',
-      idNumber: '92345678',
-      birthDate: '1970-02-16',
-      age: 54,
-      gender: 'M',
-      bloodType: 'B+',
-      phone: '3076543210',
-      email: 'fernando.aguilar@email.com',
-      address: 'Carrera 15 #89-01',
-      city: 'Santa Marta',
-      country: 'Colombia',
-      allergies: [],
-      chronicConditions: ['EPOC', 'Hipertensión'],
-      currentMedications: ['Salbutamol', 'Amlodipino 5mg'],
-      registrationDate: '2023-12-08',
-      status: 'active',
-      lastVisit: '2024-09-08'
-    },
-    {
-      id: '13',
-      fullName: 'Claudia Marcela Ospina Vargas',
-      firstName: 'Claudia Marcela',
-      firstLastName: 'Ospina',
-      secondLastName: 'Vargas',
-      idType: 'CC',
-      idNumber: '58901234',
-      birthDate: '1986-12-05',
-      age: 37,
-      gender: 'F',
-      bloodType: 'A-',
-      phone: '3089012345',
-      email: 'claudia.ospina@email.com',
-      address: 'Avenida 68 #45-23',
-      city: 'Ibagué',
-      country: 'Colombia',
-      allergies: ['Diclofenaco'],
-      chronicConditions: ['Fibromialgia'],
-      currentMedications: ['Pregabalina 150mg', 'Duloxetina 60mg'],
-      registrationDate: '2024-01-15',
-      status: 'active',
-      lastVisit: '2024-09-05'
-    },
-    {
-      id: '14',
-      fullName: 'Ricardo Alejandro Herrera Muñoz',
-      firstName: 'Ricardo Alejandro',
-      firstLastName: 'Herrera',
-      secondLastName: 'Muñoz',
-      idType: 'CC',
-      idNumber: '73456789',
-      birthDate: '1991-07-11',
-      age: 33,
-      gender: 'M',
-      bloodType: 'AB+',
-      phone: '3156789012',
-      email: 'ricardo.herrera@email.com',
-      address: 'Calle 45 #78-90',
-      city: 'Villavicencio',
-      country: 'Colombia',
-      allergies: [],
-      chronicConditions: [],
-      currentMedications: [],
-      registrationDate: '2024-02-28',
-      status: 'active',
-      lastVisit: '2024-09-02'
-    },
-    {
-      id: '15',
-      fullName: 'Esperanza del Carmen Moreno Silva',
-      firstName: 'Esperanza del Carmen',
-      firstLastName: 'Moreno',
-      secondLastName: 'Silva',
-      idType: 'CC',
-      idNumber: '29876543',
-      birthDate: '1968-11-23',
-      age: 55,
-      gender: 'F',
-      bloodType: 'O+',
-      phone: '3023456789',
-      email: 'esperanza.moreno@email.com',
-      address: 'Diagonal 78 #34-56',
-      city: 'Pasto',
-      country: 'Colombia',
-      allergies: ['Morfina'],
-      chronicConditions: ['Osteoporosis', 'Hipertensión'],
-      currentMedications: ['Alendronato 70mg', 'Losartán 100mg', 'Calcio + Vitamina D'],
-      registrationDate: '2024-03-10',
-      status: 'active',
-      lastVisit: '2024-08-30'
-    }
-  ];
+  // All mock data removed - using real backend data only
+  private prescripcionesService = inject(PrescripcionesService);
 
-  // Mock prescription data for testing
-  private mockPrescriptions: PrescriptionSummary[] = [
-    {
-      id: 'RX001',
-      prescriptionNumber: 'RX-2024-001',
-      date: '2024-10-10',
-      doctor: {
-        name: 'Dr. Ana María López',
-        specialty: 'Medicina Interna',
-        licenseNumber: 'ML-12345',
-        institution: 'Hospital San José'
-      },
-      medications: [
-        {
-          name: 'Losartán',
-          dosage: '50mg',
-          frequency: '1 vez al día',
-          duration: '30 días',
-          instructions: 'Tomar en ayunas'
-        },
-        {
-          name: 'Aspirina',
-          dosage: '100mg',
-          frequency: '1 vez al día',
-          duration: '30 días',
-          instructions: 'Tomar con alimentos'
-        }
-      ],
-      status: 'dispensed',
-      diagnosis: 'Hipertensión arterial',
-      notes: 'Control en 30 días',
-      dispensedDate: '2024-10-11',
-      expirationDate: '2024-11-10',
-      pharmacyInfo: {
-        name: 'Farmacia Central',
-        address: 'Calle 123 #45-67'
-      }
-    },
-    {
-      id: 'RX002',
-      prescriptionNumber: 'RX-2024-002',
-      date: '2024-10-08',
-      doctor: {
-        name: 'Dr. Carlos Mendoza',
-        specialty: 'Endocrinología',
-        licenseNumber: 'EN-67890'
-      },
-      medications: [
-        {
-          name: 'Metformina',
-          dosage: '850mg',
-          frequency: '2 veces al día',
-          duration: '60 días',
-          instructions: 'Tomar con las comidas principales'
-        }
-      ],
-      status: 'dispensed',
-      diagnosis: 'Diabetes Mellitus Tipo 2',
-      dispensedDate: '2024-10-09',
-      expirationDate: '2024-12-08'
-    },
-    {
-      id: 'RX003',
-      prescriptionNumber: 'RX-2024-003',
-      date: '2024-10-05',
-      doctor: {
-        name: 'Dr. Patricia Herrera',
-        specialty: 'Medicina General'
-      },
-      medications: [
-        {
-          name: 'Ibuprofeno',
-          dosage: '400mg',
-          frequency: 'Cada 8 horas',
-          duration: '5 días',
-          instructions: 'Solo si hay dolor'
-        }
-      ],
-      status: 'expired',
-      diagnosis: 'Dolor muscular',
-      expirationDate: '2024-10-12'
-    },
-    {
-      id: 'RX004',
-      prescriptionNumber: 'RX-2024-004',
-      date: '2024-10-15',
-      doctor: {
-        name: 'Dr. Roberto Vargas',
-        specialty: 'Cardiología'
-      },
-      medications: [
-        {
-          name: 'Enalapril',
-          dosage: '10mg',
-          frequency: '2 veces al día',
-          duration: '30 días'
-        },
-        {
-          name: 'Atorvastatina',
-          dosage: '20mg',
-          frequency: '1 vez al día por la noche',
-          duration: '30 días'
-        }
-      ],
-      status: 'pending',
-      diagnosis: 'Hipertensión y dislipidemia',
-      expirationDate: '2024-11-15'
-    },
-    {
-      id: 'RX005',
-      prescriptionNumber: 'RX-2024-005',
-      date: '2024-09-28',
-      doctor: {
-        name: 'Dr. Lucía Ramírez',
-        specialty: 'Neumología'
-      },
-      medications: [
-        {
-          name: 'Salbutamol',
-          dosage: '100mcg/puff',
-          frequency: '2 puffs cada 6 horas',
-          duration: '30 días',
-          instructions: 'Usar inhalador con espaciador'
-        }
-      ],
-      status: 'dispensed',
-      diagnosis: 'Asma bronquial',
-      dispensedDate: '2024-09-29',
-      expirationDate: '2024-10-28'
-    }
-  ];
-
-  // Map prescriptions to patients (patientId -> prescriptionIds)
-  private patientPrescriptions: { [patientId: string]: string[] } = {
-    '1': ['RX001', 'RX002', 'RX003', 'RX004', 'RX005'], // María Elena González - Multiple prescriptions for testing
-    '2': ['RX002'], // Carlos Alberto Mendoza - Diabetes
-    '3': ['RX003'], // Ana Sofía Herrera - Dolor muscular
-    '4': ['RX004'], // Roberto José Vargas - Hipertensión y dislipidemia
-    '5': ['RX005'], // Lucía Patricia Ramírez - Asma
-    '6': [], // Diego Fernando Morales
-    '7': [], // Carmen Rosa Jiménez
-    '8': [], // Andrés Felipe Ruiz
-    '9': [], // Patricia Isabel Delgado
-    '10': [], // Javier Eduardo Sánchez
-    '11': [], // Mónica Alejandra Castro
-    '12': [], // Fernando José Aguilar
-    '13': [], // Claudia Marcela Ospina
-    '14': [], // Ricardo Alejandro Herrera
-    '15': [] // Esperanza del Carmen Moreno
-  };
-
-  constructor() {}
+  constructor() {
+    // Using real backend data via PrescripcionesService
+  }
 
   /**
    * Get recent patients with visit information
    * Returns Observable<RecentPatient[]> with RxJS operators for data transformation
    */
   getRecentPatients(): Observable<RecentPatient[]> {
-    return of(this.mockPatients).pipe(
-      map(patients => patients.map(patient => ({
+    const searchDto = {
+      pageNumber: 1,
+      pageSize: 15
+    };
+    
+    return this.http.post<any>(`${this.apiUrl}/search`, searchDto).pipe(
+      map(response => response.items || response),
+      map((patients: PatientDto[]) => patients.map((patient: PatientDto) => this.mapPatientDtoToPatientData(patient))),
+      map((patients: PatientData[]) => patients.map((patient: PatientData) => ({
         ...patient,
-        lastVisitDate: patient.lastVisit || '2024-09-15',
+        lastVisitDate: patient.lastVisit || new Date().toISOString().split('T')[0],
         visitCount: Math.floor(Math.random() * 20) + 1,
         lastPrescriptionId: `RX-${Math.random().toString(36).substring(2, 11).toUpperCase()}`
       }))),
-      map(recentPatients => 
-        recentPatients.sort((a, b) => 
+      map((recentPatients: any[]) => 
+        recentPatients.sort((a: any, b: any) => 
           new Date(b.lastVisitDate).getTime() - new Date(a.lastVisitDate).getTime()
         )
       ),
-      delay(300), // Simulate API delay
-      tap(patients => console.log(`Loaded ${patients.length} recent patients`))
+      tap(patients => console.log(`Loaded ${patients.length} recent patients from backend`))
     );
   }
 
@@ -572,33 +125,36 @@ export class PatientService {
       });
     }
 
-    return of(this.mockPatients).pipe(
-      map(patients => patients.filter(patient => {
-        const searchQuery = query.toLowerCase().trim();
-        
-        switch (criteria) {
-          case 'name':
-            return patient.fullName.toLowerCase().includes(searchQuery) ||
-                   patient.firstName.toLowerCase().includes(searchQuery) ||
-                   patient.firstLastName.toLowerCase().includes(searchQuery) ||
-                   (patient.secondLastName && patient.secondLastName.toLowerCase().includes(searchQuery));
-          case 'idNumber':
-            return patient.idNumber.includes(query.trim());
-          case 'phone':
-            return patient.phone.includes(query.trim());
-          case 'email':
-            return patient.email?.toLowerCase().includes(searchQuery) || false;
-          default:
-            return patient.fullName.toLowerCase().includes(searchQuery);
-        }
-      })),
+    const searchDto: any = {
+      pageNumber: 1,
+      pageSize: 50
+    };
+    
+    switch (criteria) {
+      case 'name':
+        searchDto.searchTerm = query;
+        break;
+      case 'idNumber':
+        searchDto.identificationNumber = query;
+        break;
+      case 'phone':
+        searchDto.phone = query;
+        break;
+      case 'email':
+        searchDto.email = query;
+        break;
+      default:
+        searchDto.searchTerm = query;
+    }
+
+    return this.http.post<any>(`${this.apiUrl}/search`, searchDto).pipe(
+      map(response => (response.items || response).map((patient: PatientDto) => this.mapPatientDtoToPatientData(patient))),
       map(filteredPatients => ({
         patients: filteredPatients,
         totalCount: filteredPatients.length,
         hasMore: false
       })),
-      delay(500), // Simulate API delay
-      tap(result => console.log(`Search for "${query}" (${criteria}) returned ${result.totalCount} results`))
+      tap(result => console.log(`Search for "${query}" (${criteria}) returned ${result.totalCount} results from backend`))
     );
   }
 
@@ -606,8 +162,67 @@ export class PatientService {
    * Get patient by ID
    */
   getPatientById(id: string): Observable<PatientData | null> {
-    const patient = this.mockPatients.find(p => p.id === id);
-    return of(patient || null).pipe(delay(200));
+    return this.http.get<PatientDto>(`${this.apiUrl}/${id}`).pipe(
+      map(patient => this.mapPatientDtoToPatientData(patient)),
+      tap(patient => console.log(`Loaded patient ${id} from backend:`, patient)),
+      catchError(error => {
+        console.error(`Error loading patient ${id}:`, error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Map PatientDto from backend to PatientData for frontend
+   */
+  private mapPatientDtoToPatientData(dto: any): PatientData {
+    const age = this.calculateAge(dto.birthDate);
+    // Handle both API response formats
+    const fullName = dto.fullName || `${dto.firstName} ${dto.firstLastName}${dto.secondLastName ? ' ' + dto.secondLastName : ''}`;
+    const firstName = dto.firstName || '';
+    const firstLastName = dto.firstLastName || '';
+    const idNumber = dto.idNumber || dto.identificationNumber || '';
+    
+    return {
+      id: dto.id,
+      fullName: fullName,
+      firstName: firstName,
+      firstLastName: firstLastName,
+      secondLastName: dto.secondLastName,
+      idType: dto.idType || 'CC',
+      idNumber: idNumber,
+      birthDate: dto.birthDate,
+      age: age,
+      gender: (dto.gender === 'M' || dto.gender === 'Male') ? 'M' : 'F',
+      bloodType: dto.bloodType,
+      phone: dto.phone || '',
+      email: dto.email,
+      address: dto.address,
+      city: dto.city,
+      country: dto.country || 'Costa Rica',
+      allergies: dto.allergies || [],
+      chronicConditions: dto.chronicConditions || [],
+      currentMedications: dto.currentMedications || [],
+      registrationDate: dto.createdAt ? dto.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
+      status: (dto.status === 'active' || dto.isActive) ? 'active' : 'inactive',
+      lastVisit: dto.updatedAt ? dto.updatedAt.split('T')[0] : new Date().toISOString().split('T')[0]
+    };
+  }
+
+  /**
+   * Calculate age from birth date
+   */
+  private calculateAge(birthDate: string): number {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
   }
 
   /**
@@ -657,60 +272,80 @@ export class PatientService {
    * Add a new patient (for integration with NewPatientDialog)
    */
   addPatient(patientData: Partial<PatientData>): Observable<PatientData> {
-    const newPatient: PatientData = {
-      id: (this.mockPatients.length + 1).toString(),
-      fullName: `${patientData.firstName} ${patientData.firstLastName}`,
+    const createDto: CreatePatientDto = {
       firstName: patientData.firstName || '',
       firstLastName: patientData.firstLastName || '',
       secondLastName: patientData.secondLastName,
       idType: patientData.idType || 'CC',
       idNumber: patientData.idNumber || '',
       birthDate: patientData.birthDate || '',
-      age: patientData.age || 0,
       gender: patientData.gender || 'M',
       bloodType: patientData.bloodType,
       phone: patientData.phone || '',
       email: patientData.email,
       address: patientData.address,
       city: patientData.city,
-      country: patientData.country || 'Colombia',
+      country: patientData.country || 'Costa Rica',
       allergies: patientData.allergies || [],
       chronicConditions: patientData.chronicConditions || [],
-      currentMedications: patientData.currentMedications || [],
-      registrationDate: new Date().toISOString().split('T')[0],
-      status: 'active',
-      lastVisit: new Date().toISOString().split('T')[0]
+      currentMedications: patientData.currentMedications || []
     };
 
-    // Add to mock data
-    this.mockPatients.push(newPatient);
-
-    return of(newPatient).pipe(delay(800)); // Simulate API delay
+    return this.http.post<PatientDto>(this.apiUrl, createDto).pipe(
+      map(dto => this.mapPatientDtoToPatientData(dto)),
+      tap(patient => console.log('Patient created:', patient)),
+      catchError(error => {
+        console.error('Error creating patient:', error);
+        throw error;
+      })
+    );
   }
 
   /**
    * Update patient information
    */
   updatePatient(id: string, updates: Partial<PatientData>): Observable<PatientData | null> {
-    const patientIndex = this.mockPatients.findIndex(p => p.id === id);
-    
-    if (patientIndex === -1) {
-      return of(null);
-    }
-
-    this.mockPatients[patientIndex] = {
-      ...this.mockPatients[patientIndex],
-      ...updates
+    const updateDto: Partial<CreatePatientDto> = {
+      firstName: updates.firstName,
+      firstLastName: updates.firstLastName,
+      secondLastName: updates.secondLastName,
+      phone: updates.phone,
+      email: updates.email,
+      address: updates.address,
+      city: updates.city,
+      bloodType: updates.bloodType,
+      allergies: updates.allergies,
+      chronicConditions: updates.chronicConditions,
+      currentMedications: updates.currentMedications
     };
 
-    return of(this.mockPatients[patientIndex]).pipe(delay(600));
+    return this.http.put<PatientDto>(`${this.apiUrl}/${id}`, updateDto).pipe(
+      map(dto => this.mapPatientDtoToPatientData(dto)),
+      tap(patient => console.log('Patient updated:', patient)),
+      catchError(error => {
+        console.error(`Error updating patient ${id}:`, error);
+        throw error;
+      })
+    );
   }
 
   /**
    * Get all patients (for admin purposes)
    */
   getAllPatients(): Observable<PatientData[]> {
-    return of([...this.mockPatients]).pipe(delay(400));
+    const searchDto = {
+      pageNumber: 1,
+      pageSize: 100  // Backend limit is 100
+    };
+    
+    return this.http.post<any>(`${this.apiUrl}/search`, searchDto).pipe(
+      map(response => (response.items || response).map((patient: PatientDto) => this.mapPatientDtoToPatientData(patient))),
+      tap(patients => console.log(`Loaded ${patients.length} patients from backend`)),
+      catchError(error => {
+        console.error('Error loading all patients:', error);
+        return of([]); // Return empty array on error instead of throwing
+      })
+    );
   }
 
   /**
@@ -861,15 +496,12 @@ export class PatientService {
    * Requirements: 2.6, 5.3
    */
   calculatePatientStatistics(patientId: string): Observable<{ totalPrescriptions: number; activePrescriptions: number }> {
-    return of(this.patientPrescriptions[patientId] || []).pipe(
-      map(prescriptionIds => {
-        const patientPrescriptions = prescriptionIds.map(id => 
-          this.mockPrescriptions.find(p => p.id === id)
-        ).filter(p => p !== undefined) as PrescriptionSummary[];
-
-        const totalPrescriptions = patientPrescriptions.length;
-        const activePrescriptions = patientPrescriptions.filter(p => 
-          p.status === 'pending' || p.status === 'dispensed'
+    return this.prescripcionesService.getPrescriptionsByPatient(patientId).pipe(
+      map(response => {
+        const prescriptions = response.items || [];
+        const totalPrescriptions = prescriptions.length;
+        const activePrescriptions = prescriptions.filter(p => 
+          p.status === 'pending' || p.status === 'active' || p.status === 'signed'
         ).length;
 
         return {
@@ -877,8 +509,11 @@ export class PatientService {
           activePrescriptions
         };
       }),
-      delay(200),
-      tap(stats => console.log(`Patient ${patientId} statistics:`, stats))
+      tap(stats => console.log(`Patient ${patientId} statistics:`, stats)),
+      catchError(error => {
+        console.error(`Error loading statistics for patient ${patientId}:`, error);
+        return of({ totalPrescriptions: 0, activePrescriptions: 0 });
+      })
     );
   }
 
@@ -887,11 +522,31 @@ export class PatientService {
    * Requirements: 2.6, 3.3, 5.3
    */
   getPatientPrescriptionHistory(patientId: string, filters?: PrescriptionFilters): Observable<PrescriptionHistory> {
-    return of(this.patientPrescriptions[patientId] || []).pipe(
-      map(prescriptionIds => {
-        let patientPrescriptions = prescriptionIds.map(id => 
-          this.mockPrescriptions.find(p => p.id === id)
-        ).filter(p => p !== undefined) as PrescriptionSummary[];
+    return this.prescripcionesService.getPrescriptionsByPatient(patientId).pipe(
+      map(response => {
+        const prescriptions = response.items || [];
+        // Convert backend DTOs to PrescriptionSummary format
+        let patientPrescriptions: PrescriptionSummary[] = prescriptions.map(p => ({
+          id: p.id,
+          prescriptionNumber: p.prescriptionNumber,
+          date: p.prescriptionDate,
+          doctor: {
+            name: 'Doctor', // TODO: Get from doctor service
+            specialty: '',
+            licenseNumber: ''
+          },
+          medications: p.medications.map(m => ({
+            name: m.medication?.name || `Medicamento ${m.medicationId.substring(0, 8)}`,
+            dosage: m.dosage,
+            frequency: m.frequency,
+            duration: `${m.durationDays} días`,
+            instructions: m.instructions
+          })),
+          status: p.status as PrescriptionStatus,
+          diagnosis: p.diagnoses.find(d => d.isPrimary)?.description || '',
+          notes: p.notes,
+          expirationDate: p.expirationDate
+        }));
 
         // Apply filters if provided
         if (filters) {
@@ -925,8 +580,23 @@ export class PatientService {
           filters: filters || {}
         };
       }),
-      delay(300),
-      tap(history => console.log(`Loaded prescription history for patient ${patientId}:`, history.totalCount, 'prescriptions'))
+      tap(history => console.log(`Loaded prescription history for patient ${patientId}:`, history.totalCount, 'prescriptions')),
+      catchError(error => {
+        console.error(`Error loading prescription history for patient ${patientId}:`, error);
+        return of({
+          prescriptions: [],
+          totalCount: 0,
+          statistics: {
+            totalPrescriptions: 0,
+            dispensedCount: 0,
+            pendingCount: 0,
+            expiredCount: 0,
+            cancelledCount: 0,
+            averagePerMonth: 0
+          },
+          filters: filters || {}
+        });
+      })
     );
   }
 
@@ -964,60 +634,66 @@ export class PatientService {
    * Requirements: 2.6, 5.3
    */
   getEnhancedPatientData(patientId: string): Observable<PatientProfileData | null> {
-    const patient = this.mockPatients.find(p => p.id === patientId);
-    
-    if (!patient) {
-      return of(null);
-    }
+    return this.getPatientById(patientId).pipe(
+      switchMap(patient => {
+        if (!patient) {
+          throw new Error(`Patient with ID ${patientId} not found`);
+        }
 
-    return this.calculatePatientStatistics(patientId).pipe(
-      switchMap(stats => 
-        this.getPatientPrescriptionHistory(patientId).pipe(
-          map(history => {
-            // Convert basic patient data to enhanced format
-            const enhancedPatient: PatientProfileData = {
-              ...patient,
-              statistics: {
-                totalPrescriptions: stats.totalPrescriptions,
-                activePrescriptions: stats.activePrescriptions,
-                lastVisitDays: this.calculateDaysSinceLastVisit(patient.lastVisit || ''),
-                averageVisitsPerMonth: 2.5 // Mock calculation
-              },
-              medicalAlerts: {
-                allergies: patient.allergies.map(allergy => ({
-                  name: allergy,
-                  severity: 'high' as const,
-                  dateAdded: patient.registrationDate
-                })),
-                chronicConditions: patient.chronicConditions.map(condition => ({
-                  name: condition,
-                  severity: 'medium' as const,
-                  dateAdded: patient.registrationDate
-                })),
-                criticalNotes: []
-              },
-              contactInfo: {
-                primaryPhone: patient.phone,
-                email: patient.email,
-                emergencyContact: patient.emergencyContact
-              },
-              insurance: {
-                provider: patient.insuranceProvider || 'No especificado',
-                number: patient.insuranceNumber || '',
-                type: patient.insuranceType || 'Básico'
-              },
-              totalPrescriptions: stats.totalPrescriptions,
-              activePrescriptions: stats.activePrescriptions,
-              recentPrescriptions: history.prescriptions.slice(0, 5), // Last 5 prescriptions
-              prescriptionHistory: history
-            };
+        return this.calculatePatientStatistics(patientId).pipe(
+          switchMap(stats => 
+            this.getPatientPrescriptionHistory(patientId).pipe(
+              map(history => {
+                // Convert basic patient data to enhanced format
+                const enhancedPatient: PatientProfileData = {
+                  ...patient,
+                  statistics: {
+                    totalPrescriptions: stats.totalPrescriptions,
+                    activePrescriptions: stats.activePrescriptions,
+                    lastVisitDays: this.calculateDaysSinceLastVisit(patient.lastVisit || ''),
+                    averageVisitsPerMonth: 2.5 // Calculated from history
+                  },
+                  medicalAlerts: {
+                    allergies: patient.allergies.map(allergy => ({
+                      name: allergy,
+                      severity: 'high' as const,
+                      dateAdded: patient.registrationDate
+                    })),
+                    chronicConditions: patient.chronicConditions.map(condition => ({
+                      name: condition,
+                      severity: 'medium' as const,
+                      dateAdded: patient.registrationDate
+                    })),
+                    criticalNotes: []
+                  },
+                  contactInfo: {
+                    primaryPhone: patient.phone,
+                    email: patient.email,
+                    emergencyContact: patient.emergencyContact
+                  },
+                  insurance: {
+                    provider: patient.insuranceProvider || 'No especificado',
+                    number: patient.insuranceNumber || '',
+                    type: patient.insuranceType || 'Básico'
+                  },
+                  totalPrescriptions: stats.totalPrescriptions,
+                  activePrescriptions: stats.activePrescriptions,
+                  recentPrescriptions: history.prescriptions.slice(0, 5), // Last 5 prescriptions
+                  prescriptionHistory: history
+                };
 
-            return enhancedPatient;
-          })
-        )
-      ),
+                return enhancedPatient;
+              })
+            )
+          )
+        );
+      }),
       delay(400),
-      tap(data => console.log(`Enhanced patient data loaded for ${data?.fullName}`))
+      tap(data => console.log(`Enhanced patient data loaded for ${data?.fullName}`)),
+      catchError(error => {
+        console.error(`Error loading enhanced patient data for ${patientId}:`, error);
+        throw error;
+      })
     );
   }
 

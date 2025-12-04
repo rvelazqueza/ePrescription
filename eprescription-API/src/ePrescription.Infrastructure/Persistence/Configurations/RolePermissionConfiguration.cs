@@ -19,17 +19,26 @@ public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermissi
         builder.Property(rp => rp.Id)
             .HasColumnName("ROLE_PERMISSION_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Foreign Keys
         builder.Property(rp => rp.RoleId)
             .HasColumnName("ROLE_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         builder.Property(rp => rp.PermissionId)
             .HasColumnName("PERMISSION_ID")
             .HasColumnType("RAW(16)")
+            .HasConversion(
+                guid => guid.ToByteArray(),
+                bytes => new Guid(bytes))
             .IsRequired();
 
         // Timestamps

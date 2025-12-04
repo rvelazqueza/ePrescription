@@ -7,6 +7,8 @@ import { BreadcrumbsComponent, BreadcrumbItem } from '../../../components/breadc
 import { RoleSuggestionModalComponent } from '../../../components/role-suggestion-modal/role-suggestion-modal.component';
 import { RoleDemoService } from '../../../services/role-demo.service';
 import { RoleSuggestionService } from '../../../services/role-suggestion.service';
+import { PrescripcionesService } from '../../../services/prescripciones.service';
+import { DispensationService } from '../../../services/dispensation.service';
 
 export interface Medicine {
   id: string;
@@ -84,128 +86,38 @@ export class RegistrarDispensacionComponent implements OnInit, OnDestroy {
 
   constructor(
     private roleDemoService: RoleDemoService,
-    private roleSuggestionService: RoleSuggestionService
+    private roleSuggestionService: RoleSuggestionService,
+    private prescripcionesService: PrescripcionesService,
+    private dispensationService: DispensationService
   ) {}
 
   // Prescription selection state
   searchText = '';
   showFilters = false;
   
-  // Mock data for prescription selection
-  mockPrescriptionsForSelection: PrescriptionForSelection[] = [
-    {
-      prescriptionNumber: "RX-2025-009847",
-      qrCode: "QR-9847-A3F2",
-      token: "VRF-2025-9847-X8K4",
-      patientName: "María Elena González Rodríguez",
-      patientId: "CC-52.841.963",
-      emittedDate: "27/09/2025",
-      emittedTime: "10:32 a.m.",
-      validUntil: "11/10/2025",
-      medicinesCount: 3,
-      dispensationStatus: "emitted",
-      age: 45,
-      gender: "F",
-      doctorName: "Dr. Carlos Alberto Mendoza Herrera",
-      verificationStatus: "valid"
-    },
-    {
-      prescriptionNumber: "RX-2025-009846",
-      qrCode: "QR-9846-B7H9",
-      token: "VRF-2025-9846-M2P5",
-      patientName: "Juan Carlos Martínez López",
-      patientId: "CC-41.523.789",
-      emittedDate: "20/09/2025",
-      emittedTime: "02:15 p.m.",
-      validUntil: "04/10/2025",
-      medicinesCount: 2,
-      dispensationStatus: "emitted",
-      age: 52,
-      gender: "M",
-      doctorName: "Dr. Carlos Alberto Mendoza Herrera",
-      verificationStatus: "valid"
-    },
-    {
-      prescriptionNumber: "RX-2025-009845",
-      qrCode: "QR-9845-C4J1",
-      token: "VRF-2025-9845-N7R3",
-      patientName: "Ana Patricia Ruiz Sánchez",
-      patientId: "CC-39.654.321",
-      emittedDate: "25/09/2025",
-      emittedTime: "11:20 a.m.",
-      validUntil: "09/10/2025",
-      medicinesCount: 4,
-      dispensationStatus: "fully_dispensed",
-      age: 33,
-      gender: "F",
-      doctorName: "Dr. Carlos Alberto Mendoza Herrera",
-      verificationStatus: "already_dispensed"
-    },
-    {
-      prescriptionNumber: "RX-2025-009844",
-      qrCode: "QR-9844-D8K6",
-      token: "VRF-2025-9844-Q1W9",
-      patientName: "Roberto Antonio Silva Gómez",
-      patientId: "CC-45.789.123",
-      emittedDate: "28/09/2025",
-      emittedTime: "09:00 a.m.",
-      validUntil: "12/10/2025",
-      medicinesCount: 1,
-      dispensationStatus: "cancelled",
-      age: 28,
-      gender: "M",
-      doctorName: "Dr. Carlos Alberto Mendoza Herrera",
-      verificationStatus: "cancelled"
-    }
-  ];
+  // Loading and error states
+  isLoading = signal(false);
+  errorMessage = signal<string | null>(null);
+  
+  // Data from backend
+  prescriptionsForSelection: PrescriptionForSelection[] = [];
 
   prescriptionData: PrescriptionData = {
-    prescriptionNumber: "RX-2025-009847",
-    patientId: "CC-52.841.963",
-    patientName: "María Elena González Rodríguez",
-    patientFirstLastName: "González",
-    patientSecondLastName: "Rodríguez",
-    patientGender: "Femenino",
-    patientAge: 45,
-    doctorName: "Dr. Carlos Alberto Mendoza Herrera",
-    doctorCode: "RM-12345-COL",
-    issueDate: "27/09/2025",
-    issueTime: "10:32 a.m.",
+    prescriptionNumber: "",
+    patientId: "",
+    patientName: "",
+    patientFirstLastName: "",
+    patientSecondLastName: "",
+    patientGender: "",
+    patientAge: 0,
+    doctorName: "",
+    doctorCode: "",
+    issueDate: "",
+    issueTime: "",
     status: "draft"
   };
 
-  medicines: Medicine[] = [
-    {
-      id: "1",
-      name: "Ibuprofeno",
-      quantity: "15 tabletas",
-      dose: "400 mg",
-      frequency: "3 veces al día",
-      administration: "Oral",
-      duration: "5 días",
-      observations: ""
-    },
-    {
-      id: "2",
-      name: "Amoxicilina",
-      quantity: "14 cápsulas",
-      dose: "500 mg",
-      frequency: "2 veces al día",
-      administration: "Oral",
-      duration: "7 días",
-      observations: ""
-    },
-    {
-      id: "3",
-      name: "Omeprazol",
-      quantity: "14 tabletas",
-      dose: "20 mg",
-      frequency: "1 vez al día",
-      administration: "Oral",
-      duration: "14 días",
-      observations: ""
-    }
-  ];
+  medicines: Medicine[] = [];
 
   // Modal state
   showMedicineModal = false;
@@ -225,6 +137,9 @@ export class RegistrarDispensacionComponent implements OnInit, OnDestroy {
     });
     
     this.subscriptions.add(roleSubscription);
+    
+    // Cargar prescripciones disponibles desde el backend
+    this.loadAvailablePrescriptions();
   }
 
   ngOnDestroy() {
@@ -329,10 +244,51 @@ export class RegistrarDispensacionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.selectedPrescription) {
+      this.showErrorMessage('No hay prescripción seleccionada');
+      return;
+    }
+
     if (confirm('¿Está seguro de que desea completar la dispensación? Esta acción no se puede deshacer.')) {
-      // Lógica para completar dispensación
-      this.prescriptionData.status = 'completed';
-      this.showSuccessMessage('Dispensación completada exitosamente');
+      this.isLoading.set(true);
+      
+      // Preparar datos de dispensación para el backend
+      const dispensationData = {
+        prescriptionId: this.selectedPrescription.token,
+        dispensedItems: this.medicines.map(med => ({
+          medicationId: med.id,
+          medicationName: med.name,
+          quantityDispensed: parseInt(med.quantity) || 0,
+          dosage: med.dose,
+          frequency: med.frequency,
+          route: med.administration,
+          duration: parseInt(med.duration) || 0,
+          instructions: med.observations
+        })),
+        notes: 'Dispensación completada desde el sistema',
+        dispensedDate: new Date().toISOString()
+      };
+
+      // Registrar dispensación en el backend
+      this.dispensationService.register(dispensationData as any).subscribe({
+        next: (response: any) => {
+          this.prescriptionData.status = 'completed';
+          this.isLoading.set(false);
+          this.showSuccessMessage('Dispensación completada exitosamente');
+          
+          // Volver a la selección de prescripciones
+          setTimeout(() => {
+            this.handleBackToSelection();
+            this.loadAvailablePrescriptions();
+          }, 2000);
+        },
+        error: (error: any) => {
+          console.error('Error al completar dispensación:', error);
+          this.errorMessage.set('No se pudo completar la dispensación');
+          this.isLoading.set(false);
+          this.showErrorMessage('Error al completar la dispensación. Por favor intente nuevamente.');
+        }
+      });
     }
   }
 
@@ -367,68 +323,157 @@ export class RegistrarDispensacionComponent implements OnInit, OnDestroy {
   // Stepper methods
   handleSelectPrescription(prescription: PrescriptionForSelection): void {
     this.selectedPrescription = prescription;
-    this.currentStep = 'dispense';
+    this.isLoading.set(true);
     
-    // Update prescription data for the dispensation step
-    this.prescriptionData = {
-      prescriptionNumber: prescription.prescriptionNumber,
-      patientId: prescription.patientId,
-      patientName: prescription.patientName,
-      patientFirstLastName: prescription.patientName.split(' ')[1] || '',
-      patientSecondLastName: prescription.patientName.split(' ')[2] || '',
-      patientGender: prescription.gender === 'M' ? 'Masculino' : 'Femenino',
-      patientAge: prescription.age,
-      doctorName: prescription.doctorName,
-      doctorCode: "RM-12345-COL",
-      issueDate: prescription.emittedDate,
-      issueTime: prescription.emittedTime,
-      status: "draft"
-    };
-    
-    this.showSuccessMessage(`Receta seleccionada: ${prescription.prescriptionNumber} - ${prescription.patientName}`);
+    // Cargar detalles completos de la prescripción desde el backend
+    this.prescripcionesService.getPrescriptionById(prescription.token).subscribe({
+      next: (fullPrescription: any) => {
+        // Update prescription data for the dispensation step
+        this.prescriptionData = {
+          prescriptionNumber: prescription.prescriptionNumber,
+          patientId: prescription.patientId,
+          patientName: prescription.patientName,
+          patientFirstLastName: prescription.patientName.split(' ')[1] || '',
+          patientSecondLastName: prescription.patientName.split(' ')[2] || '',
+          patientGender: prescription.gender === 'M' ? 'Masculino' : 'Femenino',
+          patientAge: prescription.age,
+          doctorName: prescription.doctorName,
+          doctorCode: fullPrescription.doctor?.licenseNumber || "---",
+          issueDate: prescription.emittedDate,
+          issueTime: prescription.emittedTime,
+          status: "draft"
+        };
+        
+        // Cargar medicamentos de la prescripción
+        this.medicines = fullPrescription.medications?.map((med: any, index: number) => ({
+          id: (index + 1).toString(),
+          name: med.medicationName || med.name || '',
+          quantity: `${med.quantity || 0} ${med.unit || 'unidades'}`,
+          dose: med.dosage || '',
+          frequency: med.frequency || '',
+          administration: med.route || 'Oral',
+          duration: `${med.duration || 0} días`,
+          observations: med.instructions || ''
+        })) || [];
+        
+        this.currentStep = 'dispense';
+        this.isLoading.set(false);
+        this.showSuccessMessage(`Receta seleccionada: ${prescription.prescriptionNumber} - ${prescription.patientName}`);
+      },
+      error: (error: any) => {
+        console.error('Error al cargar detalles de prescripción:', error);
+        this.errorMessage.set('No se pudieron cargar los detalles de la prescripción');
+        this.isLoading.set(false);
+      }
+    });
   }
 
   handleBackToSelection(): void {
     this.currentStep = 'select';
     this.selectedPrescription = null;
     // Reset dispensation data
-    this.medicines = [
-      {
-        id: "1",
-        name: "Ibuprofeno",
-        quantity: "15 tabletas",
-        dose: "400 mg",
-        frequency: "3 veces al día",
-        administration: "Oral",
-        duration: "5 días",
-        observations: ""
+    this.medicines = [];
+    this.prescriptionData = {
+      prescriptionNumber: "",
+      patientId: "",
+      patientName: "",
+      patientFirstLastName: "",
+      patientSecondLastName: "",
+      patientGender: "",
+      patientAge: 0,
+      doctorName: "",
+      doctorCode: "",
+      issueDate: "",
+      issueTime: "",
+      status: "draft"
+    };
+  }
+
+  /**
+   * Carga las prescripciones disponibles desde el backend
+   */
+  private loadAvailablePrescriptions(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    // Obtener prescripciones con estado "Emitted" (disponibles para dispensar)
+    this.prescripcionesService.getPrescripciones({ status: 'Emitted' }).subscribe({
+      next: (response) => {
+        const prescriptions = response.items || [];
+        this.prescriptionsForSelection = prescriptions.map(p => this.mapPrescriptionToSelection(p));
+        this.isLoading.set(false);
       },
-      {
-        id: "2",
-        name: "Amoxicilina",
-        quantity: "14 cápsulas",
-        dose: "500 mg",
-        frequency: "2 veces al día",
-        administration: "Oral",
-        duration: "7 días",
-        observations: ""
-      },
-      {
-        id: "3",
-        name: "Omeprazol",
-        quantity: "14 tabletas",
-        dose: "20 mg",
-        frequency: "1 vez al día",
-        administration: "Oral",
-        duration: "14 días",
-        observations: ""
+      error: (error: any) => {
+        console.error('Error al cargar prescripciones:', error);
+        this.errorMessage.set('No se pudieron cargar las prescripciones disponibles');
+        this.isLoading.set(false);
       }
-    ];
+    });
+  }
+
+  /**
+   * Mapea una prescripción del backend al formato PrescriptionForSelection
+   */
+  private mapPrescriptionToSelection(prescription: any): PrescriptionForSelection {
+    // Determinar el estado de verificación
+    let verificationStatus: 'valid' | 'expired' | 'already_dispensed' | 'cancelled' | 'invalid' = 'valid';
+    
+    // Usar valores en minúsculas que coinciden con el backend
+    if (prescription.status === 'cancelled') {
+      verificationStatus = 'cancelled';
+    } else if (prescription.status === 'dispensed') {
+      verificationStatus = 'already_dispensed';
+    } else if (prescription.validUntil && new Date(prescription.validUntil) < new Date()) {
+      verificationStatus = 'expired';
+    }
+
+    // Mapear el estado de dispensación
+    let dispensationStatus: 'emitted' | 'fully_dispensed' | 'cancelled' = 'emitted';
+    if (prescription.status === 'dispensed') {
+      dispensationStatus = 'fully_dispensed';
+    } else if (prescription.status === 'cancelled') {
+      dispensationStatus = 'cancelled';
+    }
+
+    return {
+      prescriptionNumber: prescription.prescriptionNumber || prescription.id,
+      qrCode: prescription.qrCode || '',
+      token: prescription.id,
+      patientName: prescription.patientName || `${prescription.patient?.firstName || ''} ${prescription.patient?.lastName || ''}`.trim(),
+      patientId: prescription.patient?.identificationNumber || '---',
+      emittedDate: prescription.prescriptionDate ? new Date(prescription.prescriptionDate).toLocaleDateString('es-ES') : '---',
+      emittedTime: prescription.prescriptionDate ? new Date(prescription.prescriptionDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '---',
+      validUntil: prescription.validUntil ? new Date(prescription.validUntil).toLocaleDateString('es-ES') : '---',
+      medicinesCount: prescription.medications?.length || 0,
+      dispensationStatus: dispensationStatus,
+      age: this.calculateAge(prescription.patient?.dateOfBirth),
+      gender: prescription.patient?.gender === 'Male' ? 'M' : 'F',
+      doctorName: prescription.doctorName || `${prescription.doctor?.firstName || ''} ${prescription.doctor?.lastName || ''}`.trim(),
+      verificationStatus: verificationStatus
+    };
+  }
+
+  /**
+   * Calcula la edad a partir de la fecha de nacimiento
+   */
+  private calculateAge(dateOfBirth: string | undefined): number {
+    if (!dateOfBirth) return 0;
+    
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
   }
 
   // Prescription selection methods
   get filteredPrescriptions(): PrescriptionForSelection[] {
-    return this.mockPrescriptionsForSelection.filter(prescription => {
+    return this.prescriptionsForSelection.filter(prescription => {
       const searchLower = this.searchText.toLowerCase();
       return prescription.prescriptionNumber.toLowerCase().includes(searchLower) ||
              prescription.patientName.toLowerCase().includes(searchLower) ||

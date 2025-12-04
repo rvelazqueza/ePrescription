@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,6 +9,9 @@ import { PageHeaderComponent } from '../../../components/page-header/page-header
 import { RoleSuggestionModalComponent } from '../../../components/role-suggestion-modal/role-suggestion-modal.component';
 import { RoleDemoService } from '../../../services/role-demo.service';
 import { RoleSuggestionService } from '../../../services/role-suggestion.service';
+import { PrescripcionesService, PrescriptionDto, SearchPrescriptionsParams } from '../../../services/prescripciones.service';
+import { PatientService } from '../../../services/patient.service';
+import { firstValueFrom } from 'rxjs';
 
 interface RecetaEmitida {
   id: string;
@@ -20,6 +23,7 @@ interface RecetaEmitida {
   };
   diagnostico: string;
   medicamentos: {
+    medicationId?: string;
     nombre: string;
     dosis: string;
     cantidad: number;
@@ -196,14 +200,33 @@ interface RecetaEmitida {
             </div>
           </div>
         </div>
+
+        <!-- Loading state -->
+        <div *ngIf="isLoading" class="text-center py-12">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Cargando recetas...</h3>
+          <p class="text-gray-600">Por favor espere</p>
+        </div>
+
+        <!-- Error state -->
+        <div *ngIf="loadError && !isLoading" class="text-center py-12">
+          <lucide-icon [img]="xCircleIcon" class="w-16 h-16 text-red-300 mx-auto mb-4"></lucide-icon>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Error al cargar</h3>
+          <p class="text-gray-600 mb-4">{{ loadError }}</p>
+          <button 
+            (click)="loadPrescriptions()"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Reintentar
+          </button>
+        </div>
         
-        <div *ngIf="recetasFiltradas.length === 0" class="text-center py-12">
+        <div *ngIf="!isLoading && !loadError && recetasFiltradas.length === 0" class="text-center py-12">
           <lucide-icon [img]="fileTextIcon" class="w-16 h-16 text-gray-300 mx-auto mb-4"></lucide-icon>
           <h3 class="text-lg font-medium text-gray-900 mb-2">No hay recetas</h3>
           <p class="text-gray-600">No se encontraron recetas con los filtros aplicados</p>
         </div>
 
-        <div *ngIf="recetasFiltradas.length > 0" class="overflow-x-auto" style="max-height: 500px; overflow-y: auto;">
+        <div *ngIf="!isLoading && !loadError && recetasFiltradas.length > 0" class="overflow-x-auto" style="max-height: 500px; overflow-y: auto;">
           <table class="w-full min-w-[1200px]">
             <thead class="bg-gray-50 sticky top-0">
               <tr>
@@ -321,7 +344,7 @@ interface RecetaEmitida {
         </div>
 
         <!-- Paginación -->
-        <div *ngIf="recetasFiltradas.length > 0" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div *ngIf="!isLoading && !loadError && recetasFiltradas.length > 0" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div class="flex items-center justify-between">
             <div class="text-sm text-gray-700">
               Mostrando {{ (paginaActual - 1) * elementosPorPagina + 1 }} a {{ Math.min(paginaActual * elementosPorPagina, recetasFiltradas.length) }} de {{ recetasFiltradas.length }} recetas
@@ -712,196 +735,22 @@ export class EmitidasComponent implements OnInit, OnDestroy {
     { label: 'Recetas Emitidas'}
   ];
 
-  recetas: RecetaEmitida[] = [
-    {
-      id: 'RX-2025-001234',
-      paciente: {
-        nombre: 'Carlos Rodríguez Sánchez',
-        cedula: '1-0856-0432',
-        edad: 45,
-        genero: 'M'
-      },
-      diagnostico: 'Hipertensión arterial esencial (I10)',
-      fechaEmision: '01/10/2025',
-      fechaVencimiento: '15/10/2025',
-      estado: 'emitida',
-      medicamentos: [
-        {
-          nombre: 'Ibuprofeno',
-          dosis: '400 mg',
-          cantidad: 30,
-          frecuencia: '3 veces al día',
-          duracion: '5 días',
-          estado: 'dispensado'
-        }
-      ],
-      farmacia: null,
-      fechaDispensacion: null,
-      medico: {
-        nombre: 'Dra. María Fernández López',
-        especialidad: 'Medicina Interna',
-        codigoMedico: 'MED-12345',
-        firmaDigital: true
-      }
-    },
-    {
-      id: 'RX-2025-001235',
-      paciente: {
-        nombre: 'Ana García Mora',
-        cedula: '2-0654-0821',
-        edad: 32,
-        genero: 'F'
-      },
-      diagnostico: 'Diabetes mellitus tipo 2 no insulinodependiente (E11.9)',
-      fechaEmision: '15/01/2025',
-      fechaVencimiento: '15/04/2025',
-      estado: 'emitida',
-      medicamentos: [
-        {
-          nombre: 'Metformina',
-          dosis: '850mg',
-          cantidad: 60,
-          frecuencia: '2 veces al día',
-          duracion: '30 días',
-          estado: 'pendiente'
-        },
-        {
-          nombre: 'Glibenclamida',
-          dosis: '5mg',
-          cantidad: 30,
-          frecuencia: '1 vez al día',
-          duracion: '30 días',
-          estado: 'pendiente'
-        }
-      ],
-      farmacia: null,
-      fechaDispensacion: null,
-      medico: {
-        nombre: 'Dr. José Martínez Ruiz',
-        especialidad: 'Endocrinología',
-        codigoMedico: 'MED-67890',
-        firmaDigital: true
-      }
-    },
-    {
-      id: 'RX-2025-009842',
-      paciente: {
-        nombre: 'Carlos Andrés Pérez Gutiérrez',
-        cedula: '41.523.789',
-        edad: 28,
-        genero: 'M'
-      },
-      diagnostico: 'Migraña sin aura, episódica (G43.009)',
-      fechaEmision: '01/10/2025',
-      fechaVencimiento: '15/10/2025',
-      estado: 'emitida',
-      medicamentos: [
-        {
-          nombre: 'Sumatriptán',
-          dosis: '50mg',
-          cantidad: 6,
-          frecuencia: 'Según necesidad',
-          duracion: '14 días',
-          estado: 'pendiente'
-        }
-      ],
-      farmacia: null,
-      fechaDispensacion: null,
-      medico: {
-        nombre: 'Dra. María Fernández López',
-        especialidad: 'Neurología',
-        codigoMedico: 'MED-12345',
-        firmaDigital: true
-      }
-    },
-    {
-      id: 'RX-2025-009841',
-      paciente: {
-        nombre: 'Sandra Milena Torres Vargas',
-        cedula: '52.367.941',
-        edad: 35,
-        genero: 'F'
-      },
-      diagnostico: 'Infección respiratoria aguda del tracto superior (J06.9)',
-      fechaEmision: '01/10/2025',
-      fechaVencimiento: '15/10/2025',
-      estado: 'dispensada',
-      medicamentos: [
-        {
-          nombre: 'Amoxicilina',
-          dosis: '500mg',
-          cantidad: 21,
-          frecuencia: '3 veces al día',
-          duracion: '7 días',
-          estado: 'dispensado'
-        },
-        {
-          nombre: 'Acetaminofén',
-          dosis: '500mg',
-          cantidad: 20,
-          frecuencia: 'Cada 6 horas',
-          duracion: '5 días',
-          estado: 'dispensado'
-        }
-      ],
-      farmacia: 'Farmacia Sucre',
-      fechaDispensacion: '02/10/2025',
-      medico: {
-        nombre: 'Dra. María Fernández López',
-        especialidad: 'Medicina General',
-        codigoMedico: 'MED-12345',
-        firmaDigital: true
-      }
-    },
-    {
-      id: 'RX-2025-009840',
-      paciente: {
-        nombre: 'Diego Fernando Ramírez Castro',
-        cedula: '38.941.652',
-        edad: 42,
-        genero: 'M'
-      },
-      diagnostico: 'Hipertensión arterial esencial (I10)',
-      fechaEmision: '30/09/2025',
-      fechaVencimiento: '14/10/2025',
-      estado: 'emitida',
-      medicamentos: [
-        {
-          nombre: 'Enalapril',
-          dosis: '10mg',
-          cantidad: 30,
-          frecuencia: '2 veces al día',
-          duracion: '30 días',
-          estado: 'pendiente'
-        },
-        {
-          nombre: 'Hidroclorotiazida',
-          dosis: '25mg',
-          cantidad: 30,
-          frecuencia: '1 vez al día',
-          duracion: '30 días',
-          estado: 'pendiente'
-        }
-      ],
-      farmacia: null,
-      fechaDispensacion: null,
-      medico: {
-        nombre: 'Dr. José Martínez Ruiz',
-        especialidad: 'Cardiología',
-        codigoMedico: 'MED-67890',
-        firmaDigital: true
-      }
-    }
-  ];
+  recetas: RecetaEmitida[] = [];
+  isLoading = false;
+  loadError: string | null = null;
+
+  // Cache para pacientes ya cargados
+  private patientCache = new Map<string, any>();
 
   constructor(
     private router: Router,
     private roleDemoService: RoleDemoService,
-    private roleSuggestionService: RoleSuggestionService
+    private roleSuggestionService: RoleSuggestionService,
+    private prescripcionesService: PrescripcionesService,
+    private patientService: PatientService,
+    private cdr: ChangeDetectorRef
   ) {
     this.recetasFiltradas = [...this.recetas];
-    this.calcularEstadisticas();
-    this.actualizarPaginacion();
   }
 
   ngOnInit() {
@@ -917,6 +766,9 @@ export class EmitidasComponent implements OnInit, OnDestroy {
     });
     
     this.subscriptions.add(roleSubscription);
+
+    // Cargar prescripciones desde el backend
+    this.loadPrescriptions();
   }
 
   ngOnDestroy() {
@@ -941,6 +793,193 @@ export class EmitidasComponent implements OnInit, OnDestroy {
   onRoleChanged() {
     this.showRoleSuggestionModal.set(false);
     // El modal se cerrará automáticamente cuando cambie el rol
+  }
+
+  /**
+   * Cargar prescripciones desde el backend
+   */
+  loadPrescriptions() {
+    this.isLoading = true;
+    this.loadError = null;
+
+    const params: SearchPrescriptionsParams = {
+      status: 'active', // Solo recetas activas/emitidas (backend usa 'active')
+      pageSize: 100 // Cargar todas las recetas emitidas
+    };
+
+    this.prescripcionesService.getPrescripciones(params).subscribe({
+      next: async (response) => {
+        console.log('✅ Prescripciones cargadas:', response);
+        console.log('📊 Total de items:', response.items?.length || 0);
+        
+        if (response.items && response.items.length > 0) {
+          console.log('🔍 Primera prescripción (muestra):', response.items[0]);
+          console.log('  - PatientId:', response.items[0].patientId);
+          console.log('  - Medications:', response.items[0].medications);
+          console.log('  - Diagnoses:', response.items[0].diagnoses);
+        }
+        
+        await this.mapPrescriptionsToRecetas(response.items);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error cargando prescripciones:', error);
+        this.loadError = 'Error al cargar las recetas. Por favor, intente nuevamente.';
+        this.isLoading = false;
+        this.recetas = [];
+        this.filtrarRecetas();
+      }
+    });
+  }
+
+  /**
+   * Mapear prescripciones del backend a la interfaz local
+   */
+  async mapPrescriptionsToRecetas(prescriptions: PrescriptionDto[]) {
+    console.log('🔄 Mapeando prescripciones...', prescriptions?.length || 0);
+    const recetas: RecetaEmitida[] = [];
+
+    for (const p of prescriptions) {
+      try {
+        console.log('📝 Mapeando prescripción:', p.id || p.prescriptionNumber);
+        console.log('  - PatientId:', p.patientId);
+        console.log('  - Medications count:', p.medications?.length || 0);
+        console.log('  - Diagnoses count:', p.diagnoses?.length || 0);
+        
+        // Usar datos del backend directamente - ya vienen enriquecidos
+        console.log('  - Usando datos del backend:');
+        console.log('    - Nombre:', p.patientName);
+        console.log('    - Edad:', p.patientAge);
+        console.log('    - Cédula:', p.patientIdNumber);
+
+        // Mapear la prescripción
+        const receta: RecetaEmitida = {
+          id: p.prescriptionNumber || p.id,
+          paciente: {
+            nombre: p.patientName || 'Paciente no encontrado',
+            cedula: p.patientIdNumber || 'N/A',
+            edad: p.patientAge || 0,
+            genero: (p.patientGender === 'M' || p.patientGender === 'Male') ? 'M' : 'F'
+          },
+          diagnostico: p.diagnoses && p.diagnoses.length > 0 
+            ? `${p.diagnoses[0].description} (${p.diagnoses[0].cie10Code})`
+            : 'Sin diagnóstico',
+          medicamentos: p.medications && p.medications.length > 0 
+            ? p.medications.map(m => ({
+                medicationId: m.medicationId,
+                nombre: m.medication?.name || `Medicamento ${m.medicationId.substring(0, 8)}`,
+                dosis: m.dosage,
+                cantidad: m.quantity,
+                frecuencia: m.frequency,
+                duracion: `${m.durationDays} días`,
+                estado: 'pendiente' // No disponible en backend
+              }))
+            : [],
+          fechaEmision: this.formatDate(p.prescriptionDate),
+          fechaVencimiento: this.formatDate(p.expirationDate),
+          estado: this.mapStatus(p.status),
+          farmacia: null, // No disponible en backend
+          fechaDispensacion: null, // No disponible en backend
+          medico: {
+            nombre: p.doctorName || 'Médico',
+            especialidad: p.doctorSpecialty || 'Medicina General',
+            codigoMedico: p.doctorLicenseNumber || p.doctorId || 'N/A',
+            firmaDigital: true
+          }
+        };
+
+        recetas.push(receta);
+      } catch (error) {
+        console.error(`Error mapeando prescripción ${p.id}:`, error);
+        // Continuar con la siguiente prescripción en caso de error
+      }
+    }
+
+    this.recetas = recetas;
+    this.filtrarRecetas();
+    this.calcularEstadisticas();
+    this.actualizarPaginacion();
+  }
+
+  /**
+   * Cargar datos del paciente (con cache)
+   */
+  async loadPatientData(patientId: string): Promise<any> {
+    // Validar que el patientId es válido
+    if (!patientId || patientId === 'undefined' || patientId === 'null') {
+      console.warn('PatientId inválido:', patientId);
+      return null;
+    }
+
+    // Verificar cache
+    if (this.patientCache.has(patientId)) {
+      return this.patientCache.get(patientId);
+    }
+
+    try {
+      const patient = await firstValueFrom(this.patientService.getPatientById(patientId));
+      this.patientCache.set(patientId, patient);
+      return patient;
+    } catch (error) {
+      console.error(`Error cargando paciente ${patientId}:`, error);
+      // Cachear el error para no intentar cargar de nuevo
+      this.patientCache.set(patientId, null);
+      return null;
+    }
+  }
+
+  /**
+   * Calcular edad desde fecha de nacimiento
+   */
+  calculateAge(dateOfBirth: string): number {
+    if (!dateOfBirth) return 0;
+    
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  }
+
+  /**
+   * Formatear fecha ISO a formato local
+   */
+  formatDate(isoDate: string): string {
+    if (!isoDate) return '';
+    
+    const date = new Date(isoDate);
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  }
+
+  /**
+   * Mapear estado del backend al frontend
+   */
+  mapStatus(backendStatus: string): 'emitida' | 'dispensada' | 'parcialmente-dispensada' | 'vencida' | 'anulada' {
+    const statusMap: { [key: string]: 'emitida' | 'dispensada' | 'parcialmente-dispensada' | 'vencida' | 'anulada' } = {
+      // Mapeo correcto según backend (draft, active, dispensed, expired, cancelled)
+      'active': 'emitida',
+      'dispensed': 'dispensada',
+      'expired': 'vencida',
+      'cancelled': 'anulada',
+      'draft': 'emitida', // Tratar borradores como emitidas si llegan aquí
+      // Mantener compatibilidad con valores antiguos por si acaso
+      'Issued': 'emitida',
+      'Dispensed': 'dispensada',
+      'PartiallyDispensed': 'parcialmente-dispensada',
+      'Expired': 'vencida',
+      'Cancelled': 'anulada'
+    };
+
+    return statusMap[backendStatus] || 'emitida';
   }
 
   filtrarRecetas() {
@@ -1061,8 +1100,6 @@ export class EmitidasComponent implements OnInit, OnDestroy {
     alert(`Código QR generado: ${qrCode}\n\nReceta: ${receta.id}\nPaciente: ${receta.paciente.nombre}`);
   }
 
-
-
   // Métodos para el modal de acciones
   toggleAccionesModal(recetaId: string) {
     this.modalAccionesAbierto = this.modalAccionesAbierto === recetaId ? null : recetaId;
@@ -1073,7 +1110,18 @@ export class EmitidasComponent implements OnInit, OnDestroy {
   }
 
   reimprimirReceta(receta: RecetaEmitida) {
-    // Abrir nueva pestaña con la vista de impresión (sin layout)
+    // Guardar los datos de la receta en sessionStorage para que el componente de impresión los use
+    sessionStorage.setItem('recetaParaImprimir', JSON.stringify({
+      id: receta.id,
+      paciente: receta.paciente,
+      medicamentos: receta.medicamentos,
+      medico: receta.medico,
+      diagnostico: receta.diagnostico,
+      fechaEmision: receta.fechaEmision,
+      fechaVencimiento: receta.fechaVencimiento
+    }));
+    
+    // Abrir nueva pestaña con la vista de impresión
     const url = `/prescripciones/imprimir/${receta.id}`;
     window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
   }
@@ -1144,24 +1192,24 @@ export class EmitidasComponent implements OnInit, OnDestroy {
 
   confirmarAnularReceta() {
     if (this.recetaAAnular) {
-      // Cambiar el estado de la receta a "anulada"
-      const index = this.recetas.findIndex(r => r.id === this.recetaAAnular!.id);
-      if (index > -1) {
-        // Crear una nueva receta con estado anulado
-        this.recetas[index] = {
-          ...this.recetas[index],
-          estado: 'anulada' as any, // Agregamos 'anulada' como estado válido
-          fechaAnulacion: new Date().toLocaleDateString('es-ES'),
-          motivoAnulacion: 'Anulada por el médico prescriptor'
-        };
-        
-        // Refiltrar y recalcular estadísticas
-        this.filtrarRecetas();
-        this.calcularEstadisticas();
-        
-        console.log('Receta anulada:', this.recetaAAnular);
-      }
+      // Buscar el ID real de la prescripción (puede ser diferente al número de receta)
+      const recetaId = this.recetaAAnular.id;
+      
+      this.prescripcionesService.deletePrescripcion(recetaId).subscribe({
+        next: () => {
+          console.log('Receta anulada exitosamente:', recetaId);
+          // Recargar la lista de prescripciones
+          this.loadPrescriptions();
+          this.cerrarModalAnular();
+        },
+        error: (error) => {
+          console.error('Error anulando receta:', error);
+          alert('Error al anular la receta. Por favor, intente nuevamente.');
+          this.cerrarModalAnular();
+        }
+      });
+    } else {
+      this.cerrarModalAnular();
     }
-    this.cerrarModalAnular();
   }
 }

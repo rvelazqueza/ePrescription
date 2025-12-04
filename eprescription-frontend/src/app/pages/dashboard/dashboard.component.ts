@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { 
   LucideAngularModule, 
   FileText, 
@@ -38,6 +39,11 @@ import {
 import { PageLayoutComponent } from '../../components/page-layout/page-layout.component';
 import { BreadcrumbItem } from '../../components/breadcrumbs/breadcrumbs.component';
 import { RoleDemoService, UserRole, RoleSession } from '../../services/role-demo.service';
+import { PrescripcionesService } from '../../services/prescripciones.service';
+import { PatientService } from '../../services/patient.service';
+import { DispensationService } from '../../services/dispensation.service';
+import { InventoryService } from '../../services/inventory.service';
+import { DashboardService } from '../../services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -305,6 +311,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   unreadNotifications = 3;
   availableRoles: UserRole[] = ['Médico', 'Médico Jefe', 'Farmacéutico', 'Enfermera', 'Administrador'];
   selectedRole: UserRole = 'Médico';
+  
+  // Loading states
+  isLoadingKPIs = false;
+  isLoadingActivity = false;
+  
+  // Real data from backend
+  realKPIs: any[] = [];
+  realActivity: any[] = [];
 
   // Icons
   fileTextIcon = FileText;
@@ -345,17 +359,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { label: 'Dashboard'}
   ];
 
-  // System metrics
-  systemMetrics = [
-    { label: 'Base de datos', status: 'Operativa', health: 100, icon: this.databaseIcon, color: 'green' },
-    { label: 'Sincronización HL7', status: 'Activa', health: 99.9, icon: this.shieldCheckIcon, color: 'green' },
-    { label: 'API Interoperabilidad', status: 'En línea', health: 100, icon: this.zapIcon, color: 'green' },
-    { label: 'Tiempo de respuesta', status: '< 100ms', health: 98, icon: this.trendingUpIcon, color: 'green' }
-  ];
+  // System metrics (loaded from backend)
+  systemMetrics: any[] = [];
+  systemMetricsLoading = true;
 
   constructor(
     private router: Router,
-    private roleDemoService: RoleDemoService
+    private roleDemoService: RoleDemoService,
+    private prescripcionesService: PrescripcionesService,
+    private patientService: PatientService,
+    private dispensationService: DispensationService,
+    private inventoryService: InventoryService,
+    private dashboardService: DashboardService
   ) {
     // Inicializar inmediatamente con el estado actual del servicio
     const currentServiceSession = this.roleDemoService.getCurrentSession();
@@ -369,8 +384,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.roleDemoService.currentSession$.subscribe(session => {
         this.currentSession = session;
         this.selectedRole = session.activeRole;
+        // Reload dashboard data when role changes
+        this.loadDashboardData();
       })
     );
+    
+    // Initial load
+    this.loadDashboardData();
+    this.loadSystemMetrics();
   }
 
   ngOnDestroy(): void {
@@ -413,8 +434,460 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Load dashboard data from backend
+   * Uses existing endpoints to calculate KPIs and recent activity
+   */
+  loadDashboardData(): void {
+    const role = this.currentSession.activeRole;
+    
+    switch (role) {
+      case 'Médico':
+      case 'Médico Jefe':
+        this.loadMedicoData();
+        break;
+      case 'Farmacéutico':
+        this.loadFarmaceuticoData();
+        break;
+      case 'Enfermera':
+        this.loadEnfermeraData();
+        break;
+      case 'Administrador':
+        this.loadAdministradorData();
+        break;
+    }
+  }
+
+  /**
+   * Load data for Médico role
+   */
+  private loadMedicoData(): void {
+    this.isLoadingKPIs = true;
+    this.isLoadingActivity = true;
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    forkJoin({
+      // KPI: Recetas emitidas hoy
+      recetasHoy: this.prescripcionesService.getPrescripciones({
+        status: 'active',
+        startDate: today,
+        pageSize: 1
+      }).pipe(
+        map(response => response.totalCount || 0),
+        catchError(() => [0])
+      ),
+      
+      // KPI: Borradores pendientes
+      borradores: this.prescripcionesService.getPrescripciones({
+        status: 'draft',
+        pageSize: 1
+      }).pipe(
+        map(response => response.totalCount || 0),
+        catchError(() => [0])
+      ),
+      
+      // KPI: Total pacientes en sistema
+      pacientes: this.patientService.getAllPatients().pipe(
+        map(patients => patients.length || 0),
+        catchError(() => [0])
+      ),
+      
+      // Actividad reciente: Últimas 4 prescripciones
+      recentPrescriptions: this.prescripcionesService.getPrescripciones({
+        status: 'active',
+        pageSize: 4
+      }).pipe(
+        map(response => response.items || []),
+        catchError(() => [[]])
+      )
+    }).subscribe({
+      next: (data) => {
+        // Build KPIs with real data
+        this.realKPIs = [
+          { 
+            label: 'Recetas hoy', 
+            value: data.recetasHoy, 
+            change: 'N/A', // TODO: Calculate vs yesterday
+            trend: 'neutral', 
+            icon: this.fileTextIcon, 
+            route: '/prescripciones/emitidas' 
+          },
+          { 
+            label: 'Pacientes atendidos', 
+            value: data.pacientes, 
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.usersIcon, 
+            route: '/pacientes/lista' 
+          },
+          { 
+            label: 'Borradores pendientes', 
+            value: data.borradores, 
+            change: '0', 
+            trend: 'neutral', 
+            icon: this.clockIcon, 
+            route: '/prescripciones/borradores' 
+          },
+          { 
+            label: 'Alertas clínicas', 
+            value: 0, // TODO: Implement alerts endpoint
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.alertTriangleIcon, 
+            route: '/alertas/bandeja' 
+          }
+        ];
+        
+        // Build recent activity with real data
+        this.realActivity = data.recentPrescriptions.map((prescription: any) => ({
+          id: prescription.prescriptionNumber || 'N/A',
+          title: 'Receta emitida',
+          subtitle: `Paciente ID: ${prescription.patientId || 'N/A'}`,
+          time: this.formatTime(prescription.createdAt),
+          status: 'success',
+          icon: this.fileCheckIcon,
+          route: '/prescripciones/emitidas'
+        }));
+        
+        this.isLoadingKPIs = false;
+        this.isLoadingActivity = false;
+      },
+      error: (error) => {
+        console.error('Error loading médico dashboard data:', error);
+        this.isLoadingKPIs = false;
+        this.isLoadingActivity = false;
+        // Keep mock data on error
+      }
+    });
+  }
+
+  /**
+   * Load data for Farmacéutico role
+   */
+  private loadFarmaceuticoData(): void {
+    this.isLoadingKPIs = true;
+    this.isLoadingActivity = true;
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    forkJoin({
+      // KPI: Dispensaciones hoy
+      dispensacionesHoy: this.dispensationService.search({
+        startDate: new Date(today),
+        pageSize: 100
+      }).pipe(
+        map(dispensations => dispensations.length || 0),
+        catchError(() => [0])
+      ),
+      
+      // KPI: Stock bajo (TODO: Implement with pharmacy context)
+      stockBajo: of(0), // Requires pharmacyId - will implement when pharmacy context is available
+      
+      // KPI: Recetas verificadas (todas las dispensaciones)
+      recetasVerificadas: this.dispensationService.search({
+        pageSize: 100
+      }).pipe(
+        map(dispensations => dispensations.length || 0),
+        catchError(() => [0])
+      ),
+      
+      // Actividad reciente: Últimas 4 dispensaciones
+      recentDispensations: this.dispensationService.search({
+        pageSize: 4
+      }).pipe(
+        map(dispensations => dispensations || []),
+        catchError(() => [[]])
+      )
+    }).subscribe({
+      next: (data) => {
+        // Build KPIs with real data
+        this.realKPIs = [
+          { 
+            label: 'Dispensaciones hoy', 
+            value: data.dispensacionesHoy, 
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.packageCheckIcon, 
+            route: '/dispensacion/registrar' 
+          },
+          { 
+            label: 'Recetas verificadas', 
+            value: data.recetasVerificadas, 
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.fileCheckIcon, 
+            route: '/dispensacion/verificar' 
+          },
+          { 
+            label: 'Stock bajo', 
+            value: data.stockBajo, 
+            change: 'N/A', 
+            trend: data.stockBajo > 0 ? 'up' : 'neutral', 
+            icon: this.alertCircleIcon, 
+            route: '/inventario/alertas' 
+          },
+          { 
+            label: 'Rechazos', 
+            value: 0, // TODO: Implement rejections tracking
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.xCircleIcon, 
+            route: '/dispensacion/rechazos' 
+          }
+        ];
+        
+        // Build recent activity with real data
+        this.realActivity = data.recentDispensations.map((dispensation: any) => ({
+          id: dispensation.id || 'N/A',
+          title: 'Dispensación registrada',
+          subtitle: `Prescripción: ${dispensation.prescriptionNumber || dispensation.prescriptionId || 'N/A'}`,
+          time: this.formatTime(dispensation.dispensationDate || dispensation.createdAt),
+          status: 'success',
+          icon: this.packageCheckIcon,
+          route: '/dispensacion/registrar'
+        }));
+        
+        this.isLoadingKPIs = false;
+        this.isLoadingActivity = false;
+      },
+      error: (error) => {
+        console.error('Error loading farmacéutico dashboard data:', error);
+        this.isLoadingKPIs = false;
+        this.isLoadingActivity = false;
+        // Keep mock data on error
+      }
+    });
+  }
+
+  /**
+   * Load data for Enfermera role
+   */
+  private loadEnfermeraData(): void {
+    this.isLoadingKPIs = true;
+    this.isLoadingActivity = true;
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    forkJoin({
+      // KPI: Pacientes registrados hoy (aproximado)
+      pacientesHoy: this.patientService.getRecentPatients().pipe(
+        map(patients => {
+          const todayPatients = patients.filter(p => {
+            const regDate = new Date(p.registrationDate);
+            const todayDate = new Date(today);
+            return regDate.toDateString() === todayDate.toDateString();
+          });
+          return todayPatients.length;
+        }),
+        catchError(() => [0])
+      ),
+      
+      // KPI: Total pacientes
+      totalPacientes: this.patientService.getAllPatients().pipe(
+        map(patients => patients.length || 0),
+        catchError(() => [0])
+      ),
+      
+      // Actividad reciente: Últimos 4 pacientes
+      recentPatients: this.patientService.getRecentPatients().pipe(
+        map(patients => patients.slice(0, 4)),
+        catchError(() => [[]])
+      )
+    }).subscribe({
+      next: (data) => {
+        // Build KPIs with real data
+        this.realKPIs = [
+          { 
+            label: 'Pacientes registrados', 
+            value: data.pacientesHoy, 
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.userCheckIcon, 
+            route: '/pacientes/lista' 
+          },
+          { 
+            label: 'Total pacientes', 
+            value: data.totalPacientes, 
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.usersIcon, 
+            route: '/pacientes/lista' 
+          },
+          { 
+            label: 'Medicamentos administrados', 
+            value: 0, // TODO: Implement medication administration tracking
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.pillIcon, 
+            route: '/dispensacion/registrar' 
+          },
+          { 
+            label: 'Alertas pendientes', 
+            value: 0, // TODO: Implement alerts
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.bellIcon, 
+            route: '/alertas/bandeja' 
+          }
+        ];
+        
+        // Build recent activity with real data
+        this.realActivity = data.recentPatients.map((patient: any) => ({
+          id: patient.id || patient.patientId || 'N/A',
+          title: 'Paciente registrado',
+          subtitle: patient.fullName || `${patient.firstName || ''} ${patient.firstLastName || ''}`.trim() || 'N/A',
+          time: this.formatTime(patient.registrationDate || patient.createdAt),
+          status: 'success',
+          icon: this.userCheckIcon,
+          route: '/pacientes/lista'
+        }));
+        
+        this.isLoadingKPIs = false;
+        this.isLoadingActivity = false;
+      },
+      error: (error) => {
+        console.error('Error loading enfermera dashboard data:', error);
+        this.isLoadingKPIs = false;
+        this.isLoadingActivity = false;
+        // Keep mock data on error
+      }
+    });
+  }
+
+  /**
+   * Load data for Administrador role
+   */
+  private loadAdministradorData(): void {
+    this.isLoadingKPIs = true;
+    this.isLoadingActivity = true;
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    forkJoin({
+      // KPI: Recetas totales hoy
+      recetasHoy: this.prescripcionesService.getPrescripciones({
+        status: 'active',
+        startDate: today,
+        pageSize: 1
+      }).pipe(
+        map(response => response.totalCount || 0),
+        catchError(() => [0])
+      ),
+      
+      // KPI: Total pacientes
+      totalPacientes: this.patientService.getAllPatients().pipe(
+        map(patients => patients.length || 0),
+        catchError(() => [0])
+      ),
+      
+      // Actividad reciente: Últimas 4 prescripciones (todas las activas)
+      recentPrescriptions: this.prescripcionesService.getPrescripciones({
+        status: 'active',
+        pageSize: 4
+      }).pipe(
+        map(response => response.items || []),
+        catchError(() => [[]])
+      )
+    }).subscribe({
+      next: (data) => {
+        // Build KPIs with real data
+        this.realKPIs = [
+          { 
+            label: 'Usuarios activos', 
+            value: 0, // TODO: Implement user management endpoint
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.usersIcon, 
+            route: '/seguridad/usuarios' 
+          },
+          { 
+            label: 'Recetas totales (hoy)', 
+            value: data.recetasHoy, 
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.fileTextIcon, 
+            route: '/reportes/actividad-medico' 
+          },
+          { 
+            label: 'Total pacientes', 
+            value: data.totalPacientes, 
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.usersIcon, 
+            route: '/pacientes/lista' 
+          },
+          { 
+            label: 'Incidencias', 
+            value: 0, // TODO: Implement incidents tracking
+            change: 'N/A', 
+            trend: 'neutral', 
+            icon: this.alertTriangleIcon, 
+            route: '/auditoria/log' 
+          }
+        ];
+        
+        // Build recent activity with real data
+        this.realActivity = data.recentPrescriptions.map((prescription: any) => ({
+          id: prescription.prescriptionNumber || 'N/A',
+          title: 'Receta emitida',
+          subtitle: `Paciente ID: ${prescription.patientId || 'N/A'}`,
+          time: this.formatTime(prescription.createdAt),
+          status: 'info',
+          icon: this.fileTextIcon,
+          route: '/prescripciones/emitidas'
+        }));
+        
+        this.isLoadingKPIs = false;
+        this.isLoadingActivity = false;
+      },
+      error: (error) => {
+        console.error('Error loading administrador dashboard data:', error);
+        this.isLoadingKPIs = false;
+        this.isLoadingActivity = false;
+        // Keep mock data on error
+      }
+    });
+  }
+
+  /**
+   * Format timestamp to relative time
+   */
+  private formatTime(timestamp: string | Date | undefined): string {
+    if (!timestamp) return 'N/A';
+    
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+      
+      if (diffMins < 1) return 'Ahora';
+      if (diffMins < 60) return `Hace ${diffMins} min`;
+      if (diffHours < 24) return `Hace ${diffHours}h`;
+      if (diffDays === 1) return 'Ayer';
+      if (diffDays < 7) return `Hace ${diffDays} días`;
+      
+      // Format as date
+      return date.toLocaleDateString('es-ES', { 
+        day: '2-digit', 
+        month: 'short' 
+      });
+    } catch (error) {
+      return 'N/A';
+    }
+  }
+
   // KPIs dinámicos según rol
   getCurrentKPIs() {
+    // Return real data if available, otherwise fallback to mock
+    if (this.realKPIs.length > 0) {
+      return this.realKPIs;
+    }
+    
+    // Fallback to mock data
     switch (this.currentSession.activeRole) {
       case 'Médico':
       case 'Médico Jefe':
@@ -489,6 +962,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // Actividad reciente según rol
   getCurrentRecentActivity() {
+    // Return real data if available, otherwise fallback to mock
+    if (this.realActivity.length > 0) {
+      return this.realActivity;
+    }
+    
+    // Fallback to mock data
     switch (this.currentSession.activeRole) {
       case 'Médico':
       case 'Médico Jefe':
@@ -525,6 +1004,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   // Insights clínicos
+  // TODO: Implement real insights with backend logic
+  // Currently using mock data - requires complex business logic and analytics
   getCurrentInsights() {
     switch (this.currentSession.activeRole) {
       case 'Médico':
@@ -624,6 +1105,46 @@ export class DashboardComponent implements OnInit, OnDestroy {
       case 'warning': return 'text-amber-600';
       case 'alert': return 'text-red-600';
       default: return 'text-blue-600';
+    }
+  }
+
+  /**
+   * Load system health metrics from backend
+   */
+  private loadSystemMetrics(): void {
+    this.systemMetricsLoading = true;
+    
+    this.dashboardService.getSystemMetrics().subscribe({
+      next: (metrics) => {
+        this.systemMetrics = metrics.map(metric => ({
+          ...metric,
+          icon: this.getIconForMetric(metric.label)
+        }));
+        this.systemMetricsLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading system metrics:', error);
+        this.systemMetricsLoading = false;
+        // Keep empty array or show error state
+      }
+    });
+  }
+
+  /**
+   * Get appropriate icon for each metric
+   */
+  private getIconForMetric(label: string): any {
+    switch (label) {
+      case 'Base de datos':
+        return this.databaseIcon;
+      case 'API Sistema':
+        return this.zapIcon;
+      case 'Memoria Sistema':
+        return this.shieldCheckIcon;
+      case 'Tiempo de respuesta':
+        return this.trendingUpIcon;
+      default:
+        return this.zapIcon;
     }
   }
 }

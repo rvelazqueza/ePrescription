@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Search, Filter, Calendar, User, TrendingUp, TrendingDown, RotateCcw, DollarSign, Plus, Eye, X, ChevronUp, ChevronDown, CheckCircle } from 'lucide-angular';
 import { Subject, takeUntil, Subscription } from 'rxjs';
-import { InventoryMockService } from '../../../services/inventory-mock.service';
+import { InventoryService } from '../../../services/inventory.service';
 import { StockAdjustment } from '../../../interfaces/inventory.interface';
 import { PageHeaderComponent } from '../../../components/page-header/page-header.component';
 import { BreadcrumbsComponent, BreadcrumbItem } from '../../../components/breadcrumbs/breadcrumbs.component';
@@ -138,7 +138,7 @@ export class AjustesStockComponent implements OnInit, OnDestroy {
   private roleSubscriptions = new Subscription();
 
   constructor(
-    private inventoryService: InventoryMockService,
+    private inventoryService: InventoryService,
     private roleDemoService: RoleDemoService
   ) {}
 

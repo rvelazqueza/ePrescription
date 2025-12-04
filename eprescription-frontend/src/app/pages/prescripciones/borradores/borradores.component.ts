@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { LucideAngularModule, FileText, Edit, Search, Calendar, User, Trash2, Send, Eye, Clock, Pill, AlertTriangle, ChevronLeft, ChevronRight, Info, MoreVertical, X, UserCheck, Stethoscope, Copy, CheckCircle } from 'lucide-angular';
+import { LucideAngularModule, FileText, Edit, Search, Calendar, User, Trash2, Send, Eye, Clock, Pill, AlertTriangle, ChevronLeft, ChevronRight, Info, MoreVertical, X, UserCheck, Stethoscope, Copy, CheckCircle, Loader2 } from 'lucide-angular';
 import { BreadcrumbsComponent, BreadcrumbItem } from '../../../components/breadcrumbs/breadcrumbs.component';
 import { PageHeaderComponent } from '../../../components/page-header/page-header.component';
 import { RoleSuggestionModalComponent } from '../../../components/role-suggestion-modal/role-suggestion-modal.component';
 import { RoleDemoService } from '../../../services/role-demo.service';
 import { RoleSuggestionService } from '../../../services/role-suggestion.service';
+import { PrescripcionesService, PrescriptionDto } from '../../../services/prescripciones.service';
+import { PatientService } from '../../../services/patient.service';
 
 interface Borrador {
   id: string;
@@ -150,7 +152,36 @@ interface Borrador {
         </div>
         
         <div class="p-0">
-          <div *ngIf="borradoresFiltrados.length === 0" class="p-12 text-center">
+          <!-- Estado de carga -->
+          <div *ngIf="isLoading" class="p-12 text-center">
+            <div class="flex justify-center mb-4">
+              <div class="p-4 bg-orange-100 rounded-full animate-pulse">
+                <lucide-icon [img]="loaderIcon" class="w-12 h-12 text-orange-600 animate-spin"></lucide-icon>
+              </div>
+            </div>
+            <h3 class="text-lg text-gray-900 mb-2">Cargando borradores...</h3>
+            <p class="text-gray-600">Por favor espera mientras cargamos tus prescripciones.</p>
+          </div>
+
+          <!-- Estado de error -->
+          <div *ngIf="error && !isLoading" class="p-12 text-center">
+            <div class="flex justify-center mb-4">
+              <div class="p-4 bg-red-100 rounded-full">
+                <lucide-icon [img]="alertTriangleIcon" class="w-12 h-12 text-red-600"></lucide-icon>
+              </div>
+            </div>
+            <h3 class="text-lg text-gray-900 mb-2">Error al cargar borradores</h3>
+            <p class="text-gray-600 mb-4">{{ error }}</p>
+            <button 
+              (click)="loadDrafts()"
+              class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
+
+          <!-- Sin resultados -->
+          <div *ngIf="!isLoading && !error && borradoresFiltrados.length === 0" class="p-12 text-center">
             <div class="flex justify-center mb-4">
               <div class="p-4 bg-gray-100 rounded-full">
                 <lucide-icon [img]="editIcon" class="w-12 h-12 text-gray-400"></lucide-icon>
@@ -165,7 +196,7 @@ interface Borrador {
             </p>
           </div>
 
-          <div *ngIf="borradoresFiltrados.length > 0" class="overflow-x-auto" style="max-height: 500px; overflow-y: auto;">
+          <div *ngIf="!isLoading && !error && borradoresFiltrados.length > 0" class="overflow-x-auto" style="max-height: 500px; overflow-y: auto;">
             <table class="w-full min-w-[1200px]">
               <thead class="bg-gray-50 sticky top-0">
                 <tr>
@@ -293,7 +324,7 @@ interface Borrador {
         </div>
 
         <!-- Paginación -->
-        <div *ngIf="borradoresFiltrados.length > 0" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div *ngIf="!isLoading && !error && borradoresFiltrados.length > 0" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div class="flex items-center justify-between">
             <div class="text-sm text-gray-700">
               Mostrando {{ (paginaActual - 1) * elementosPorPagina + 1 }} a {{ Math.min(paginaActual * elementosPorPagina, borradoresFiltrados.length) }} de {{ borradoresFiltrados.length }} borradores
@@ -719,11 +750,16 @@ export class BorradoresComponent implements OnInit, OnDestroy {
   stethoscopeIcon = Stethoscope;
   copyIcon = Copy;
   checkCircleIcon = CheckCircle;
+  loaderIcon = Loader2;
 
   terminoBusqueda = '';
   filtroFecha = '';
   borradoresFiltrados: Borrador[] = [];
   borradoresPaginados: Borrador[] = [];
+  
+  // Estados de carga
+  isLoading = false;
+  error: string | null = null;
   
   // Modal de acciones
   modalAccionesAbierto: string | null = null;
@@ -761,120 +797,16 @@ export class BorradoresComponent implements OnInit, OnDestroy {
     { label: 'Borradores'}
   ];
 
-  borradores: Borrador[] = [
-    {
-      id: 'BR-2025-001234',
-      paciente: {
-        nombre: 'María Elena González Rodríguez',
-        cedula: 'CC-1.234.567',
-        edad: 45,
-        genero: 'F'
-      },
-      diagnostico: 'Hipertensión arterial esencial (I10)',
-      medicamentos: [
-        {
-          nombre: 'Enalapril',
-          dosis: '10mg',
-          cantidad: 30,
-          frecuencia: '2 veces al día',
-          duracion: '30 días'
-        },
-        {
-          nombre: 'Hidroclorotiazida',
-          dosis: '25mg',
-          cantidad: 30,
-          frecuencia: '1 vez al día',
-          duracion: '30 días'
-        },
-        {
-          nombre: 'Aspirina',
-          dosis: '100mg',
-          cantidad: 30,
-          frecuencia: '1 vez al día',
-          duracion: '30 días'
-        }
-      ],
-      fechaCreacion: '27/09/2025',
-      fechaModificacion: '27/09/2025 10:32',
-      medico: {
-        nombre: 'Dra. María Fernández López',
-        especialidad: 'Cardiología',
-        codigoMedico: 'MED-12345',
-        firmaDigital: false
-      }
-    },
-    {
-      id: 'BR-2025-001235',
-      paciente: {
-        nombre: 'Juan Carlos Martínez López',
-        cedula: 'CC-2.345.678',
-        edad: 62,
-        genero: 'M'
-      },
-      diagnostico: 'Diabetes mellitus tipo 2 no insulinodependiente (E11.9)',
-      medicamentos: [
-        {
-          nombre: 'Metformina',
-          dosis: '850mg',
-          cantidad: 60,
-          frecuencia: '2 veces al día',
-          duracion: '30 días'
-        },
-        {
-          nombre: 'Glibenclamida',
-          dosis: '5mg',
-          cantidad: 30,
-          frecuencia: '1 vez al día',
-          duracion: '30 días'
-        }
-      ],
-      fechaCreacion: '26/09/2025',
-      fechaModificacion: '27/09/2025 09:15',
-      medico: {
-        nombre: 'Dr. José Martínez Ruiz',
-        especialidad: 'Endocrinología',
-        codigoMedico: 'MED-67890',
-        firmaDigital: false
-      }
-    },
-    {
-      id: 'BR-2025-001236',
-      paciente: {
-        nombre: 'Ana Sofía López Vargas',
-        cedula: 'CC-3.456.789',
-        edad: 28,
-        genero: 'F'
-      },
-      diagnostico: 'Migraña sin aura, episódica (G43.009)',
-      medicamentos: [
-        {
-          nombre: 'Sumatriptán',
-          dosis: '50mg',
-          cantidad: 6,
-          frecuencia: 'Según necesidad',
-          duracion: '14 días'
-        }
-      ],
-      fechaCreacion: '26/09/2025',
-      fechaModificacion: '26/09/2025 16:45',
-      medico: {
-        nombre: 'Dra. María Fernández López',
-        especialidad: 'Neurología',
-        codigoMedico: 'MED-12345',
-        firmaDigital: false
-      }
-    }
-  ];
+  // Datos reales (sin mock)
+  borradores: Borrador[] = [];
 
   constructor(
     private router: Router,
     private roleDemoService: RoleDemoService,
-    private roleSuggestionService: RoleSuggestionService
-  ) {
-    this.borradoresFiltrados = [...this.borradores];
-    this.calcularEstadisticas();
-    this.actualizarPaginacion();
-  }
+    private roleSuggestionService: RoleSuggestionService,
+    private prescripcionesService: PrescripcionesService,
+    private patientService: PatientService
+  ) {}
 
   ngOnInit() {
     // Verificar si se debe mostrar el modal de sugerencia de rol
@@ -889,6 +821,9 @@ export class BorradoresComponent implements OnInit, OnDestroy {
     });
     
     this.subscriptions.add(roleSubscription);
+    
+    // Cargar borradores desde el backend
+    this.loadDrafts();
   }
 
   ngOnDestroy() {
@@ -913,6 +848,91 @@ export class BorradoresComponent implements OnInit, OnDestroy {
   onRoleChanged() {
     this.showRoleSuggestionModal.set(false);
     // El modal se cerrará automáticamente cuando cambie el rol
+  }
+
+  /**
+   * Cargar borradores desde el backend
+   */
+  loadDrafts() {
+    this.isLoading = true;
+    this.error = null;
+
+    this.prescripcionesService.getPrescripciones({ status: 'draft' }).subscribe({
+      next: (response) => {
+        // El API retorna un objeto paginado con items[]
+        const prescriptions = response.items || [];
+        this.borradores = this.mapPrescriptionsToBorradores(prescriptions);
+        this.borradoresFiltrados = [...this.borradores];
+        this.calcularEstadisticas();
+        this.actualizarPaginacion();
+        this.isLoading = false;
+        console.log(`Loaded ${this.borradores.length} drafts from backend`);
+      },
+      error: (error) => {
+        this.error = 'Error al cargar los borradores. Por favor, intenta de nuevo.';
+        this.isLoading = false;
+        console.error('Error loading drafts:', error);
+      }
+    });
+  }
+
+  /**
+   * Mapear PrescriptionDto[] a Borrador[]
+   */
+  private mapPrescriptionsToBorradores(prescriptions: PrescriptionDto[]): Borrador[] {
+    return prescriptions.map(prescription => this.mapPrescriptionToBorrador(prescription));
+  }
+
+  /**
+   * Mapear un PrescriptionDto a Borrador
+   */
+  private mapPrescriptionToBorrador(prescription: PrescriptionDto): Borrador {
+    // Obtener el diagnóstico principal
+    const diagnosticoPrincipal = prescription.diagnoses.find(d => d.isPrimary);
+    const diagnostico = diagnosticoPrincipal 
+      ? `${diagnosticoPrincipal.description} (${diagnosticoPrincipal.cie10Code})`
+      : prescription.diagnoses[0]?.description || 'Sin diagnóstico';
+
+    return {
+      id: prescription.prescriptionNumber,
+      paciente: {
+        nombre: 'Cargando...', // Se cargará con una llamada adicional si es necesario
+        cedula: prescription.patientId,
+        edad: 0, // Se cargará con una llamada adicional si es necesario
+        genero: 'M' // Se cargará con una llamada adicional si es necesario
+      },
+      diagnostico: diagnostico,
+      medicamentos: prescription.medications.map(med => ({
+        nombre: med.medication?.name || `Medicamento ${med.medicationId.substring(0, 8)}`,
+        dosis: med.dosage,
+        cantidad: med.quantity,
+        frecuencia: med.frequency,
+        duracion: `${med.durationDays} días`
+      })),
+      fechaCreacion: this.formatDate(prescription.createdAt),
+      fechaModificacion: this.formatDate(prescription.updatedAt),
+      medico: {
+        nombre: 'Cargando...', // Se cargará con una llamada adicional si es necesario
+        especialidad: 'Cargando...',
+        codigoMedico: prescription.doctorId,
+        // Usar 'active' en vez de 'issued' (backend usa 'active' para prescripciones emitidas)
+        firmaDigital: prescription.status === 'active' || prescription.status === 'dispensed'
+      }
+    };
+  }
+
+  /**
+   * Formatear fecha ISO a formato local
+   */
+  private formatDate(isoDate: string): string {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   calcularEstadisticas() {
@@ -1046,33 +1066,59 @@ export class BorradoresComponent implements OnInit, OnDestroy {
   Math = Math;
 
   duplicarBorrador(borrador: Borrador) {
-    // Generar nuevo ID para el borrador duplicado
-    const nuevoId = this.generarNuevoId();
-    
-    // Crear copia del borrador
-    const borradorDuplicado: Borrador = {
-      ...borrador,
-      id: nuevoId,
-      fechaCreacion: new Date().toLocaleDateString('es-ES'),
-      fechaModificacion: new Date().toLocaleString('es-ES'),
-      // Copiar medicamentos
-      medicamentos: borrador.medicamentos.map(med => ({ ...med }))
-    };
-    
-    // Agregar al inicio de la lista
-    this.borradores.unshift(borradorDuplicado);
-    
-    // Actualizar datos para el modal
-    this.borradorOriginal = borrador;
-    this.borradorDuplicado = borradorDuplicado;
-    
-    // Refiltrar y repaginar
-    this.filtrarBorradores();
-    
-    // Mostrar modal de confirmación
-    this.modalDuplicarAbierto = true;
-    
-    console.log('Borrador duplicado:', borradorDuplicado);
+    // Obtener la prescripción original del backend para duplicarla
+    this.prescripcionesService.getPrescriptionById(borrador.id).subscribe({
+      next: (originalPrescription) => {
+        // Crear DTO para nueva prescripción (copia)
+        const newPrescriptionDto = {
+          patientId: originalPrescription.patientId,
+          doctorId: originalPrescription.doctorId,
+          diagnoses: originalPrescription.diagnoses,
+          medications: originalPrescription.medications.map(m => ({
+            medicationId: m.medicationId,
+            dosage: m.dosage,
+            frequency: m.frequency,
+            duration: m.durationDays,  // Mapear durationDays a duration para el DTO de creación
+            administrationRouteId: m.administrationRouteId,
+            quantity: m.quantity,
+            instructions: m.instructions,
+            aiSuggested: m.aiSuggested
+          })),
+          notes: originalPrescription.notes ? `Copia de ${borrador.id} - ${originalPrescription.notes}` : `Copia de ${borrador.id}`
+        };
+
+        // Crear nueva prescripción en el backend
+        this.prescripcionesService.createPrescripcion(newPrescriptionDto).subscribe({
+          next: (newPrescription) => {
+            // Mapear la nueva prescripción a Borrador
+            const borradorDuplicado = this.mapPrescriptionToBorrador(newPrescription);
+            
+            // Agregar al inicio de la lista
+            this.borradores.unshift(borradorDuplicado);
+            
+            // Actualizar datos para el modal
+            this.borradorOriginal = borrador;
+            this.borradorDuplicado = borradorDuplicado;
+            
+            // Refiltrar y repaginar
+            this.filtrarBorradores();
+            
+            // Mostrar modal de confirmación
+            this.modalDuplicarAbierto = true;
+            
+            console.log('Borrador duplicado:', borradorDuplicado);
+          },
+          error: (error) => {
+            console.error('Error al duplicar borrador:', error);
+            alert('Error al duplicar el borrador. Por favor, intenta de nuevo.');
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error al obtener borrador original:', error);
+        alert('Error al obtener el borrador original. Por favor, intenta de nuevo.');
+      }
+    });
   }
 
   eliminarBorrador(borrador: Borrador) {
@@ -1102,22 +1148,26 @@ export class BorradoresComponent implements OnInit, OnDestroy {
 
   confirmarEliminarBorrador() {
     if (this.borradorAEliminar) {
-      // Eliminar del array
-      this.borradores = this.borradores.filter(b => b.id !== this.borradorAEliminar!.id);
+      const borradorId = this.borradorAEliminar.id;
       
-      // Refiltrar y repaginar
-      this.filtrarBorradores();
-      
-      console.log('Borrador eliminado:', this.borradorAEliminar);
+      // Llamar al servicio para eliminar del backend
+      this.prescripcionesService.deletePrescripcion(borradorId).subscribe({
+        next: () => {
+          // Eliminar del array local
+          this.borradores = this.borradores.filter(b => b.id !== borradorId);
+          
+          // Refiltrar y repaginar
+          this.filtrarBorradores();
+          
+          console.log('Borrador eliminado:', borradorId);
+        },
+        error: (error) => {
+          console.error('Error al eliminar borrador:', error);
+          alert('Error al eliminar el borrador. Por favor, intenta de nuevo.');
+        }
+      });
     }
     this.cerrarModalEliminar();
   }
 
-  // Método auxiliar para generar nuevo ID
-  private generarNuevoId(): string {
-    const fecha = new Date();
-    const año = fecha.getFullYear();
-    const timestamp = Date.now().toString().slice(-6);
-    return `RX-${año}-${timestamp}`;
-  }
 }

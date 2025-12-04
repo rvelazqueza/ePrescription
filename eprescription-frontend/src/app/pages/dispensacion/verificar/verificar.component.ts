@@ -29,6 +29,8 @@ import { RoleSuggestionModalComponent } from '../../../components/role-suggestio
 import { RoleDemoService } from '../../../services/role-demo.service';
 import { RoleSuggestionService } from '../../../services/role-suggestion.service';
 import { RoleChangeModalService } from '../../../services/role-change-modal.service';
+import { PrescripcionesService } from '../../../services/prescripciones.service';
+import { DispensationService } from '../../../services/dispensation.service';
 
 interface VerificationResult {
   prescriptionNumber: string;
@@ -103,76 +105,14 @@ export class VerificarRecetaComponent implements OnInit, OnDestroy {
   constructor(
     private roleDemoService: RoleDemoService,
     private roleSuggestionService: RoleSuggestionService,
-    private roleChangeModalService: RoleChangeModalService
+    private roleChangeModalService: RoleChangeModalService,
+    private prescripcionesService: PrescripcionesService,
+    private dispensationService: DispensationService
   ) {}
 
-  // Mock data
-  mockPrescriptions: VerificationResult[] = [
-    {
-      prescriptionNumber: "RX-2025-009847",
-      qrCode: "QR-9847-A3F2",
-      token: "VRF-2025-9847-X8K4",
-      patientName: "María Elena González Rodríguez",
-      patientId: "CC-52.841.963",
-      emittedDate: "27/09/2025",
-      emittedTime: "10:32 a.m.",
-      validUntil: "11/10/2025",
-      medicinesCount: 3,
-      dispensationStatus: "emitted",
-      age: 45,
-      gender: "F",
-      doctorName: "Dr. Carlos Alberto Mendoza Herrera",
-      verificationStatus: "valid"
-    },
-    {
-      prescriptionNumber: "RX-2025-009846",
-      qrCode: "QR-9846-B7H9",
-      token: "VRF-2025-9846-M2P5",
-      patientName: "Juan Carlos Martínez López",
-      patientId: "CC-41.523.789",
-      emittedDate: "20/09/2025",
-      emittedTime: "02:15 p.m.",
-      validUntil: "04/10/2025",
-      medicinesCount: 2,
-      dispensationStatus: "emitted",
-      age: 52,
-      gender: "M",
-      doctorName: "Dr. Carlos Alberto Mendoza Herrera",
-      verificationStatus: "expired"
-    },
-    {
-      prescriptionNumber: "RX-2025-009845",
-      qrCode: "QR-9845-C4J1",
-      token: "VRF-2025-9845-N7R3",
-      patientName: "Ana Patricia Ruiz Sánchez",
-      patientId: "CC-39.654.321",
-      emittedDate: "25/09/2025",
-      emittedTime: "11:20 a.m.",
-      validUntil: "09/10/2025",
-      medicinesCount: 4,
-      dispensationStatus: "fully_dispensed",
-      age: 33,
-      gender: "F",
-      doctorName: "Dr. Carlos Alberto Mendoza Herrera",
-      verificationStatus: "already_dispensed"
-    },
-    {
-      prescriptionNumber: "RX-2025-009844",
-      qrCode: "QR-9844-D8K6",
-      token: "VRF-2025-9844-Q1W9",
-      patientName: "Roberto Antonio Silva Gómez",
-      patientId: "CC-45.789.123",
-      emittedDate: "28/09/2025",
-      emittedTime: "09:00 a.m.",
-      validUntil: "12/10/2025",
-      medicinesCount: 1,
-      dispensationStatus: "cancelled",
-      age: 28,
-      gender: "M",
-      doctorName: "Dr. Carlos Alberto Mendoza Herrera",
-      verificationStatus: "cancelled"
-    }
-  ];
+  // Loading and error states
+  isLoading = signal(false);
+  errorMessage = signal<string | null>(null);
 
   ngOnInit() {
     // Verificar si se debe mostrar el modal de sugerencia de rol
@@ -249,86 +189,170 @@ export class VerificarRecetaComponent implements OnInit, OnDestroy {
     const codeToVerify = qrCode || this.qrInput;
     
     if (!codeToVerify.trim()) {
-      alert('Por favor ingresa o escanea un código QR');
+      this.errorMessage.set('Por favor ingresa o escanea un código QR');
       return;
     }
 
-    // Buscar receta por QR
-    const prescription = this.mockPrescriptions.find(
-      p => p.qrCode?.toLowerCase() === codeToVerify.toLowerCase()
-    );
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
 
-    if (prescription) {
-      this.verificationResult.set(prescription);
-      this.isResultOpen.set(true);
-      this.addToRecentVerifications(prescription);
-    } else {
-      const invalidResult: VerificationResult = {
-        prescriptionNumber: "Desconocido",
-        qrCode: codeToVerify,
-        patientName: "No identificado",
-        patientId: "---",
-        emittedDate: "---",
-        emittedTime: "---",
-        validUntil: "---",
-        medicinesCount: 0,
-        dispensationStatus: "cancelled",
-        age: 0,
-        gender: "M",
-        doctorName: "---",
-        verificationStatus: "invalid"
-      };
-      
-      this.verificationResult.set(invalidResult);
-      this.isResultOpen.set(true);
-    }
+    // Obtener prescripción por código QR desde el backend
+    this.prescripcionesService.getPrescriptionByQR(codeToVerify).subscribe({
+      next: (prescription: any) => {
+        // Mapear la respuesta del backend al formato de VerificationResult
+        const result: VerificationResult = this.mapPrescriptionToVerificationResult(prescription);
+        
+        this.verificationResult.set(result);
+        this.isResultOpen.set(true);
+        this.addToRecentVerifications(result);
+        this.isLoading.set(false);
+      },
+      error: (error: any) => {
+        console.error('Error al verificar prescripción por QR:', error);
+        
+        const invalidResult: VerificationResult = {
+          prescriptionNumber: "Desconocido",
+          qrCode: codeToVerify,
+          patientName: "No identificado",
+          patientId: "---",
+          emittedDate: "---",
+          emittedTime: "---",
+          validUntil: "---",
+          medicinesCount: 0,
+          dispensationStatus: "cancelled",
+          age: 0,
+          gender: "M",
+          doctorName: "---",
+          verificationStatus: "invalid"
+        };
+        
+        this.verificationResult.set(invalidResult);
+        this.isResultOpen.set(true);
+        this.errorMessage.set('No se pudo verificar la prescripción. Código QR no válido.');
+        this.isLoading.set(false);
+      }
+    });
   }
 
   verifyByToken() {
     if (!this.tokenInput.trim()) {
-      alert('Por favor ingresa un token de verificación');
+      this.errorMessage.set('Por favor ingresa un token de verificación');
       return;
     }
 
-    // Buscar receta por token
-    const prescription = this.mockPrescriptions.find(
-      p => p.token?.toLowerCase() === this.tokenInput.toLowerCase()
-    );
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
 
-    if (prescription) {
-      this.verificationResult.set(prescription);
-      this.isResultOpen.set(true);
-      this.addToRecentVerifications(prescription);
-    } else {
-      const invalidResult: VerificationResult = {
-        prescriptionNumber: "Desconocido",
-        token: this.tokenInput,
-        patientName: "No identificado",
-        patientId: "---",
-        emittedDate: "---",
-        emittedTime: "---",
-        validUntil: "---",
-        medicinesCount: 0,
-        dispensationStatus: "cancelled",
-        age: 0,
-        gender: "M",
-        doctorName: "---",
-        verificationStatus: "invalid"
-      };
-      
-      this.verificationResult.set(invalidResult);
-      this.isResultOpen.set(true);
-    }
+    // Obtener prescripción por token desde el backend
+    // Nota: Asumiendo que el token es el ID de la prescripción
+    this.prescripcionesService.getPrescriptionById(this.tokenInput).subscribe({
+      next: (prescription: any) => {
+        // Mapear la respuesta del backend al formato de VerificationResult
+        const result: VerificationResult = this.mapPrescriptionToVerificationResult(prescription);
+        
+        this.verificationResult.set(result);
+        this.isResultOpen.set(true);
+        this.addToRecentVerifications(result);
+        this.isLoading.set(false);
+      },
+      error: (error: any) => {
+        console.error('Error al verificar prescripción por token:', error);
+        
+        const invalidResult: VerificationResult = {
+          prescriptionNumber: "Desconocido",
+          token: this.tokenInput,
+          patientName: "No identificado",
+          patientId: "---",
+          emittedDate: "---",
+          emittedTime: "---",
+          validUntil: "---",
+          medicinesCount: 0,
+          dispensationStatus: "cancelled",
+          age: 0,
+          gender: "M",
+          doctorName: "---",
+          verificationStatus: "invalid"
+        };
+        
+        this.verificationResult.set(invalidResult);
+        this.isResultOpen.set(true);
+        this.errorMessage.set('No se pudo verificar la prescripción. Token no válido.');
+        this.isLoading.set(false);
+      }
+    });
   }
 
   onTokenInput(event: any) {
     this.tokenInput = event.target.value.toUpperCase();
   }
 
+  /**
+   * Mapea una prescripción del backend al formato VerificationResult
+   */
+  private mapPrescriptionToVerificationResult(prescription: any): VerificationResult {
+    // Determinar el estado de verificación basado en el estado de la prescripción
+    let verificationStatus: 'valid' | 'expired' | 'cancelled' | 'already_dispensed' | 'invalid' = 'valid';
+    
+    // Usar valores en minúsculas que coinciden con el backend
+    if (prescription.status === 'cancelled') {
+      verificationStatus = 'cancelled';
+    } else if (prescription.status === 'dispensed') {
+      verificationStatus = 'already_dispensed';
+    } else if (prescription.validUntil && new Date(prescription.validUntil) < new Date()) {
+      verificationStatus = 'expired';
+    }
+
+    // Mapear el estado de dispensación
+    let dispensationStatus: 'emitted' | 'partially_dispensed' | 'fully_dispensed' | 'cancelled' | 'expired' = 'emitted';
+    if (prescription.status === 'dispensed') {
+      dispensationStatus = 'fully_dispensed';
+    } else if (prescription.status === 'cancelled') {
+      dispensationStatus = 'cancelled';
+    } else if (prescription.validUntil && new Date(prescription.validUntil) < new Date()) {
+      dispensationStatus = 'expired';
+    }
+
+    return {
+      prescriptionNumber: prescription.prescriptionNumber || prescription.id,
+      qrCode: prescription.qrCode,
+      token: prescription.id,
+      patientName: prescription.patientName || `${prescription.patient?.firstName || ''} ${prescription.patient?.lastName || ''}`.trim(),
+      patientId: prescription.patient?.identificationNumber || '---',
+      emittedDate: prescription.prescriptionDate ? new Date(prescription.prescriptionDate).toLocaleDateString('es-ES') : '---',
+      emittedTime: prescription.prescriptionDate ? new Date(prescription.prescriptionDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '---',
+      validUntil: prescription.validUntil ? new Date(prescription.validUntil).toLocaleDateString('es-ES') : '---',
+      medicinesCount: prescription.medications?.length || 0,
+      dispensationStatus: dispensationStatus,
+      age: this.calculateAge(prescription.patient?.dateOfBirth),
+      gender: prescription.patient?.gender === 'Male' ? 'M' : 'F',
+      doctorName: prescription.doctorName || `${prescription.doctor?.firstName || ''} ${prescription.doctor?.lastName || ''}`.trim(),
+      verificationStatus: verificationStatus
+    };
+  }
+
+  /**
+   * Calcula la edad a partir de la fecha de nacimiento
+   */
+  private calculateAge(dateOfBirth: string | undefined): number {
+    if (!dateOfBirth) return 0;
+    
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  }
+
   useExampleToken(token: string | undefined) {
     if (token) {
       this.tokenInput = token;
-      this.verifyByToken();
+      // No verificar automáticamente, solo llenar el campo
+      // El usuario debe hacer clic en "Verificar" manualmente
     }
   }
 

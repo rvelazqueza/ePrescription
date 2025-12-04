@@ -30,7 +30,7 @@ export class LoginComponent {
     private authService: AuthService
   ) {
     this.passwordForm = this.fb.group({
-      username: ['', [Validators.required, Validators.email]],
+      username: ['', [Validators.required]], // Removed email validator to allow usernames
       password: ['', [Validators.required, Validators.minLength(6)]],
       rememberMe: [false]
     });

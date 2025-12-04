@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Component - ePrescription</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f7fafc;
+            padding: 2rem;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Card Component Styles */
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 1.5rem 1.5rem 0 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin: 0;
+        }
+
+        .card-description {
+            color: #718096;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .card-action {
+            grid-column: 2;
+            grid-row: 1 / 3;
+        }
+
+        .card-content {
+            padding: 0 1.5rem;
+        }
+
+        .card-content:last-child {
+            padding-bottom: 1.5rem;
+        }
+
+        .card-footer {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-footer.border-t {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+        }
+
+        /* Variantes */
+        .card-elevated {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-bordered {
+            border: 2px solid #e2e8f0;
+        }
+
+        .card-primary {
+            border-color: #2b6cb0;
+            background: linear-gradient(135deg, #ebf8ff 0%, #ffffff 100%);
+        }
+
+        /* Botón de ejemplo */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #f7fafc;
+        }
+
+        .btn-primary {
+            background: #2b6cb0;
+            color: white;
+            border-color: #2b6cb0;
+        }
+
+        .btn-primary:hover {
+            background: #2c5282;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #2b6cb0;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+
+        /* Iconos SVG de ejemplo */
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <a href="../../index.html" class="back-link">
+            ← Volver al índice
+        </a>
+
+        <h1>Card Component</h1>
+        <p class="subtitle">Tarjeta contenedora con header, content y footer</p>
+
+        <div class="section">
+            <h2 class="section-title">Card Básica</h2>
+            <div class="demo-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Título de la Tarjeta</h3>
+                            <p class="card-description">Descripción breve de la tarjeta</p>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <p>Este es el contenido principal de la tarjeta. Aquí puedes colocar cualquier información relevante.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Card con Header y Footer</h2>
+            <div class="demo-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Información del Paciente</h3>
+                            <p class="card-description">Datos personales y clínicos</p>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <p><strong>Nombre:</strong> Juan Pérez García</p>
+                        <p><strong>Edad:</strong> 45 años</p>
+                        <p><strong>Tipo de Sangre:</strong> O+</p>
+                    </div>
+                    <div class="card-footer border-t">
+                        <button class="btn">Ver Historial</button>
+                        <button class="btn btn-primary">Nueva Prescripción</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Card con Acción</h2>
+            <div class="demo-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Medicamento: Paracetamol</h3>
+                            <p class="card-description">500mg - Vía Oral</p>
+                        </div>
+                        <div class="card-action">
+                            <button class="btn">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="1"></circle>
+                                    <circle cx="12" cy="5" r="1"></circle>
+                                    <circle cx="12" cy="19" r="1"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <p><strong>Dosis:</strong> 1 tableta cada 8 horas</p>
+                        <p><strong>Duración:</strong> 5 días</p>
+                        <p><strong>Stock:</strong> 150 unidades disponibles</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Variantes de Card</h2>
+            <div class="demo-grid">
+                <div class="card card-elevated">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Card Elevada</h3>
+                            <p class="card-description">Con sombra por defecto</p>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <p>Esta tarjeta tiene una sombra elevada para destacarse visualmente.</p>
+                    </div>
+                </div>
+
+                <div class="card card-bordered">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Card con Borde</h3>
+                            <p class="card-description">Borde grueso</p>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <p>Esta tarjeta tiene un borde más grueso para mayor énfasis.</p>
+                    </div>
+                </div>
+
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Card Primaria</h3>
+                            <p class="card-description">Estilo de marca</p>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <p>Esta tarjeta usa los colores primarios del sistema para destacar información importante.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Card de Estadísticas</h2>
+            <div class="demo-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Recetas Hoy</h3>
+                            <p class="card-description">Total emitidas</p>
+                        </div>
+                        <div class="card-action">
+                            <svg class="icon" style="color: #48bb78;" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #2b6cb0;">127</div>
+                        <p style="color: #48bb78; font-size: 0.875rem; margin-top: 0.5rem;">
+                            ↑ +12% vs ayer
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Pacientes Atendidos</h3>
+                            <p class="card-description">Hoy</p>
+                        </div>
+                        <div class="card-action">
+                            <svg class="icon" style="color: #ed8936;" viewBox="0 0 24 24">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #2b6cb0;">89</div>
+                        <p style="color: #ed8936; font-size: 0.875rem; margin-top: 0.5rem;">
+                            ↓ -3% vs ayer
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Alertas Activas</h3>
+                            <p class="card-description">Requieren atención</p>
+                        </div>
+                        <div class="card-action">
+                            <svg class="icon" style="color: #e53e3e;" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #e53e3e;">3</div>
+                        <p style="color: #718096; font-size: 0.875rem; margin-top: 0.5rem;">
+                            1 crítica, 2 moderadas
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Código de Ejemplo</h2>
+            <div class="code-block">
+                <pre><!-- Card Básica -->
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h3 class="card-title">Título</h3>
+            <p class="card-description">Descripción</p>
+        </div>
+    </div>
+    <div class="card-content">
+        <p>Contenido de la tarjeta</p>
+    </div>
+</div>
+
+<!-- Card con Footer -->
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h3 class="card-title">Título</h3>
+            <p class="card-description">Descripción</p>
+        </div>
+    </div>
+    <div class="card-content">
+        <p>Contenido...</p>
+    </div>
+    <div class="card-footer border-t">
+        <button class="btn">Cancelar</button>
+        <button class="btn btn-primary">Guardar</button>
+    </div>
+</div></pre>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

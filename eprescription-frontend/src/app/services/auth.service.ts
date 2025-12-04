@@ -1,5 +1,17 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
+import { 
+  LoginRequest, 
+  LoginResponse, 
+  RefreshTokenRequest, 
+  RefreshTokenResponse, 
+  UserInfo, 
+  LogoutRequest,
+  ApiError 
+} from '../interfaces/auth.interfaces';
+import { environment } from '../../environments/environment';
 
 export interface User {
   id: string;
@@ -59,261 +71,400 @@ export interface RegistrationRequest {
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+  private refreshTokenTimer?: any;
+  private readonly apiUrl = environment.apiUrl;
 
-  // Mock users database
-  private mockUsers: User[] = [
-    {
-      id: "user-001",
-      email: "dr.martinez@hospital.cr",
-      fullName: "Dr. Carlos Martínez Solís",
-      idType: "Cédula",
-      idNumber: "1-0234-0567",
-      phone: "+506 8888-7777",
-      status: "active",
-      mfaEnabled: false,
-      mfaMethods: ["totp", "webauthn"],
-      preferredAuthMethod: "password",
-      createdAt: "2024-01-15T10:00:00Z",
-      approvedAt: "2024-01-15T14:30:00Z",
-      approvedBy: "admin-001",
-      lastLogin: "2025-10-06T08:15:00Z",
-      digitalSignatureLinked: false
-    },
-    {
-      id: "user-002",
-      email: "dra.rojas@clinica.cr",
-      fullName: "Dra. Ana Rojas Campos",
-      idType: "Cédula",
-      idNumber: "1-0456-0789",
-      phone: "+506 8777-6666",
-      status: "active",
-      mfaEnabled: false,
-      mfaMethods: ["totp"],
-      preferredAuthMethod: "digital_signature",
-      createdAt: "2024-02-10T09:00:00Z",
-      approvedAt: "2024-02-10T11:00:00Z",
-      approvedBy: "admin-001",
-      lastLogin: "2025-10-05T14:30:00Z",
-      digitalSignatureLinked: true
-    }
-  ];
+  constructor(private http: HttpClient) {
+    // Check if user is already logged in
+    this.initializeFromStorage();
+  }
 
-  constructor() {
-    // Check for existing session
+  /**
+   * Initialize user session from localStorage
+   */
+  private initializeFromStorage(): void {
     const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
+    const token = this.getToken();
+    
+    if (savedUser && token) {
       try {
         const user = JSON.parse(savedUser);
-        // Validate that the user object has required properties
         if (user && user.id && user.email) {
           this.currentUserSubject.next(user);
+          this.scheduleTokenRefresh();
         } else {
-          // Clear invalid session data
-          localStorage.removeItem('currentUser');
+          this.clearSession();
         }
       } catch (error) {
-        // Clear invalid session data
-        localStorage.removeItem('currentUser');
+        this.clearSession();
       }
     }
   }
 
-  // Login con usuario y contraseña
-  login(email: string, password: string): Observable<{ success: boolean; requiresMFA?: boolean; userId?: string; error?: string }> {
-    return new Observable(observer => {
-      // Simular delay de red
-      setTimeout(() => {
-        const user = this.mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-        
-        if (!user || password !== "Demo123!") {
-          observer.next({ 
-            success: false, 
-            error: "No pudimos autenticarte. Verifica tus datos. Si no tienes cuenta, puedes solicitar registro." 
-          });
-          observer.complete();
-          return;
-        }
-        
-        if (user.status === "blocked") {
-          observer.next({ 
-            success: false, 
-            error: "Tu cuenta ha sido bloqueada. Contacta al administrador." 
-          });
-          observer.complete();
-          return;
-        }
-        
-        if (user.status === "pending") {
-          observer.next({ 
-            success: false, 
-            error: "Tu cuenta está pendiente de aprobación. Te notificaremos por correo cuando sea aprobada." 
-          });
-          observer.complete();
-          return;
-        }
-        
-        if (user.mfaEnabled) {
-          observer.next({ success: true, requiresMFA: true, userId: user.id });
-        } else {
-          // Login exitoso sin MFA
-          this.setCurrentUser(user);
-          observer.next({ success: true, requiresMFA: false, userId: user.id });
-        }
-        observer.complete();
-      }, 800);
-    });
+  /**
+   * Login with username and password (backend integration)
+   */
+  login(username: string, password: string): Observable<{ success: boolean; requiresMFA?: boolean; userId?: string; error?: string }> {
+    const loginRequest: LoginRequest = { username, password };
+    
+    return this.http.post<any>(`${this.apiUrl}/api/auth/login`, loginRequest)
+      .pipe(
+        tap(response => {
+          console.log('🔐 Login successful:', response);
+          this.handleLoginSuccess(response);
+        }),
+        map(response => ({
+          success: true,
+          requiresMFA: false,
+          userId: response.userInfo?.id || this.extractUserIdFromToken(response.accessToken)
+        })),
+        catchError(error => {
+          const errorMessage = this.extractErrorMessage(error);
+          console.error('❌ Login failed:', errorMessage);
+          return throwError(() => ({
+            success: false,
+            error: errorMessage
+          }));
+        })
+      );
   }
 
-  // Verificar MFA
+  /**
+   * Handle successful login response from backend
+   */
+  private handleLoginSuccess(response: any): void {
+    // Store tokens
+    this.setToken(response.accessToken);
+    this.setRefreshToken(response.refreshToken);
+    
+    // Map backend UserInfo to frontend User
+    const user = this.mapUserInfoToUser(response.userInfo);
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    this.currentUserSubject.next(user);
+    
+    // Schedule token refresh
+    this.scheduleTokenRefresh(response.expiresIn);
+  }
+
+  /**
+   * Map UserInfo from backend to User interface
+   */
+  private mapUserInfoToUser(userInfo: any): User {
+    // If userInfo is null, extract from token
+    if (!userInfo) {
+      const token = this.getToken();
+      if (token) {
+        const decoded = this.decodeToken(token);
+        return {
+          id: decoded.sub || 'unknown',
+          email: decoded.email || 'unknown@example.com',
+          fullName: decoded.name || decoded.preferred_username || 'Unknown User',
+          idType: "Cédula",
+          idNumber: decoded.preferred_username || 'unknown',
+          status: "active",
+          mfaEnabled: false,
+          mfaMethods: [],
+          preferredAuthMethod: "password",
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+          digitalSignatureLinked: false
+        };
+      }
+    }
+    
+    return {
+      id: userInfo.id || userInfo.userId || 'unknown',
+      email: userInfo.email || 'unknown@example.com',
+      fullName: `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim() || userInfo.username || 'Unknown User',
+      idType: "Cédula", // Default, should come from backend
+      idNumber: userInfo.username || 'unknown', // Temporary mapping
+      status: "active",
+      mfaEnabled: false,
+      mfaMethods: [],
+      preferredAuthMethod: "password",
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
+      digitalSignatureLinked: false
+    };
+  }
+
+  /**
+   * Decode JWT token to extract user information
+   */
+  private decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      const decoded = atob(payload);
+      return JSON.parse(decoded);
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Extract user ID from JWT token
+   */
+  private extractUserIdFromToken(token: string): string {
+    try {
+      const decoded = this.decodeToken(token);
+      return decoded.sub || decoded.user_id || 'unknown';
+    } catch (error) {
+      console.error('Error extracting user ID from token:', error);
+      return 'unknown';
+    }
+  }
+
+  /**
+   * Refresh the access token using refresh token
+   */
+  refreshToken(): Observable<string> {
+    const refreshToken = this.getRefreshToken();
+    
+    if (!refreshToken) {
+      return throwError(() => ({ status: 401, message: 'No refresh token available' }));
+    }
+
+    const refreshRequest: RefreshTokenRequest = { refresh_token: refreshToken };
+    
+    return this.http.post<any>(`${this.apiUrl}/api/auth/refresh`, refreshRequest)
+      .pipe(
+        tap(response => {
+          console.log('🔄 Token refreshed successfully');
+          this.setToken(response.accessToken);
+          this.setRefreshToken(response.refreshToken);
+          this.scheduleTokenRefresh(response.expiresIn);
+        }),
+        map(response => response.accessToken),
+        catchError(error => {
+          console.error('❌ Token refresh failed:', error);
+          this.clearSession();
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
+   * Schedule automatic token refresh
+   */
+  private scheduleTokenRefresh(expiresIn?: number): void {
+    // Clear existing timer
+    if (this.refreshTokenTimer) {
+      clearTimeout(this.refreshTokenTimer);
+    }
+
+    // Default to 50 minutes if no expiration provided (tokens usually expire in 1 hour)
+    const refreshTime = (expiresIn || 3600) * 1000 * 0.8; // Refresh at 80% of expiration time
+    
+    this.refreshTokenTimer = setTimeout(() => {
+      console.log('⏰ Auto-refreshing token...');
+      this.refreshToken().subscribe({
+        next: () => console.log('✅ Auto-refresh successful'),
+        error: (error) => console.error('❌ Auto-refresh failed:', error)
+      });
+    }, refreshTime);
+  }
+
+  /**
+   * @deprecated Legacy method - kept for compatibility with existing components
+   * TODO: Implement MFA with backend
+   */
   verifyMFA(userId: string, code: string, method: string): Observable<{ success: boolean; error?: string }> {
+    console.warn('⚠️ verifyMFA is a legacy method - MFA not yet implemented with backend');
     return new Observable(observer => {
       setTimeout(() => {
-        // Mock: acepta código "123456" o cualquier código de 6 dígitos para demo
-        if (code === "123456" || /^\d{6}$/.test(code)) {
-          const user = this.mockUsers.find(u => u.id === userId);
-          if (user) {
-            this.setCurrentUser(user);
-          }
-          observer.next({ success: true });
-        } else {
-          observer.next({ 
-            success: false, 
-            error: "Código incorrecto o vencido. Intenta nuevamente." 
-          });
-        }
+        observer.next({ 
+          success: false, 
+          error: "MFA not yet implemented with backend" 
+        });
         observer.complete();
       }, 600);
     });
   }
 
-  // Validar firma digital GAUDI
+  /**
+   * @deprecated Legacy method - kept for compatibility with existing components
+   * TODO: Implement digital signature with backend
+   */
   validateGaudiSignature(idNumber: string, signatureData: string): Observable<{ 
     success: boolean; 
     userId?: string; 
     error?: string;
-    certificateInfo?: {
-      subject: string;
-      issuer: string;
-      validFrom: string;
-      validUntil: string;
-      serialNumber: string;
-    };
+    certificateInfo?: any;
   }> {
+    console.warn('⚠️ validateGaudiSignature is a legacy method - Digital signature not yet implemented with backend');
     return new Observable(observer => {
       setTimeout(() => {
-        // Validar formato de cédula
-        if (!/^\d-\d{4}-\d{4}$/.test(idNumber)) {
-          observer.next({ 
-            success: false, 
-            error: "Formato de cédula inválido. Usa el formato: 0-0000-0000" 
-          });
-          observer.complete();
-          return;
-        }
-        
-        // Mock: buscar usuario con firma digital vinculada
-        const user = this.mockUsers.find(u => u.idNumber === idNumber && u.digitalSignatureLinked);
-        
-        if (!user) {
-          observer.next({ 
-            success: false, 
-            error: "No se pudo validar tu certificado digital. Verifica que esté vigente y no revocado." 
-          });
-          observer.complete();
-          return;
-        }
-        
-        this.setCurrentUser(user);
         observer.next({ 
-          success: true,
-          userId: user.id,
-          certificateInfo: {
-            subject: `CN=${user.fullName}, SERIALNUMBER=${idNumber}, C=CR`,
-            issuer: "CN=CA RAIZ NACIONAL - COSTA RICA v2, O=BANCO CENTRAL DE COSTA RICA, C=CR",
-            validFrom: "2024-01-15T00:00:00Z",
-            validUntil: "2026-01-14T23:59:59Z",
-            serialNumber: "3A2F1B9C8D7E6F5A4B3C2D1E0F9A8B7C"
-          }
+          success: false, 
+          error: "Digital signature authentication not yet implemented with backend" 
         });
         observer.complete();
       }, 1500);
     });
   }
 
-  // Solicitar recuperación de contraseña
+  /**
+   * @deprecated Legacy method - kept for compatibility with existing components
+   * TODO: Implement password recovery with backend
+   */
   requestPasswordRecovery(email: string): Observable<{ success: boolean; error?: string }> {
+    console.warn('⚠️ requestPasswordRecovery is a legacy method - Password recovery not yet implemented with backend');
     return new Observable(observer => {
       setTimeout(() => {
-        // Siempre retorna success para no revelar existencia de cuenta
         observer.next({ success: true });
         observer.complete();
       }, 1000);
     });
   }
 
-  // Iniciar recuperación de contraseña (alias para compatibilidad)
+  /**
+   * @deprecated Legacy method - kept for compatibility with existing components
+   */
   initiatePasswordRecovery(email: string): Observable<{ success: boolean }> {
-    return new Observable(observer => {
-      setTimeout(() => {
-        // Siempre retorna success para no revelar existencia de cuenta
-        observer.next({ success: true });
-        observer.complete();
-      }, 1000);
-    });
+    return this.requestPasswordRecovery(email).pipe(
+      map(result => ({ success: result.success }))
+    );
   }
 
-  // Resetear contraseña
+  /**
+   * @deprecated Legacy method - kept for compatibility with existing components
+   * TODO: Implement password reset with backend
+   */
   resetPassword(token: string, newPassword: string): Observable<{ success: boolean; error?: string }> {
+    console.warn('⚠️ resetPassword is a legacy method - Password reset not yet implemented with backend');
     return new Observable(observer => {
       setTimeout(() => {
-        if (token.length < 20) {
-          observer.next({ 
-            success: false, 
-            error: "Este enlace ha expirado o no es válido. Solicita uno nuevo." 
-          });
-          observer.complete();
-          return;
-        }
-        
-        if (newPassword.length < 12) {
-          observer.next({ 
-            success: false, 
-            error: "La contraseña debe tener al menos 12 caracteres." 
-          });
-          observer.complete();
-          return;
-        }
-        
-        observer.next({ success: true });
+        observer.next({ 
+          success: false, 
+          error: "Password reset not yet implemented with backend" 
+        });
         observer.complete();
       }, 800);
     });
   }
 
-  private setCurrentUser(user: User): void {
-    // Actualizar lastLogin
-    user.lastLogin = new Date().toISOString();
-    this.currentUserSubject.next(user);
-    localStorage.setItem('currentUser', JSON.stringify(user));
+  /**
+   * Logout user and clear session (backend integration)
+   */
+  logout(): Observable<void> {
+    const refreshToken = this.getRefreshToken();
+    
+    // Clear local session first
+    this.clearSession();
+    
+    // If we have a refresh token, notify the server
+    if (refreshToken) {
+      const logoutRequest: LogoutRequest = { refresh_token: refreshToken };
+      return this.http.post<void>(`${this.apiUrl}/api/auth/logout`, logoutRequest)
+        .pipe(
+          tap(() => console.log('🚪 Logout successful')),
+          catchError(error => {
+            console.warn('⚠️ Logout request failed, but local session cleared:', error);
+            return throwError(() => error);
+          })
+        );
+    }
+    
+    // Return empty observable if no refresh token
+    return new Observable(observer => {
+      observer.next();
+      observer.complete();
+    });
   }
 
-  logout(): void {
-    this.currentUserSubject.next(null);
+  /**
+   * Clear local session data
+   */
+  private clearSession(): void {
     localStorage.removeItem('currentUser');
-    // Clear any other session-related data if needed
-    localStorage.removeItem('sessionToken');
+    localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
+    this.currentUserSubject.next(null);
+    
+    // Clear refresh timer
+    if (this.refreshTokenTimer) {
+      clearTimeout(this.refreshTokenTimer);
+      this.refreshTokenTimer = undefined;
+    }
   }
 
+  /**
+   * Extract error message from HTTP error
+   */
+  private extractErrorMessage(error: HttpErrorResponse): string {
+    if (error.error instanceof ErrorEvent) {
+      return `Error: ${error.error.message}`;
+    }
+    
+    switch (error.status) {
+      case 400:
+        return 'Invalid credentials provided';
+      case 401:
+        return 'Invalid username or password';
+      case 403:
+        return 'Access forbidden';
+      case 500:
+        return 'Server error. Please try again later';
+      default:
+        return error.error?.message || `Error ${error.status}: ${error.message}`;
+    }
+  }
+
+  /**
+   * Get current user
+   */
   get currentUser(): User | null {
     return this.currentUserSubject.value;
   }
 
-  isAuthenticated(): boolean {
-    return this.currentUserSubject.value !== null;
+  /**
+   * Get current user (method version)
+   */
+  getCurrentUser(): User | null {
+    return this.currentUserSubject.value;
   }
 
+  /**
+   * Check if user is authenticated
+   */
+  isAuthenticated(): boolean {
+    return this.currentUserSubject.value !== null && !!this.getToken();
+  }
+
+  /**
+   * @deprecated Legacy method - users should be fetched from backend
+   */
   getUsers(): User[] {
-    return [...this.mockUsers];
+    console.warn('⚠️ getUsers is a legacy method - users should be fetched from backend');
+    return [];
+  }
+
+  /**
+   * Get the current JWT token from localStorage
+   */
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  /**
+   * Get the refresh token from localStorage
+   */
+  getRefreshToken(): string | null {
+    return localStorage.getItem('refreshToken');
+  }
+
+  /**
+   * Set the JWT token in localStorage
+   */
+  setToken(token: string): void {
+    localStorage.setItem('token', token);
+  }
+
+  /**
+   * Set the refresh token in localStorage
+   */
+  setRefreshToken(refreshToken: string): void {
+    localStorage.setItem('refreshToken', refreshToken);
   }
 }

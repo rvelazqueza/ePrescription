@@ -40,9 +40,17 @@ public class PrescriptionMappingProfile : Profile
             .ForMember(dest => dest.Dispensations, opt => opt.MapFrom(src => src.Dispensations));
             
         CreateMap<Prescription, PrescriptionListDto>()
-            .ForMember(dest => dest.PatientName, opt => opt.Ignore()) // Will be loaded separately
-            .ForMember(dest => dest.DoctorName, opt => opt.Ignore()) // Will be loaded separately
-            .ForMember(dest => dest.MedicalCenterName, opt => opt.Ignore()) // Will be loaded separately
+            // IDs necesarios
+            .ForMember(dest => dest.PatientId, opt => opt.MapFrom(src => src.PatientId))
+            .ForMember(dest => dest.DoctorId, opt => opt.MapFrom(src => src.DoctorId))
+            // Nombres opcionales (el frontend los carga por separado)
+            .ForMember(dest => dest.PatientName, opt => opt.Ignore())
+            .ForMember(dest => dest.DoctorName, opt => opt.Ignore())
+            .ForMember(dest => dest.MedicalCenterName, opt => opt.Ignore())
+            // Arrays completos de medicamentos y diagnósticos
+            .ForMember(dest => dest.Medications, opt => opt.MapFrom(src => src.Medications))
+            .ForMember(dest => dest.Diagnoses, opt => opt.MapFrom(src => src.Diagnoses))
+            // Contadores
             .ForMember(dest => dest.MedicationCount, opt => opt.MapFrom(src => src.Medications.Count))
             .ForMember(dest => dest.DiagnosisCount, opt => opt.MapFrom(src => src.Diagnoses.Count));
             
@@ -58,7 +66,8 @@ public class PrescriptionMappingProfile : Profile
             .ForMember(dest => dest.DispensationItems, opt => opt.Ignore());
             
         CreateMap<PrescriptionMedication, PrescriptionMedicationDto>()
-            .ForMember(dest => dest.Medication, opt => opt.MapFrom(src => src.Medication));
+            .ForMember(dest => dest.Medication, opt => opt.Ignore()) // Will be loaded separately
+            .ForMember(dest => dest.AdministrationRoute, opt => opt.Ignore()); // Will be loaded separately
             
         // Prescription Diagnosis mappings
         CreateMap<CreatePrescriptionDiagnosisDto, PrescriptionDiagnosis>()
@@ -90,5 +99,8 @@ public class PrescriptionMappingProfile : Profile
         // Medication mappings
         CreateMap<Medication, MedicationSummaryDto>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.CommercialName));
+        
+        // Administration Route mappings
+        CreateMap<AdministrationRoute, AdministrationRouteSummaryDto>();
     }
 }
