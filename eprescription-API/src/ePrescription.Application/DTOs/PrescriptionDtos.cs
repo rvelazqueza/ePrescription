@@ -306,6 +306,9 @@ public class CreateDraftDto
     [Required(ErrorMessage = "Medical Center ID is required")]
     public Guid MedicalCenterId { get; set; }
     
+    [Required(ErrorMessage = "Prescription Pad ID is required")]
+    public Guid PadId { get; set; }
+    
     public List<CreatePrescriptionDiagnosisDto>? Diagnoses { get; set; }
     
     public List<CreatePrescriptionMedicationDto>? Medications { get; set; }

@@ -2,31 +2,73 @@ using AutoMapper;
 using EPrescription.Application.DTOs;
 using EPrescription.Domain.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace EPrescription.Application.Commands.Prescriptions;
 
 public class CreateDraftCommandHandler : IRequestHandler<CreateDraftCommand, PrescriptionDto>
 {
     private readonly IPrescriptionRepository _prescriptionRepository;
+    private readonly IPrescriptionPadRepository _padRepository;
+    private readonly IPrescriptionSlipRepository _slipRepository;
     private readonly IRepository<EPrescription.Domain.Entities.Cie10Catalog> _cie10Repository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ILogger<CreateDraftCommandHandler> _logger;
 
     public CreateDraftCommandHandler(
         IPrescriptionRepository prescriptionRepository,
+        IPrescriptionPadRepository padRepository,
+        IPrescriptionSlipRepository slipRepository,
         IRepository<EPrescription.Domain.Entities.Cie10Catalog> cie10Repository,
         IUnitOfWork unitOfWork,
-        IMapper mapper)
+        IMapper mapper,
+        ILogger<CreateDraftCommandHandler> logger)
     {
         _prescriptionRepository = prescriptionRepository;
+        _padRepository = padRepository;
+        _slipRepository = slipRepository;
         _cie10Repository = cie10Repository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<PrescriptionDto> Handle(CreateDraftCommand request, CancellationToken cancellationToken)
     {
         var dto = request.DraftDto;
+        
+        _logger.LogInformation("Creating draft prescription - DoctorId: {DoctorId}, PadId: {PadId}", 
+            dto.DoctorId, dto.PadId);
+        
+        // 1. Validate prescription pad exists and is available
+        var pad = await _padRepository.GetByIdAsync(dto.PadId, cancellationToken);
+        if (pad == null)
+        {
+            _logger.LogWarning("Prescription pad not found: {PadId}", dto.PadId);
+            throw new InvalidOperationException($"Prescription pad not found: {dto.PadId}");
+        }
+
+        // 2. Validate pad belongs to doctor
+        if (pad.DoctorId != dto.DoctorId)
+        {
+            _logger.LogWarning("Pad {PadId} does not belong to doctor {DoctorId}", dto.PadId, dto.DoctorId);
+            throw new InvalidOperationException($"Prescription pad does not belong to this doctor");
+        }
+
+        // 3. Validate pad is not expired
+        if (pad.ExpirationDate <= DateTime.UtcNow)
+        {
+            _logger.LogWarning("Prescription pad expired: {PadId}", dto.PadId);
+            throw new InvalidOperationException($"Prescription pad has expired");
+        }
+
+        // 4. Validate pad has available count
+        if (pad.AvailableCount <= 0)
+        {
+            _logger.LogWarning("Prescription pad has no available count: {PadId}", dto.PadId);
+            throw new InvalidOperationException($"Prescription pad has no available count");
+        }
         
         // Create prescription in draft status
         var prescription = new EPrescription.Domain.Entities.Prescription(
@@ -96,6 +138,18 @@ public class CreateDraftCommandHandler : IRequestHandler<CreateDraftCommand, Pre
         // Save to database
         var createdPrescription = await _prescriptionRepository.AddAsync(prescription);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // 5. Create prescription slip (boleta) for this draft
+        var slip = new EPrescription.Domain.Entities.PrescriptionSlip(
+            padId: dto.PadId,
+            prescriptionId: createdPrescription.Id,
+            slipNumber: $"SLIP-{createdPrescription.PrescriptionNumber}");
+
+        await _slipRepository.AddAsync(slip);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Draft prescription created successfully - PrescriptionNumber: {PrescriptionNumber}, SlipId: {SlipId}",
+            createdPrescription.PrescriptionNumber, slip.Id);
 
         // Load the created prescription with related data for mapping
         var prescriptionWithIncludes = await _prescriptionRepository.GetByIdAsync(createdPrescription.Id);
