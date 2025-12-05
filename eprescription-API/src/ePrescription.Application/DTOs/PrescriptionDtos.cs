@@ -16,6 +16,9 @@ public class CreatePrescriptionDto
     [Required(ErrorMessage = "Medical Center ID is required")]
     public Guid MedicalCenterId { get; set; }
     
+    [Required(ErrorMessage = "Prescription Pad ID is required")]
+    public Guid PadId { get; set; }
+    
     [Required(ErrorMessage = "Prescription date is required")]
     public DateTime PrescriptionDate { get; set; }
     
