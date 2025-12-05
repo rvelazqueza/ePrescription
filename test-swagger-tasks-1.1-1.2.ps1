@@ -102,7 +102,7 @@ Write-Host ""
 Write-Host "5. Acceso a Swagger UI:" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "   🌐 Abre en tu navegador:" -ForegroundColor Cyan
-Write-Host "   http://localhost:8000/swagger/ui" -ForegroundColor Green
+Write-Host "   http://localhost:8000/index.html" -ForegroundColor Green
 Write-Host ""
 
 Write-Host "=== Prueba Completada ===" -ForegroundColor Cyan

@@ -2,7 +2,7 @@
 
 ## Acceso a Swagger
 
-1. Abre tu navegador en: **http://localhost:8000/swagger/ui**
+1. Abre tu navegador en: **http://localhost:8000/index.html**
 
 ## Endpoints para Probar
 

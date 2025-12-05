@@ -161,7 +161,7 @@ GET /api/prescriptions/pads/available?doctorId={doctorId}
 
 ## Acceso a Swagger
 
-**URL:** http://localhost:8000/swagger/ui
+**URL:** http://localhost:8000/index.html
 
 Desde Swagger puedes:
 - ✅ Ver todos los endpoints disponibles
