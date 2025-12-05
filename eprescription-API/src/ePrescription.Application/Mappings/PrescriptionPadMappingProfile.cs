@@ -23,7 +23,7 @@ public class PrescriptionPadMappingProfile : Profile
 
         // PrescriptionSlip mappings
         CreateMap<PrescriptionSlip, PrescriptionSlipDto>()
-            .ForMember(dest => dest.Pad, opt => opt.MapFrom(src => src.Pad))
+            .ForMember(dest => dest.PrescriptionPad, opt => opt.MapFrom(src => src.PrescriptionPad))
             .ReverseMap();
     }
 }

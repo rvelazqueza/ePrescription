@@ -30,7 +30,7 @@ public class PrescriptionSlipRepository : Repository<PrescriptionSlip>, IPrescri
         try
         {
             var slips = await _dbSet
-                .Where(s => s.PrescriptionId == prescriptionId)
+                .Where(s => s.UsedByPrescriptionId == prescriptionId)
                 .OrderBy(s => s.CreatedAt)
                 .ToListAsync(cancellationToken);
 
@@ -53,8 +53,8 @@ public class PrescriptionSlipRepository : Repository<PrescriptionSlip>, IPrescri
         try
         {
             var slips = await _dbSet
-                .Include(s => s.Pad)
-                .Where(s => s.PadId == padId)
+                .Include(s => s.PrescriptionPad)
+                .Where(s => s.PrescriptionPadId == padId)
                 .OrderBy(s => s.CreatedAt)
                 .ToListAsync(cancellationToken);
 
@@ -79,9 +79,9 @@ public class PrescriptionSlipRepository : Repository<PrescriptionSlip>, IPrescri
         try
         {
             var query = _dbSet
-                .Include(s => s.Pad)
-                .Include(s => s.Prescription)
-                .Where(s => s.Pad.DoctorId == doctorId && s.PrescriptionId != null);
+                .Include(s => s.PrescriptionPad)
+                .Include(s => s.UsedByPrescription)
+                .Where(s => s.PrescriptionPad.DoctorId == doctorId && s.UsedByPrescriptionId != null);
 
             if (startDate.HasValue)
                 query = query.Where(s => s.CreatedAt >= startDate.Value);
@@ -112,7 +112,7 @@ public class PrescriptionSlipRepository : Repository<PrescriptionSlip>, IPrescri
         try
         {
             var availableSlips = await _dbSet
-                .Where(s => s.PadId == padId && s.PrescriptionId == null)
+                .Where(s => s.PrescriptionPadId == padId && s.UsedByPrescriptionId == null)
                 .OrderBy(s => s.CreatedAt)
                 .ToListAsync(cancellationToken);
 
@@ -143,7 +143,7 @@ public class PrescriptionSlipRepository : Repository<PrescriptionSlip>, IPrescri
                 return false;
             }
 
-            if (slip.PrescriptionId != null)
+            if (slip.UsedByPrescriptionId != null)
             {
                 _logger.LogWarning("Slip already used: {SlipId}", slipId);
                 return false;
@@ -176,9 +176,9 @@ public class PrescriptionSlipRepository : Repository<PrescriptionSlip>, IPrescri
         try
         {
             var query = _dbSet
-                .Include(s => s.Pad)
-                .Include(s => s.Prescription)
-                .Where(s => s.Pad.DoctorId == doctorId);
+                .Include(s => s.PrescriptionPad)
+                .Include(s => s.UsedByPrescription)
+                .Where(s => s.PrescriptionPad.DoctorId == doctorId);
 
             var totalCount = await query.CountAsync(cancellationToken);
 
@@ -207,12 +207,12 @@ public class PrescriptionSlipRepository : Repository<PrescriptionSlip>, IPrescri
         try
         {
             var slips = await _dbSet
-                .Include(s => s.Pad)
-                .Where(s => s.Pad.DoctorId == doctorId)
+                .Include(s => s.PrescriptionPad)
+                .Where(s => s.PrescriptionPad.DoctorId == doctorId)
                 .ToListAsync(cancellationToken);
 
             var totalSlips = slips.Count;
-            var usedSlips = slips.Count(s => s.PrescriptionId != null);
+            var usedSlips = slips.Count(s => s.UsedByPrescriptionId != null);
             var availableSlips = totalSlips - usedSlips;
 
             _logger.LogInformation("Slip statistics for doctor {DoctorId}: Total={Total}, Used={Used}, Available={Available}",

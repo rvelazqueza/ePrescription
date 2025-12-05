@@ -41,15 +41,16 @@ public class PrescriptionPadDto
 public class PrescriptionSlipDto
 {
     public Guid Id { get; set; }
-    public Guid PadId { get; set; }
-    public Guid? PrescriptionId { get; set; }
-    public string SlipNumber { get; set; } = string.Empty;
+    public Guid PrescriptionPadId { get; set; }
+    public int SlipNumber { get; set; }
+    public Guid? UsedByPrescriptionId { get; set; }
+    public DateTime? UsedAt { get; set; }
     public string Status { get; set; } = "available";
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     
     // Related data
-    public PrescriptionPadDto? Pad { get; set; }
+    public PrescriptionPadDto? PrescriptionPad { get; set; }
 }
 
 /// <summary>

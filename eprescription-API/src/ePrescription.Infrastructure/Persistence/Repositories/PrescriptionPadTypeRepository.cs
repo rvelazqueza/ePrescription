@@ -28,7 +28,7 @@ public class PrescriptionPadTypeRepository : Repository<PrescriptionPadType>, IP
         try
         {
             var padType = await _dbSet
-                .FirstOrDefaultAsync(pt => pt.Code == code, cancellationToken);
+                .FirstOrDefaultAsync(pt => pt.PadTypeCode == code, cancellationToken);
 
             return padType;
         }
@@ -48,7 +48,7 @@ public class PrescriptionPadTypeRepository : Repository<PrescriptionPadType>, IP
         {
             var activePadTypes = await _dbSet
                 .Where(pt => pt.IsActive)
-                .OrderBy(pt => pt.Name)
+                .OrderBy(pt => pt.PadTypeName)
                 .ToListAsync(cancellationToken);
 
             return activePadTypes;
@@ -56,29 +56,6 @@ public class PrescriptionPadTypeRepository : Repository<PrescriptionPadType>, IP
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting active pad types");
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Gets pad types by specialty
-    /// </summary>
-    public async Task<IEnumerable<PrescriptionPadType>> GetBySpecialtyAsync(
-        Guid specialtyId,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var padTypes = await _dbSet
-                .Where(pt => pt.SpecialtyId == specialtyId && pt.IsActive)
-                .OrderBy(pt => pt.Name)
-                .ToListAsync(cancellationToken);
-
-            return padTypes;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting pad types by specialty: {SpecialtyId}", specialtyId);
             throw;
         }
     }

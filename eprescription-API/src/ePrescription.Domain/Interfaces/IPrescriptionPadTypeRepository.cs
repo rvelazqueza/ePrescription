@@ -17,9 +17,4 @@ public interface IPrescriptionPadTypeRepository : IRepository<PrescriptionPadTyp
     /// Gets all active pad types
     /// </summary>
     Task<IEnumerable<PrescriptionPadType>> GetActiveAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets pad types by specialty
-    /// </summary>
-    Task<IEnumerable<PrescriptionPadType>> GetBySpecialtyAsync(Guid specialtyId, CancellationToken cancellationToken = default);
 }

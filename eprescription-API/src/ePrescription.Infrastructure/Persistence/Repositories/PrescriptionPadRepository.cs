@@ -151,11 +151,11 @@ public class PrescriptionPadRepository : Repository<PrescriptionPad>, IPrescript
                 return false;
             }
 
-            pad.DecrementAvailableCount(quantity);
+            pad.DecrementAvailableCount();
             Update(pad);
 
-            _logger.LogInformation("Decremented pad availability: {PadId}, Quantity: {Quantity}, Remaining: {Remaining}",
-                padId, quantity, pad.AvailableCount);
+            _logger.LogInformation("Decremented pad availability: {PadId}, Remaining: {Remaining}",
+                padId, pad.AvailableCount);
 
             return true;
         }

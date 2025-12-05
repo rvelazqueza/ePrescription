@@ -140,10 +140,16 @@ public class CreateDraftCommandHandler : IRequestHandler<CreateDraftCommand, Pre
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         // 5. Create prescription slip (boleta) for this draft
+        // Get the next slip number based on existing slips for this pad
+        var existingSlips = await _slipRepository.FindAsync(
+            s => s.PrescriptionPadId == dto.PadId,
+            cancellationToken);
+        
+        var nextSlipNumber = existingSlips.Count() + 1;
+        
         var slip = new EPrescription.Domain.Entities.PrescriptionSlip(
-            padId: dto.PadId,
-            prescriptionId: createdPrescription.Id,
-            slipNumber: $"SLIP-{createdPrescription.PrescriptionNumber}");
+            prescriptionPadId: dto.PadId,
+            slipNumber: nextSlipNumber);
 
         await _slipRepository.AddAsync(slip);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
