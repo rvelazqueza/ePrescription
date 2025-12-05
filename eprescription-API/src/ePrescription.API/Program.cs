@@ -197,6 +197,13 @@ builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPrescriptionPadRepos
 builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPrescriptionSlipRepository,
     EPrescription.Infrastructure.Persistence.Repositories.PrescriptionSlipRepository>();
 
+// Register Medication Repository
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IMedicationRepository,
+    EPrescription.Infrastructure.Persistence.Repositories.MedicationRepository>();
+
+// Register Application Services
+// builder.Services.AddScoped<EPrescription.Application.Services.MedicationsService>();
+
 var app = builder.Build();
 
 // Initialize roles and permissions on startup - DISABLED TEMPORARILY

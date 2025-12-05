@@ -11,6 +11,7 @@ public class CreateDraftCommandHandler : IRequestHandler<CreateDraftCommand, Pre
     private readonly IPrescriptionRepository _prescriptionRepository;
     private readonly IPrescriptionPadRepository _padRepository;
     private readonly IPrescriptionSlipRepository _slipRepository;
+    private readonly IMedicationRepository _medicationRepository;
     private readonly IRepository<EPrescription.Domain.Entities.Cie10Catalog> _cie10Repository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
@@ -20,6 +21,7 @@ public class CreateDraftCommandHandler : IRequestHandler<CreateDraftCommand, Pre
         IPrescriptionRepository prescriptionRepository,
         IPrescriptionPadRepository padRepository,
         IPrescriptionSlipRepository slipRepository,
+        IMedicationRepository medicationRepository,
         IRepository<EPrescription.Domain.Entities.Cie10Catalog> cie10Repository,
         IUnitOfWork unitOfWork,
         IMapper mapper,
@@ -28,6 +30,7 @@ public class CreateDraftCommandHandler : IRequestHandler<CreateDraftCommand, Pre
         _prescriptionRepository = prescriptionRepository;
         _padRepository = padRepository;
         _slipRepository = slipRepository;
+        _medicationRepository = medicationRepository;
         _cie10Repository = cie10Repository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -68,6 +71,12 @@ public class CreateDraftCommandHandler : IRequestHandler<CreateDraftCommand, Pre
         {
             _logger.LogWarning("Prescription pad has no available count: {PadId}", dto.PadId);
             throw new InvalidOperationException($"Prescription pad has no available count");
+        }
+
+        // 5. Validate medications against pad type
+        if (dto.Medications != null && dto.Medications.Count > 0)
+        {
+            await ValidateMedicationsForPadType(dto.Medications, pad, cancellationToken);
         }
         
         // Create prescription in draft status
@@ -162,5 +171,81 @@ public class CreateDraftCommandHandler : IRequestHandler<CreateDraftCommand, Pre
 
         // Map to DTO and return
         return _mapper.Map<PrescriptionDto>(prescriptionWithIncludes);
+    }
+
+    /// <summary>
+    /// Validates medications against prescription pad type restrictions
+    /// </summary>
+    private async Task ValidateMedicationsForPadType(
+        IEnumerable<CreatePrescriptionMedicationDto> medications,
+        EPrescription.Domain.Entities.PrescriptionPad pad,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Validating medications for pad type - PadId: {PadId}, PadType: {PadType}",
+            pad.Id, pad.PadType?.PadTypeName);
+
+        if (pad.PadType == null)
+        {
+            _logger.LogError("Prescription pad type not found - PadId: {PadId}", pad.Id);
+            throw new InvalidOperationException($"Prescription pad type not found for pad: {pad.Id}");
+        }
+
+        var padTypeName = pad.PadType.PadTypeName?.ToLowerInvariant();
+        var isNarcoticPad = padTypeName?.Contains("narcotic") == true || 
+                           padTypeName?.Contains("controlled") == true ||
+                           padTypeName?.Contains("especial") == true;
+
+        _logger.LogInformation("Pad type analysis - PadType: {PadType}, IsNarcoticPad: {IsNarcoticPad}",
+            padTypeName, isNarcoticPad);
+
+        foreach (var medicationDto in medications)
+        {
+            // Get medication details to check if it's controlled
+            var medication = await _medicationRepository.GetByIdAsync(medicationDto.MedicationId, cancellationToken);
+            
+            if (medication == null)
+            {
+                _logger.LogError("Medication not found - MedicationId: {MedicationId}", medicationDto.MedicationId);
+                throw new InvalidOperationException($"Medication not found: {medicationDto.MedicationId}");
+            }
+
+            if (!medication.IsActive)
+            {
+                _logger.LogError("Medication is not active - MedicationId: {MedicationId}", medicationDto.MedicationId);
+                throw new InvalidOperationException($"Medication is not active: {medication.CommercialName}");
+            }
+
+            // Determine if medication is controlled based on its PadType
+            // A medication is controlled if it has a PadTypeId that matches a narcotic/controlled pad type
+            var medicationPadType = medication.PadType;
+            var medicationPadTypeName = medicationPadType?.PadTypeName?.ToLowerInvariant();
+            var isControlledMedication = medicationPadTypeName?.Contains("narcotic") == true || 
+                                        medicationPadTypeName?.Contains("controlled") == true ||
+                                        medicationPadTypeName?.Contains("especial") == true;
+
+            _logger.LogInformation("Medication validation - Name: {Name}, MedicationPadType: {MedicationPadType}, IsControlled: {IsControlled}",
+                medication.CommercialName, medicationPadTypeName ?? "none", isControlledMedication);
+
+            // Apply business rules
+            if (isNarcoticPad && !isControlledMedication)
+            {
+                _logger.LogError("Non-controlled medication cannot be prescribed with narcotic pad - Medication: {Name}, PadType: {PadType}",
+                    medication.CommercialName, padTypeName);
+                throw new InvalidOperationException(
+                    $"Medication '{medication.CommercialName}' is not controlled and cannot be prescribed with a narcotic/controlled prescription pad.");
+            }
+
+            if (!isNarcoticPad && isControlledMedication)
+            {
+                _logger.LogError("Controlled medication requires narcotic pad - Medication: {Name}, MedicationPadType: {MedicationPadType}",
+                    medication.CommercialName, medicationPadTypeName);
+                throw new InvalidOperationException(
+                    $"Controlled medication '{medication.CommercialName}' requires a narcotic/controlled prescription pad.");
+            }
+
+            _logger.LogInformation("Medication validation passed - Name: {Name}", medication.CommercialName);
+        }
+
+        _logger.LogInformation("All medications validated successfully for pad type - PadId: {PadId}", pad.Id);
     }
 }
