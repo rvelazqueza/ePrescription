@@ -20,6 +20,7 @@ public class MedicationConfiguration : IEntityTypeConfiguration<Medication>
         builder.Property(m => m.RequiresPrescription).HasColumnName("REQUIRES_PRESCRIPTION").HasDefaultValue(true);
         builder.Property(m => m.IsActive).HasColumnName("IS_ACTIVE").HasDefaultValue(true);
         builder.Property(m => m.AdministrationRouteId).HasColumnName("ADMINISTRATION_ROUTE_ID");
+        builder.Property(m => m.PadTypeId).HasColumnName("PAD_TYPE_ID"); // NEW: Prescription pad type
         
         builder.Property(m => m.CreatedAt)
             .HasColumnName("CREATED_AT")
@@ -29,5 +30,12 @@ public class MedicationConfiguration : IEntityTypeConfiguration<Medication>
             .HasColumnName("UPDATED_AT")
             .ValueGeneratedOnAddOrUpdate();
         builder.HasIndex(m => m.MedicationCode).IsUnique();
+
+        // NEW: Relationship with PrescriptionPadType
+        builder.HasOne(m => m.PadType)
+            .WithMany(p => p.Medications)
+            .HasForeignKey(m => m.PadTypeId)
+            .HasConstraintName("FK_MED_PAD_TYPE")
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

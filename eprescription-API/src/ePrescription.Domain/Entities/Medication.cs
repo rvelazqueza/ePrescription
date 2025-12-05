@@ -15,9 +15,11 @@ public class Medication : BaseEntity
     public bool RequiresPrescription { get; private set; } = true;
     public bool IsActive { get; private set; } = true;
     public Guid? AdministrationRouteId { get; private set; }
+    public Guid? PadTypeId { get; private set; } // NEW: Link to prescription pad type
 
     // Navigation properties
     public virtual AdministrationRoute? AdministrationRoute { get; private set; }
+    public virtual PrescriptionPadType? PadType { get; private set; } // NEW: Prescription pad type
     public virtual ICollection<PrescriptionMedication> Prescriptions { get; private set; } = new List<PrescriptionMedication>();
     public virtual ICollection<DrugInteraction> InteractionsAsFirst { get; private set; } = new List<DrugInteraction>();
     public virtual ICollection<DrugInteraction> InteractionsAsSecond { get; private set; } = new List<DrugInteraction>();
@@ -33,7 +35,8 @@ public class Medication : BaseEntity
         string? presentation = null,
         string? concentration = null,
         bool requiresPrescription = true,
-        Guid? administrationRouteId = null)
+        Guid? administrationRouteId = null,
+        Guid? padTypeId = null) // NEW: Prescription pad type
     {
         MedicationCode = medicationCode;
         CommercialName = commercialName;
@@ -43,6 +46,7 @@ public class Medication : BaseEntity
         Concentration = concentration;
         RequiresPrescription = requiresPrescription;
         AdministrationRouteId = administrationRouteId;
+        PadTypeId = padTypeId; // NEW
         IsActive = true;
     }
 
