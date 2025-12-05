@@ -189,6 +189,14 @@ builder.Services.AddScoped<EPrescription.Domain.Interfaces.IRepository<EPrescrip
 builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPharmacyRepository,
     EPrescription.Infrastructure.Persistence.Repositories.PharmacyRepository>();
 
+// Register Prescription Pad Repositories
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPrescriptionPadTypeRepository,
+    EPrescription.Infrastructure.Persistence.Repositories.PrescriptionPadTypeRepository>();
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPrescriptionPadRepository,
+    EPrescription.Infrastructure.Persistence.Repositories.PrescriptionPadRepository>();
+builder.Services.AddScoped<EPrescription.Domain.Interfaces.IPrescriptionSlipRepository,
+    EPrescription.Infrastructure.Persistence.Repositories.PrescriptionSlipRepository>();
+
 var app = builder.Build();
 
 // Initialize roles and permissions on startup - DISABLED TEMPORARILY
